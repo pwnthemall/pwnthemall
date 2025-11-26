@@ -22,6 +22,7 @@ require (
 	github.com/minio/minio-go/v7 v7.0.94
 	github.com/pwnthemall/pwnthemall/backend/shared v0.0.0-00010101000000-000000000000
 	github.com/vishvananda/netlink v1.3.1
+	golang.org/x/image v0.18.0
 	gopkg.in/yaml.v2 v2.4.0
 	gorm.io/gorm v1.31.1
 )
@@ -203,7 +204,6 @@ require (
 	go.opentelemetry.io/otel/trace v1.38.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.7.1 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/image v0.0.0-20191009234506-e7c1f5e7dbb8 // indirect
 	golang.org/x/oauth2 v0.30.0 // indirect
 	golang.org/x/sync v0.18.0 // indirect
 	golang.org/x/term v0.37.0 // indirect
