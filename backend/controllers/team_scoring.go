@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/copier"
 	"github.com/pwnthemall/pwnthemall/backend/config"
 	"github.com/pwnthemall/pwnthemall/backend/dto"
 	"github.com/pwnthemall/pwnthemall/backend/models"
@@ -13,10 +14,10 @@ import (
 
 // Constants for query strings
 const (
-	queryTeamID             = "team_id = ?"
-	queryChallengeCreatedAt = "challenge_id = ? AND created_at < ?"
+	queryTeamID                = "team_id = ?"
+	queryChallengeCreatedAt    = "challenge_id = ? AND created_at < ?"
 	queryChallengeCreatedAtLTE = "challenge_id = ? AND created_at <= ?"
-	queryCoalesceSumCost    = "COALESCE(SUM(cost), 0)"
+	queryCoalesceSumCost       = "COALESCE(SUM(cost), 0)"
 )
 
 // Helper functions for score calculation
@@ -26,7 +27,7 @@ const (
 func calculateSolvePointsWithDecay(solve *models.Solve, challenge *models.Challenge, position int, decayService *utils.DecayService) int {
 	// Use CalculateCurrentPoints to get CURRENT challenge value (changes as more teams solve)
 	currentPoints := decayService.CalculateCurrentPoints(challenge)
-	
+
 	// Add FirstBlood bonus if applicable (based on position at solve time)
 	if challenge.EnableFirstBlood && len(challenge.FirstBloodBonuses) > 0 {
 		if position < len(challenge.FirstBloodBonuses) {
@@ -34,7 +35,7 @@ func calculateSolvePointsWithDecay(solve *models.Solve, challenge *models.Challe
 			currentPoints += bonusValue
 		}
 	}
-	
+
 	return currentPoints
 }
 
@@ -74,7 +75,7 @@ func calculateTeamScore(teamID uint, decayService *utils.DecayService) (int, err
 		position := getSolvePosition(challenge.ID, solve.CreatedAt)
 		points := calculateSolvePointsWithDecay(&solve, &challenge, position, decayService)
 		totalScore += points
-		log.Printf("[DEBUG] Team %d, Challenge %d (slug: %s), Position: %d, CurrentPoints: %d, DecayFormulaID: %d", 
+		log.Printf("[DEBUG] Team %d, Challenge %d (slug: %s), Position: %d, CurrentPoints: %d, DecayFormulaID: %d",
 			teamID, challenge.ID, challenge.Slug, position, points, challenge.DecayFormulaID)
 	}
 
@@ -93,11 +94,11 @@ func calculateFirstBloodBonusForScoring(challenge *models.Challenge, position in
 	if !challenge.EnableFirstBlood || len(challenge.FirstBloodBonuses) == 0 {
 		return 0
 	}
-	
+
 	if position < len(challenge.FirstBloodBonuses) {
 		return int(challenge.FirstBloodBonuses[position])
 	}
-	
+
 	return 0
 }
 
@@ -247,8 +248,11 @@ func GetLeaderboard(c *gin.Context) {
 		var solveCount int64
 		config.DB.Model(&models.Solve{}).Where(queryTeamID, team.ID).Count(&solveCount)
 
+		var safeTeam dto.SafeTeam
+		copier.Copy(&safeTeam, &team)
+
 		leaderboard = append(leaderboard, dto.TeamScore{
-			Team:       team,
+			Team:       safeTeam,
 			TotalScore: finalScore,
 			SolveCount: int(solveCount),
 		})

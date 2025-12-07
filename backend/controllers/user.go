@@ -1,8 +1,9 @@
 package controllers
 
 import (
-	"strings"
 	"encoding/json"
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/copier"
 	"github.com/pwnthemall/pwnthemall/backend/config"
@@ -128,11 +129,11 @@ func GetCurrentUser(c *gin.Context) {
 		return
 	}
 
-	var safeMembers []models.SafeUser
+	var safeMembers []dto.SafeUser
 	if user.TeamID != nil {
 		var members []models.User
 		if err := config.DB.Where("team_id = ?", user.TeamID).Find(&members).Error; err == nil {
-			safeMembers = make([]models.SafeUser, len(members))
+			safeMembers = make([]dto.SafeUser, len(members))
 			copier.Copy(&safeMembers, &members)
 		}
 	}
@@ -210,7 +211,7 @@ func BanOrUnbanUser(c *gin.Context) {
 	// Broadcast ban event to the specific user via WebSocket
 	if user.Banned && utils.UpdatesHub != nil {
 		payload, _ := json.Marshal(gin.H{
-			"event":  "user-banned",
+			"event":   "user-banned",
 			"user_id": user.ID,
 		})
 		utils.UpdatesHub.SendToUser(user.ID, payload)
@@ -284,16 +285,11 @@ func GetIndividualLeaderboard(c *gin.Context) {
 		if user.Team != nil {
 			teamName = user.Team.Name
 		}
-
-		// Clear sensitive/unnecessary data from user
-		user.Password = ""
-		user.Email = ""
-		user.IPAddresses = nil
-		user.Submissions = nil
-		user.Notifications = nil
+		var safeUser dto.SafeUser
+		copier.Copy(&safeUser, &user)
 
 		leaderboard = append(leaderboard, dto.IndividualScore{
-			User:       user,
+			User:       safeUser,
 			TeamName:   teamName,
 			TotalScore: score.TotalScore,
 			SolveCount: int(score.SolveCount),

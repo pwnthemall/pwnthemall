@@ -2,6 +2,13 @@ package dto
 
 import "github.com/pwnthemall/pwnthemall/backend/models"
 
+type SafeTeam struct {
+	ID     uint           `json:"id"`
+	Name   string         `json:"name"`
+	Users  []SafeUser     `json:"users,omitempty"`
+	Solves []models.Solve `json:"solves,omitempty"`
+}
+
 // CreateTeamInput represents team creation request
 type CreateTeamInput struct {
 	Name     string `json:"name" binding:"required,max=100"`
@@ -17,7 +24,7 @@ type JoinTeamInput struct {
 
 // TeamScore represents team scoring information for leaderboard
 type TeamScore struct {
-	Team       models.Team `json:"team"`
-	TotalScore int         `json:"totalScore"`
-	SolveCount int         `json:"solveCount"`
+	Team       SafeTeam `json:"team"`
+	TotalScore int      `json:"totalScore"`
+	SolveCount int      `json:"solveCount"`
 }
