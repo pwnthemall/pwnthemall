@@ -221,8 +221,8 @@ func stopInstanceOnSolve(teamID uint, challengeID uint, actorID uint, actorName 
 	}
 
 	// Try stopping the container
-	if instance.Container != "" {
-		if err := utils.StopDockerInstance(instance.Container); err != nil {
+	if instance.Name != "" {
+		if err := utils.StopDockerInstance(instance.Name); err != nil {
 			debug.Log("Failed to stop Docker instance on solve: %v", err)
 		}
 	}

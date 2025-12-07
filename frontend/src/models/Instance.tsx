@@ -3,7 +3,7 @@ import { Team } from "./Team"
 
 export interface Instance {
   id: number
-  container: string
+  name: string
   userId: number
   teamId: number
   challengeId: number
@@ -15,6 +15,6 @@ export interface Instance {
 export interface InstanceResponse {
   status: string
   image_name: string
-  container_name: string
+  name: string
   connection_info?: string[]
 } 

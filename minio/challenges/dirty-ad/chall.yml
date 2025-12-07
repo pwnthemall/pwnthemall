@@ -1,0 +1,10 @@
+name: "Dirty AD"
+author: "pwnthemall-staff"
+category: active-directory
+description: |
+    Test Active Directory challenge
+type: libvirt
+flags: ["flag"]
+difficulty: easy
+hidden: false
+points: 200
