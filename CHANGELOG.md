@@ -1,5 +1,21 @@
 # 🚀 Changelog
 
+## [0.3.0](https://github.com/pwnthemall/pwnthemall/compare/v0.2.0...v0.3.0) (2025-12-07)
+
+
+### 🧩 Features
+
+* **plugins:** Challenge_registry transferred in shared module + Instance.Container renammed into Instance.Name ([f15320c](https://github.com/pwnthemall/pwnthemall/commit/f15320cd601163892c4a965209de7f33a1ed08cb))
+
+
+### 🐛 Bug fixes
+
+* **api/challenges:** CheckChallengeDeps fix nil reference ([14982c8](https://github.com/pwnthemall/pwnthemall/commit/14982c8cf2484e2923bed6cc207aa27f807cf412))
+* **api/challenges:** Vulnerability on challenge dependencies ([0614548](https://github.com/pwnthemall/pwnthemall/commit/0614548311c9c950b3de9496b001c61a54b1cc14))
+* **challenge:** Fixed challenge folder name so they can be used as docker type ([1949da1](https://github.com/pwnthemall/pwnthemall/commit/1949da1ddb7548e33a55a8072e20d205578e43bf))
+* **security:** Wrong permissions for member fix + prevent api data leak ([e0e3c0d](https://github.com/pwnthemall/pwnthemall/commit/e0e3c0da275c99afa75dca16362d0b5e79f01d99))
+* **security:** Wrong permissions for member fix + prevent api data leak ([4d75962](https://github.com/pwnthemall/pwnthemall/commit/4d7596216415a8f446b0ee470bea4dedddbb4f7c))
+
 ## [0.2.0](https://github.com/pwnthemall/pwnthemall/compare/v0.1.3...v0.2.0) (2025-12-06)
 
 
