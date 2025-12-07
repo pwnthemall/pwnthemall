@@ -57,8 +57,9 @@ export const useInstances = () => {
         toast.error(errorMessage || 'Docker service is currently unavailable. Please try again later.')
         setError('docker_unavailable')
       } else if (errorCode === 'instance_already_running') {
-        toast.error('Instance is already running for this challenge')
-        setError('instance_already_running')
+        // Treat as success - instance is running which is what user wanted
+        toast.success('Instance is already running')
+        return { status: 'instance_already_running' } as InstanceResponse
       } else if (errorCode === 'max_instances_by_user_reached') {
         toast.error('You have reached the maximum number of instances allowed')
         setError('max_instances_reached')

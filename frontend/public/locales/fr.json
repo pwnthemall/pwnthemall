@@ -375,7 +375,7 @@
     "instance_status": "Statut de l'instance"
   },
   "instance_actions": {
-    "instance_cooldown_wait": "Veuillez patienter avant de démarrer une autre instance. Période de refroidissement active.",
+    "instance_cooldown_wait": "Veuillez patienter avant de démarrer une autre instance.",
     "instance_stopped_success": "Instance arrêtée avec succès",
     "instance_create_failed": "Échec de la création de l'instance",
     "kill_instance": "Tuer l'instance",

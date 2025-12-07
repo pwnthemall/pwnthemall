@@ -75,13 +75,16 @@ func (h *dockerChallengeHandler) validateInstanceStartPreconditions(c *gin.Conte
 		}
 	}
 
-	// Check if instance already exists
-	var countExist int64
-	config.DB.Model(&models.Instance{}).
-		Where("team_id = ? AND challenge_id = ?", user.Team.ID, challengeID).
-		Count(&countExist)
-	if countExist >= 1 {
-		c.JSON(http.StatusForbidden, gin.H{"error": "instance_already_running"})
+	// Check if instance already exists - return existing instance info instead of error
+	var existingInstance models.Instance
+	if err := config.DB.Where("team_id = ? AND challenge_id = ?", user.Team.ID, challengeID).First(&existingInstance).Error; err == nil {
+		// Instance exists, return its info as success
+		c.JSON(http.StatusOK, gin.H{
+			"status":     "instance_already_running",
+			"name":       existingInstance.Container,
+			"ports":      existingInstance.Ports,
+			"expires_at": existingInstance.ExpiresAt,
+		})
 		return false
 	}
 
