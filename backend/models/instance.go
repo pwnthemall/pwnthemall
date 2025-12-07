@@ -8,7 +8,7 @@ import (
 
 type Instance struct {
 	ID          uint          `gorm:"primaryKey" json:"id"`
-	Container   string        `json:"container"`
+	Name        string        `json:"name"`
 	User        User          `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"user"`
 	UserID      uint          `json:"userId"`
 	Team        Team          `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"team"`

@@ -323,7 +323,7 @@ export default function InstancesContent({ instances, onRefresh }: Readonly<Inst
       },
     },
     {
-      accessorKey: "container",
+      accessorKey: "name",
       header: () => (
         <div className="font-semibold">
           {t("container_id")}

@@ -88,7 +88,7 @@ const InstanceStatus = ({ className }: InstanceStatusProps) => {
                     {instance.challenge?.name || 'Unknown Challenge'}
                   </span>
                   <div className="text-xs text-muted-foreground mt-1">
-                    {t('container')}: {instance.container}
+                    {t('container')}: {instance.name}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {t('started_on')} {new Date(instance.createdAt).toLocaleDateString()}

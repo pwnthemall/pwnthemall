@@ -8,7 +8,7 @@ import (
 
 type InstanceDTO struct {
 	ID          uint             `json:"id"`
-	Container   string           `json:"container"`
+	Name        string           `json:"name"`
 	UserID      uint             `json:"userId"`
 	TeamID      uint             `json:"teamId"`
 	ChallengeID uint             `json:"challengeId"`
@@ -20,7 +20,7 @@ type InstanceDTO struct {
 
 type AdminInstanceDTO struct {
 	ID            uint      `json:"id"`
-	Container     string    `json:"container"`
+	Name          string    `json:"name"`
 	UserID        uint      `json:"userId"`
 	Username      string    `json:"username"`
 	TeamID        uint      `json:"teamId"`

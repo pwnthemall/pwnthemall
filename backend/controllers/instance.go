@@ -97,8 +97,8 @@ func DeleteInstanceAdmin(c *gin.Context) {
 	}
 
 	// Stop the Docker/Compose container asynchronously (can take time)
-	if instance.Container != "" {
-		containerName := instance.Container
+	if instance.Name != "" {
+		containerName := instance.Name
 		isCompose := instance.Challenge.ChallengeType.Name == "compose"
 
 		go func() {
@@ -155,8 +155,8 @@ func StopAllInstancesAdmin(c *gin.Context) {
 	semaphore := make(chan struct{}, maxConcurrent)
 
 	for _, instance := range instances {
-		if instance.Container != "" {
-			containerName := instance.Container
+		if instance.Name != "" {
+			containerName := instance.Name
 			isCompose := instance.Challenge.ChallengeType != nil && instance.Challenge.ChallengeType.Name == "compose"
 
 			// Acquire semaphore slot (blocks if 3 are already running)

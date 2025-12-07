@@ -18,7 +18,7 @@ interface InstanceStatus {
   created_at: string;
   expires_at: string;
   is_expired: boolean;
-  container: string;
+  name: string;
 }
 
 export const InstanceControls: React.FC<InstanceControlsProps> = ({ 
@@ -201,7 +201,7 @@ export const InstanceControls: React.FC<InstanceControlsProps> = ({
 
       {instanceStatus?.has_instance && (
         <div className="text-sm text-muted-foreground space-y-1">
-          <div>Container: {instanceStatus.container}</div>
+          <div>Container: {instanceStatus.name}</div>
           <div>Created: {formatTime(instanceStatus.created_at)}</div>
           {instanceStatus.expires_at && (
             <div>Expires: {formatTime(instanceStatus.expires_at)}</div>

@@ -93,7 +93,7 @@ type InstanceEvent struct {
 	TeamID         uint        `json:"teamId"`
 	UserID         uint        `json:"userId"`
 	Username       string      `json:"username,omitempty"`
-	Container      string      `json:"container,omitempty"`
+	Name      string      `json:"name,omitempty"`
 	ChallengeID    uint        `json:"challengeId,omitempty"`
 	Status         string      `json:"status,omitempty"`
 	UpdatedAt      int64       `json:"updatedAt,omitempty"`
