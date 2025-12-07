@@ -1,5 +1,44 @@
 # 🚀 Changelog
 
+## [0.2.0](https://github.com/pwnthemall/pwnthemall/compare/v0.1.3...v0.2.0) (2025-12-06)
+
+
+### 🧩 Features
+
+* **admin:** Add cover position editor for challenge images ([031cbed](https://github.com/pwnthemall/pwnthemall/commit/031cbedfbdd0427b965414ac4ce7cc18fd1b500d))
+* **challenge:** Add emoji fallback display for cards without cover ([7efc9c6](https://github.com/pwnthemall/pwnthemall/commit/7efc9c67eda703412de73718d35bbe917a8a2dcb))
+* **cli:** Add db seed-demo to seed teams with time-spread solves ([5f3a100](https://github.com/pwnthemall/pwnthemall/commit/5f3a100a31ab2702bdd8eee6928d9b84a60cda42))
+* **cover:** Add zoom control for challenge cover images ([cc0152f](https://github.com/pwnthemall/pwnthemall/commit/cc0152fd40bb5a900a7d34b85041e2acd4e51c3d))
+* **dashboard:** Make difficulty badges dynamic based on used difficulties ([6c0a59a](https://github.com/pwnthemall/pwnthemall/commit/6c0a59a4e5671f43dfbfc8c748f54c5c3d428dc3))
+* **scoreboard:** Add individual leaderboard and new endpoints ([d341794](https://github.com/pwnthemall/pwnthemall/commit/d341794ae19bbf61aa822ab84bf0fc8adca1e19b))
+* **scoreboard:** Highlight single team on hover in chart ([8ed16b5](https://github.com/pwnthemall/pwnthemall/commit/8ed16b5b7f58d6ca878aafb4a39ac26860cae0d2))
+* **scoreboard:** Limit chart to top 10 teams with clickable teams to toggle visibility ([0b4da58](https://github.com/pwnthemall/pwnthemall/commit/0b4da58479270601223760651d3f1a87aae7cc24))
+* **scoreboard:** Show all teams in timeline instead of top 3 ([74eef01](https://github.com/pwnthemall/pwnthemall/commit/74eef0114c847ee60c6216998b87510b0a0ec897))
+
+
+### 🐛 Bug fixes
+
+* **admin:** Challenge edit layout now use fixed height for tabs ([6ba2bd5](https://github.com/pwnthemall/pwnthemall/commit/6ba2bd5f475a42076554eaac824536fed760e93d))
+* **admin:** Fixed errors, not seeign challs, not being able to buy hints etc when an admin has no team ([9a44e8b](https://github.com/pwnthemall/pwnthemall/commit/9a44e8bbd47605c3bfbd09df8f9fca3929749559))
+* **admin:** Fixed not being able to buy hints for free as admin ([3ed6fea](https://github.com/pwnthemall/pwnthemall/commit/3ed6fea7ba400ba11302a8497b58782a78939640))
+* **admin:** Match cover preview dimensions to actual card rendering ([eafc97b](https://github.com/pwnthemall/pwnthemall/commit/eafc97b0b2e7c9175f5b93cc7a56b483a78bd3ac))
+* Challenges covers ([568ca1d](https://github.com/pwnthemall/pwnthemall/commit/568ca1dc3187b37a2324912f4b7b8f9b673fffa7))
+* **cli:** Keep cover images after a second minio sync ([eda5dec](https://github.com/pwnthemall/pwnthemall/commit/eda5dec811aaf152f182faf135df504211ed9fd2))
+* **cover:** Final try to make the preview the same as the actual challenge card ([6f3c7fd](https://github.com/pwnthemall/pwnthemall/commit/6f3c7fd8ce856a6fad21bfdf62751cacdbdf9e96))
+* **cover:** Fixed placement beign removed after minio sync ([80a74eb](https://github.com/pwnthemall/pwnthemall/commit/80a74ebe4294faa332f1c0d26a159adaf4a45e76))
+* **instance:** Websocket broadcast to stop normal docker challenges (same system as compose challs) ([b87f17b](https://github.com/pwnthemall/pwnthemall/commit/b87f17bbfd871a62dd3dd78167bd92a4ce5e94e3))
+* **pta-cli:** Removing -v to compose down when env is prod ([5b7a5b5](https://github.com/pwnthemall/pwnthemall/commit/5b7a5b53da7b30fe946328ec735c0c63e0b3fe26))
+* **scoreboard:** Update frontend to use new dynamic timeline format ([0a52ac4](https://github.com/pwnthemall/pwnthemall/commit/0a52ac49c36e7d80bd7a0e1d0b5b0e78732fe7fe))
+* **security:** Update golang.org/x/image, glob, mdast-util-to-hast ([c90fb4f](https://github.com/pwnthemall/pwnthemall/commit/c90fb4f25ed9d81626b1abd5e11b10ef9a126034))
+* **seeder:** Silenced record-not-found logs ([5a696e0](https://github.com/pwnthemall/pwnthemall/commit/5a696e09141a1e3fb0d18aeeace9107f2a85b5d0))
+* Trad en/fr ([f7709cd](https://github.com/pwnthemall/pwnthemall/commit/f7709cda07de791438f9314c089723fa0992af43))
+* Yaml challenge ([763b1da](https://github.com/pwnthemall/pwnthemall/commit/763b1da88906982d6d0e6f94fcb496ca2d8e1f45))
+
+
+### 📝 Documentation
+
+* Readme fix ([855bf99](https://github.com/pwnthemall/pwnthemall/commit/855bf9933ab650c19c51e9fc08fca2202857d8fe))
+
 ## [0.1.3](https://github.com/pwnthemall/pwnthemall/compare/v0.1.2...v0.1.3) (2025-11-27)
 
 
