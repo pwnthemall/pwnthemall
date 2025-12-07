@@ -146,6 +146,9 @@ func CheckChallengeDependancies(c *gin.Context, challenge models.Challenge) bool
 		utils.InternalServerError(c, "user_wrong_type")
 		return false
 	}
+	if user.Role == "admin" {
+		return true
+	}
 	solvedNamesMap := make(map[string]bool)
 	var solvedChallenges []models.Challenge
 	config.DB.Table("challenges").
