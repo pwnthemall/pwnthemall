@@ -14,7 +14,6 @@ import (
 	"github.com/lib/pq"
 	"github.com/pwnthemall/pwnthemall/backend/config"
 	"github.com/pwnthemall/pwnthemall/backend/debug"
-	"github.com/pwnthemall/pwnthemall/backend/dto"
 	"github.com/pwnthemall/pwnthemall/backend/models"
 	"github.com/pwnthemall/pwnthemall/backend/utils"
 	"gorm.io/gorm"
@@ -240,6 +239,10 @@ func BuildChallengeImage(c *gin.Context) {
 		utils.NotFoundError(c, "challenge_not_found")
 		return
 	}
+	if !CheckChallengeDependancies(c, challenge) {
+		utils.NotFoundError(c, "challenge_not_found")
+		return
+	}
 	// Check if challenge is of type docker
 	if challenge.ChallengeType.Name != "docker" {
 		utils.BadRequestError(c, "challenge_not_docker_type")
@@ -276,7 +279,10 @@ func StartChallengeInstance(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "challenge_not_found"})
 		return
 	}
-
+	if !CheckChallengeDependancies(c, challenge) {
+		utils.NotFoundError(c, "challenge_not_found")
+		return
+	}
 	handler, ok := GetChallengeHandler(challenge.ChallengeType.Name)
 	if !ok {
 		debug.Log("No handler registered for challenge type: %s", challenge.ChallengeType.Name)
@@ -301,7 +307,10 @@ func StopChallengeInstance(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "challenge_not_found"})
 		return
 	}
-
+	if !CheckChallengeDependancies(c, challenge) {
+		utils.NotFoundError(c, "challenge_not_found")
+		return
+	}
 	handler, ok := GetChallengeHandler(challenge.ChallengeType.Name)
 	if !ok {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported_challenge_type"})
@@ -312,103 +321,6 @@ func StopChallengeInstance(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed_to_stop_challenge"})
 		return
 	}
-}
-
-// KillChallengeInstance forcefully stops a challenge instance
-func KillChallengeInstance(c *gin.Context) {
-	challengeID := c.Param("id")
-	userID, ok := c.Get("user_id")
-	if !ok {
-		debug.Log("No user_id in context for kill request")
-		utils.UnauthorizedError(c, "unauthorized")
-		return
-	}
-	debug.Log("Killing instance for challenge ID: %s by user ID: %v", challengeID, userID)
-
-	var user models.User
-	if err := config.DB.Preload("Team").First(&user, userID).Error; err != nil {
-		debug.Log("User not found with ID %v: %v", userID, err)
-		utils.NotFoundError(c, "user_not_found")
-		return
-	}
-	debug.Log("Found user: %s, TeamID: %v", user.Username, user.TeamID)
-
-	if user.Team == nil || user.TeamID == nil {
-		debug.Log("User has no team: Team=%v, TeamID=%v", user.Team, user.TeamID)
-		utils.ForbiddenError(c, "team_required")
-		return
-	}
-	debug.Log("User team: %s (ID: %d)", user.Team.Name, user.Team.ID)
-
-	// Find the instance for this user/team and challenge
-	var instance models.Instance
-	if err := config.DB.Where("team_id = ? AND challenge_id = ?", user.Team.ID, challengeID).First(&instance).Error; err != nil {
-		debug.Log("Instance not found for team %d, challenge %s: %v", user.Team.ID, challengeID, err)
-		utils.NotFoundError(c, "instance_not_found")
-		return
-	}
-	debug.Log("Found instance: ID=%d, Container=%s, Status=%s", instance.ID, instance.Container, instance.Status)
-
-	// Check if user owns this instance or is admin
-	if instance.UserID != user.ID && user.Role != "admin" {
-		debug.Log("User %d not authorized to kill instance owned by user %d (user role: %s)", user.ID, instance.UserID, user.Role)
-		utils.ForbiddenError(c, "not_authorized")
-		return
-	}
-	debug.Log("User authorized to kill instance")
-
-	// Stop the Docker container
-	debug.Log("Stopping Docker container: %s", instance.Container)
-	if err := utils.StopDockerInstance(instance.Container); err != nil {
-		debug.Log("Error stopping Docker instance: %v", err)
-		utils.InternalServerError(c, "failed_to_stop_instance")
-		return
-	}
-	debug.Log("Docker container stopped successfully: %s", instance.Container)
-
-	// Update instance status
-	debug.Log("Updating instance status to 'stopped'")
-	instance.Status = "stopped"
-	if err := config.DB.Save(&instance).Error; err != nil {
-		debug.Log("Error updating instance status: %v", err)
-		utils.InternalServerError(c, "failed_to_update_instance")
-		return
-	}
-	debug.Log("Instance status updated successfully")
-
-	// Record cooldown immediately before kill to prevent rapid restarts
-	if instance.TeamID != 0 {
-		now := time.Now().UTC()
-		var cd models.InstanceCooldown
-		if err := config.DB.Where("team_id = ? AND challenge_id = ?", instance.TeamID, instance.ChallengeID).First(&cd).Error; err == nil {
-			cd.LastStoppedAt = now
-			_ = config.DB.Save(&cd).Error
-		} else {
-			_ = config.DB.Create(&models.InstanceCooldown{TeamID: instance.TeamID, ChallengeID: instance.ChallengeID, LastStoppedAt: now}).Error
-		}
-	}
-
-	// Broadcast instance stopped event to team (except the actor)
-	if utils.WebSocketHub != nil {
-		event := dto.InstanceEvent{
-			Event:       "instance_update",
-			TeamID:      user.Team.ID,
-			UserID:      user.ID,
-			Username:    user.Username,
-			ChallengeID: instance.ChallengeID,
-			Status:      "stopped",
-			UpdatedAt:   time.Now().UTC().Unix(),
-		}
-		if payload, err := json.Marshal(event); err == nil {
-			utils.WebSocketHub.SendToTeamExcept(user.Team.ID, user.ID, payload)
-		}
-	}
-
-	utils.OKResponse(c, gin.H{
-		"status":  "instance_stopped",
-		"message": "Instance stopped successfully",
-	})
-	debug.Log("Kill instance request completed successfully for challenge %s", challengeID)
 }
 
 // validateInstanceStartPreconditions checks all preconditions for starting instance
@@ -730,126 +642,6 @@ func StartComposeChallengeInstance(c *gin.Context) {
 	}()
 }
 
-// getUserAndInstance retrieves and validates the user and instance for stopping
-func getUserAndInstance(c *gin.Context, challengeID string) (*models.User, *models.Instance, error) {
-	userID, ok := c.Get("user_id")
-	if !ok {
-		return nil, nil, fmt.Errorf("unauthorized")
-	}
-
-	var user models.User
-	if err := config.DB.Select("id, team_id").First(&user, userID).Error; err != nil {
-		return nil, nil, fmt.Errorf("user_not_found")
-	}
-
-	var instance models.Instance
-	teamID := uint(0)
-	if user.TeamID != nil {
-		teamID = *user.TeamID
-	}
-
-	query := config.DB.Where("challenge_id = ? AND team_id = ?", challengeID, teamID)
-	if err := query.First(&instance).Error; err != nil {
-		return nil, nil, fmt.Errorf("instance_not_found")
-	}
-
-	if instance.UserID != user.ID && (user.TeamID == nil || instance.TeamID != *user.TeamID) {
-		return nil, nil, fmt.Errorf("forbidden")
-	}
-
-	return &user, &instance, nil
-}
-
-// recordInstanceCooldown records the cooldown time when an instance is stopped
-func recordInstanceCooldown(instance *models.Instance) {
-	if instance.TeamID == 0 {
-		return
-	}
-
-	now := time.Now().UTC()
-	var cd models.InstanceCooldown
-
-	if err := config.DB.Where("team_id = ? AND challenge_id = ?", instance.TeamID, instance.ChallengeID).First(&cd).Error; err == nil {
-		cd.LastStoppedAt = now
-		_ = config.DB.Save(&cd).Error
-	} else {
-		_ = config.DB.Create(&models.InstanceCooldown{
-			TeamID:        instance.TeamID,
-			ChallengeID:   instance.ChallengeID,
-			LastStoppedAt: now,
-		}).Error
-	}
-}
-
-// stopInstanceByType stops the instance based on challenge type
-func stopInstanceByType(challenge *models.Challenge, instance *models.Instance) error {
-	switch challenge.ChallengeType.Name {
-	case "docker":
-		go func() {
-			if err := utils.StopDockerInstance(instance.Container); err != nil {
-				debug.Log("Failed to stop Docker instance: %v", err)
-			}
-			if err := config.DB.Delete(instance).Error; err != nil {
-				debug.Log("Failed to delete instance from DB: %v", err)
-			}
-		}()
-		return nil
-
-	case "compose":
-		if err := utils.StopComposeInstance(instance.Container); err != nil {
-			debug.Log("Failed to stop Compose instance: %v", err)
-			return fmt.Errorf("compose_stop_failed")
-		}
-		if err := config.DB.Delete(instance).Error; err != nil {
-			debug.Log("Failed to delete Compose instance from DB: %v", err)
-			return fmt.Errorf("db_delete_failed")
-		}
-		return nil
-
-	default:
-		debug.Log("Unknown challenge type: %s", challenge.ChallengeType.Name)
-		return fmt.Errorf("unknown_challenge_type")
-	}
-}
-
-func stopInstanceByTypeAsync(challenge *models.Challenge, instance *models.Instance, userID interface{}) error {
-	switch challenge.ChallengeType.Name {
-	case "docker":
-		go func() {
-			if err := utils.StopDockerInstance(instance.Container); err != nil {
-				debug.Log("Failed to stop Docker instance: %v", err)
-			}
-			if err := config.DB.Delete(instance).Error; err != nil {
-				debug.Log("Failed to delete instance from DB: %v", err)
-			}
-			// Broadcast after actual stop
-			broadcastInstanceStop(userID, instance)
-		}()
-		return nil
-
-	case "compose":
-		// Stop compose asynchronously to avoid request timeout
-		go func() {
-			if err := utils.StopComposeInstance(instance.Container); err != nil {
-				debug.Log("Failed to stop Compose instance: %v", err)
-				return
-			}
-			if err := config.DB.Delete(instance).Error; err != nil {
-				debug.Log("Failed to delete Compose instance from DB: %v", err)
-				return
-			}
-			// Broadcast after actual stop (after 10 seconds)
-			broadcastInstanceStop(userID, instance)
-			debug.Log("Compose instance stopped and broadcast sent: %s", instance.Container)
-		}()
-		return nil
-
-	default:
-		debug.Log("Unknown challenge type: %s", challenge.ChallengeType.Name)
-		return fmt.Errorf("unknown_challenge_type")
-	}
-}
-
 // broadcastInstanceStop sends WebSocket notification about instance stop
 func broadcastInstanceStop(userID interface{}, instance *models.Instance) {
 	if utils.WebSocketHub == nil {
@@ -890,60 +682,8 @@ func broadcastInstanceStop(userID interface{}, instance *models.Instance) {
 	}
 }
 
-// func StopChallengeInstance(c *gin.Context) {
-// 	challengeID := c.Param("id")
-
-// 	// Get and validate user and instance
-// 	_, instance, err := getUserAndInstance(c, challengeID)
-// 	if err != nil {
-// 		switch err.Error() {
-// 		case "unauthorized":
-// 			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-// 		case "user_not_found":
-// 			c.JSON(http.StatusNotFound, gin.H{"error": "user_not_found"})
-// 		case "instance_not_found":
-// 			c.JSON(http.StatusNotFound, gin.H{"error": "instance_not_found"})
-// 		case "forbidden":
-// 			c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
-// 		}
-// 		return
-// 	}
-
-// 	// Record cooldown
-// 	recordInstanceCooldown(instance)
-
-// 	// Load challenge with type
-// 	var challenge models.Challenge
-// 	if err := config.DB.Preload("ChallengeType").First(&challenge, challengeID).Error; err != nil {
-// 		debug.Log("Challenge not found with ID %s: %v", challengeID, err)
-// 		c.JSON(http.StatusNotFound, gin.H{"error": "challenge_not_found"})
-// 		return
-// 	}
-
-// 	// Get user ID for broadcast
-// 	userID, _ := c.Get("user_id")
-
-// 	// Stop instance by type (async for compose to avoid timeout)
-// 	if err := stopInstanceByTypeAsync(&challenge, instance, userID); err != nil {
-// 		switch err.Error() {
-// 		case "compose_stop_failed":
-// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "compose_stop_failed"})
-// 		case "db_delete_failed":
-// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "db_delete_failed"})
-// 		case "unknown_challenge_type":
-// 			c.JSON(http.StatusBadRequest, gin.H{"error": "unknown_challenge_type"})
-// 		}
-// 		return
-// 	}
-
-// 	c.JSON(http.StatusOK, gin.H{
-// 		"message":   "instance_stopping",
-// 		"container": instance.Container,
-// 	})
-// }
-
 // getUserAndTeamForStatus retrieves user and validates team membership
-func getUserAndTeamForStatus(c *gin.Context, userID interface{}) (*models.User, error) {
+func getUserAndTeamForStatus(userID interface{}) (*models.User, error) {
 	var user models.User
 	if err := config.DB.Preload("Team").First(&user, userID).Error; err != nil {
 		return nil, fmt.Errorf("user_not_found")
@@ -1025,7 +765,7 @@ func GetInstanceStatus(c *gin.Context) {
 	}
 
 	// Get user and validate team
-	user, err := getUserAndTeamForStatus(c, userID)
+	user, err := getUserAndTeamForStatus(userID)
 	if err != nil {
 		if err.Error() == "user_not_found" {
 			utils.NotFoundError(c, "user_not_found")
