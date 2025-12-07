@@ -972,6 +972,12 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
                                           <span className="text-sm font-medium text-yellow-600">{t('building')}</span>
                                         </>
                                       )}
+                                      {getLocalInstanceStatus(selectedChallenge.id) === 'stopping' && (
+                                        <>
+                                          <Settings className="w-4 h-4 text-orange-600 animate-spin" />
+                                          <span className="text-sm font-medium text-orange-600">{t('stopping')}</span>
+                                        </>
+                                      )}
                                       {getLocalInstanceStatus(selectedChallenge.id) === 'expired' && (
                                         <>
                                           <Square className="w-4 h-4 text-red-600" />
