@@ -32,7 +32,7 @@ func GetAllSubmissions(c *gin.Context) {
 			value = "*********"
 		}
 
-		var safeTeam models.SafeTeam
+		var safeTeam dto.SafeTeam
 		if s.User != nil && s.User.Team != nil {
 			_ = copier.Copy(&safeTeam, s.User.Team)
 		}
@@ -42,7 +42,7 @@ func GetAllSubmissions(c *gin.Context) {
 			Value:     value,
 			IsCorrect: s.IsCorrect,
 			CreatedAt: s.CreatedAt,
-			User: models.SafeUserWithTeam{
+			User: dto.SafeUserWithTeam{
 				ID:       s.UserID,
 				Username: s.User.Username,
 				Role:     s.User.Role,

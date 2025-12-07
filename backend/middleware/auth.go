@@ -213,6 +213,10 @@ func AuthRequiredTeamOrAdmin() gin.HandlerFunc {
 			return
 		}
 
+		if !config.IsCTFStarted() && user.Role != "admin" {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "ctf_not_started"})
+			return
+		}
 		// Track user IP address
 		go updateUserIP(user.ID, getClientIP(c))
 

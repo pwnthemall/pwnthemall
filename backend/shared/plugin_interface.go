@@ -157,6 +157,20 @@ type RequestData struct {
 	Query   map[string][]string
 }
 
+func (r *RequestData) GetQueryParam(key string) string {
+	if vals, ok := r.Query[key]; ok && len(vals) > 0 {
+		return vals[0]
+	}
+	return ""
+}
+
+func (r *RequestData) GetQueryParams(key string) []string {
+	if vals, ok := r.Query[key]; ok {
+		return vals
+	}
+	return []string{}
+}
+
 type ResponseData struct {
 	StatusCode int
 	Headers    map[string]string

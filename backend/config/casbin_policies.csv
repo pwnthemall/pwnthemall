@@ -19,8 +19,6 @@ p, member, /challenges-categories, read
 p, member, /instances, read
 p, member, /instances/:id, read
 p, member, /challenges-categories/:id, read
-p, member, /teams, read
-p, member, /teams/:id, read
 p, member, /teams/leaderboard, read
 p, member, /teams/timeline, read
 p, member, /teams/score, read

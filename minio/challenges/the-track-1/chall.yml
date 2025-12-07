@@ -1,0 +1,14 @@
+name: "The Track [1/3]"
+type: standard
+category: osint
+difficulty: easy
+points: 150
+decay: "Logarithmic - Medium"
+description: |
+  We've discovered a **mysterious** account on social media.  
+  Can you find out the user's **real name** ?  
+  __(flag is "flag")__  
+author: "swinowz"
+cover_img: the-track.png
+flags:
+  - "flag"

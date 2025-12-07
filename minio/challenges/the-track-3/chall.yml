@@ -1,0 +1,14 @@
+name: "The Track [3/3]"
+type: standard
+category: forensics
+difficulty: hard
+points: 250
+decay: "Logarithmic - Medium"
+description: |
+  This profile picture is not just a profile picture, find out what is hidden in it...      
+  __(flag is "flag")__
+author: "PTA"
+depends_on: "The Track [2/3]"
+cover_img: the-track.png
+flags:
+  - "flag"
