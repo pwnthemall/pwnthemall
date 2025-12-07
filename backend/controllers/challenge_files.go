@@ -20,7 +20,6 @@ import (
 // GetChallengeFiles returns metadata and pre-signed download URLs for challenge files
 func GetChallengeFiles(c *gin.Context) {
 	challengeID := c.Param("id")
-
 	var challenge models.Challenge
 	if err := config.DB.First(&challenge, challengeID).Error; err != nil {
 		debug.Log("Challenge not found: %v", err)
@@ -33,6 +32,10 @@ func GetChallengeFiles(c *gin.Context) {
 		return
 	}
 
+	if !CheckChallengeDependancies(c, challenge) {
+		utils.NotFoundError(c, "challenge_not_found")
+		return
+	}
 	files := make([]meta.FileMetadata, 0, len(challenge.Files))
 	bucketName := "challenges"
 
@@ -68,14 +71,16 @@ func GetChallengeFiles(c *gin.Context) {
 func DownloadChallengeFile(c *gin.Context) {
 	challengeID := c.Param("id")
 	filename := c.Param("filename")
-
 	var challenge models.Challenge
 	if err := config.DB.First(&challenge, challengeID).Error; err != nil {
 		debug.Log("Challenge not found: %v", err)
 		utils.NotFoundError(c, "challenge_not_found")
 		return
 	}
-
+	if !CheckChallengeDependancies(c, challenge) {
+		utils.NotFoundError(c, "challenge_not_found")
+		return
+	}
 	fileFound := false
 	var matchedFile string
 	for _, f := range challenge.Files {

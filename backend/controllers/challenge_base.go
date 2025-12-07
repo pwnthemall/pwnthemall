@@ -139,7 +139,16 @@ func buildChallengeWithSolved(challenge models.Challenge, solvedChallengeIds []u
 	return item
 }
 
-func CheckChallengeDependancies(user *models.User, challenge models.Challenge) bool {
+func CheckChallengeDependancies(c *gin.Context, challenge models.Challenge) bool {
+	userI, _ := c.Get("user")
+	user, ok := userI.(*models.User)
+	if !ok {
+		utils.InternalServerError(c, "user_wrong_type")
+		return false
+	}
+	if user.Role == "admin" {
+		return true
+	}
 	solvedNamesMap := make(map[string]bool)
 	var solvedChallenges []models.Challenge
 	config.DB.Table("challenges").
@@ -182,7 +191,7 @@ func GetChallenges(c *gin.Context) {
 	decayService := utils.NewDecay()
 
 	for i := range challenges {
-		if !CheckChallengeDependancies(user, challenges[i]) {
+		if !CheckChallengeDependancies(c, challenges[i]) {
 			continue
 		}
 		challenges[i].CurrentPoints = decayService.CalculateCurrentPoints(&challenges[i])
@@ -194,13 +203,6 @@ func GetChallenges(c *gin.Context) {
 
 // GetChallenge returns a single challenge by ID
 func GetChallenge(c *gin.Context) {
-	userI, _ := c.Get("user")
-	user, ok := userI.(*models.User)
-	if !ok {
-		utils.InternalServerError(c, "user_wrong_type")
-		return
-	}
-
 	var challenge models.Challenge
 	id := c.Param("id")
 
@@ -210,7 +212,7 @@ func GetChallenge(c *gin.Context) {
 		return
 	}
 
-	if !CheckChallengeDependancies(user, challenge) {
+	if !CheckChallengeDependancies(c, challenge) {
 		utils.NotFoundError(c, "challenge_not_found")
 		return
 	}
