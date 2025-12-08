@@ -1,9 +1,9 @@
 package config
 
 import (
-	"log"
 	"os"
 
+	"github.com/pwnthemall/pwnthemall/backend/debug"
 	"github.com/pwnthemall/pwnthemall/backend/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -15,7 +15,8 @@ func ConnectDB() *gorm.DB {
 	dsn := os.Getenv("DATABASE_URL")
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatal("Failed to connect to database:", err)
+		debug.Log("Failed to connect to database: %v", err)
+		os.Exit(1)
 	}
 
 	err = db.AutoMigrate(
@@ -29,7 +30,8 @@ func ConnectDB() *gorm.DB {
 		&models.Notification{},
 	)
 	if err != nil {
-		log.Fatal("Failed to migrate database:", err)
+		debug.Log("Failed to migrate database: %v", err)
+		os.Exit(1)
 	}
 
 	DB = db

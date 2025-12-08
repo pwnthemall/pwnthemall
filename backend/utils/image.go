@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"github.com/pwnthemall/pwnthemall/backend/debug"
 	"bytes"
 	"context"
 	"errors"
@@ -9,7 +10,7 @@ import (
 	_ "image/gif"  // Register GIF format
 	_ "image/jpeg" // Register JPEG format
 	_ "image/png"  // Register PNG format
-	"log"
+	
 	"time"
 
 	"github.com/disintegration/imaging"
@@ -58,7 +59,7 @@ func validateImageData(data []byte) (string, error) {
 		return "", errors.New("invalid image dimensions")
 	}
 
-	log.Printf("Image validated: format=%s, size=%dx%d, bytes=%d", format, width, height, len(data))
+	debug.Log("Image validated: format=%s, size=%dx%d, bytes=%d", format, width, height, len(data))
 	return format, nil
 }
 
@@ -80,7 +81,7 @@ func resizeImageToPNG(data []byte) ([]byte, error) {
 		return nil, fmt.Errorf("failed to encode image: %w", err)
 	}
 
-	log.Printf("Image resized: %dx%d -> %dx%d, output size: %d bytes", 
+	debug.Log("Image resized: %dx%d -> %dx%d, output size: %d bytes", 
 		img.Bounds().Dx(), img.Bounds().Dy(), 
 		targetImageWidth, targetImageHeight, 
 		buf.Len())
@@ -122,7 +123,7 @@ func processImageSync(slug, filename string) (string, error) {
 	
 	// 1. Load original image from MinIO
 	originalPath := fmt.Sprintf("%s/%s", slug, filename)
-	log.Printf("Loading cover image: %s", originalPath)
+	debug.Log("Loading cover image: %s", originalPath)
 
 	obj, err := config.FS.GetObject(context.Background(), bucketName, originalPath, minio.GetObjectOptions{})
 	if err != nil {
@@ -146,7 +147,7 @@ func processImageSync(slug, filename string) (string, error) {
 	// 3. If GIF, keep original to preserve animation
 	if format == "gif" {
 		resizedPath := fmt.Sprintf("%s/cover_resized.gif", slug)
-		log.Printf("GIF detected, storing original: %s", resizedPath)
+		debug.Log("GIF detected, storing original: %s", resizedPath)
 
 		_, err = config.FS.PutObject(
 			context.Background(),
@@ -162,7 +163,7 @@ func processImageSync(slug, filename string) (string, error) {
 			return "", fmt.Errorf("failed to store GIF: %w", err)
 		}
 
-		log.Printf("Cover image processed successfully: %s", resizedPath)
+		debug.Log("Cover image processed successfully: %s", resizedPath)
 		return "cover_resized.gif", nil
 	}
 
@@ -175,7 +176,7 @@ func processImageSync(slug, filename string) (string, error) {
 
 	// 5. Store image in MinIO (keeping original dimensions)
 	resizedPath := fmt.Sprintf("%s/cover_resized.png", slug)
-	log.Printf("Storing image: %s", resizedPath)
+	debug.Log("Storing image: %s", resizedPath)
 
 	// Convert to PNG without resizing
 	img, _, err := image.Decode(bytes.NewReader(imageData))
@@ -201,7 +202,7 @@ func processImageSync(slug, filename string) (string, error) {
 		return "", fmt.Errorf("failed to store image: %w", err)
 	}
 
-	log.Printf("Cover image processed successfully: %s", resizedPath)
+	debug.Log("Cover image processed successfully: %s", resizedPath)
 	return "cover_resized.png", nil
 }
 

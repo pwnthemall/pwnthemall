@@ -59,6 +59,12 @@ func Register(c *gin.Context) {
 		return
 	}
 
+	// Validate username for malicious characters
+	if errKey := utils.ValidateUsername(input.Username); errKey != "" {
+		utils.BadRequestError(c, errKey)
+		return
+	}
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	if err != nil {
 		utils.InternalServerError(c, "Erreur lors du hash du mot de passe")
@@ -101,11 +107,11 @@ func Register(c *gin.Context) {
 // validateLoginInput validates the login input
 func validateLoginInput(input *dto.LoginInput) (string, error) {
 	usernameOrEmail := strings.TrimSpace(input.Username)
-	
+
 	if usernameOrEmail == "" || strings.TrimSpace(input.Password) == "" {
 		return "", fmt.Errorf("please_fill_fields")
 	}
-	
+
 	return usernameOrEmail, nil
 }
 
@@ -115,15 +121,15 @@ func authenticateUser(usernameOrEmail, password string) (*models.User, error) {
 	if err := config.DB.Where("username = ? OR email = ?", usernameOrEmail, usernameOrEmail).First(&user).Error; err != nil {
 		return nil, fmt.Errorf("invalid_credentials")
 	}
-	
+
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
 		return nil, fmt.Errorf("invalid_credentials")
 	}
-	
+
 	if user.Banned {
 		return nil, fmt.Errorf("banned")
 	}
-	
+
 	return &user, nil
 }
 
@@ -133,16 +139,16 @@ func generateAndSetTokens(c *gin.Context, userID uint, role string) error {
 	if err != nil {
 		return fmt.Errorf("could not create access token")
 	}
-	
+
 	refreshToken, err := utils.GenerateRefreshToken(userID)
 	if err != nil {
 		return fmt.Errorf("could not create refresh token")
 	}
-	
+
 	// Set both tokens as secure HTTP-only cookies
 	c.SetCookie("access_token", accessToken, 3600, "/", "", true, true)        // 1 hour, secure, httpOnly
 	c.SetCookie("refresh_token", refreshToken, 7*24*3600, "/", "", true, true) // 7 days, secure, httpOnly
-	
+
 	return nil
 }
 
@@ -152,14 +158,14 @@ func Login(c *gin.Context) {
 		utils.BadRequestError(c, "invalid_input")
 		return
 	}
-	
+
 	// Validate input
 	usernameOrEmail, err := validateLoginInput(&input)
 	if err != nil {
 		utils.BadRequestError(c, err.Error())
 		return
 	}
-	
+
 	// Authenticate user
 	user, err := authenticateUser(usernameOrEmail, input.Password)
 	if err != nil {
@@ -170,13 +176,13 @@ func Login(c *gin.Context) {
 		}
 		return
 	}
-	
+
 	// Generate and set tokens
 	if err := generateAndSetTokens(c, user.ID, user.Role); err != nil {
 		utils.InternalServerError(c, err.Error())
 		return
 	}
-	
+
 	utils.OKResponse(c, gin.H{"message": "Login successful"})
 }
 
@@ -184,6 +190,12 @@ func Refresh(c *gin.Context) {
 	tokenStr, err := c.Cookie("refresh_token")
 	if err != nil {
 		utils.UnauthorizedError(c, "missing refresh token")
+		return
+	}
+
+	// Check if refresh token is blacklisted
+	if _, blacklisted := utils.TokenBlacklist.Load(tokenStr); blacklisted {
+		utils.UnauthorizedError(c, "token invalidated")
 		return
 	}
 
@@ -225,8 +237,36 @@ func Refresh(c *gin.Context) {
 	utils.OKResponse(c, gin.H{"message": "Token refreshed"})
 }
 
-// Logout clears the user session
+// Logout clears the user session and blacklists JWT tokens
 func Logout(c *gin.Context) {
+	// Get tokens before clearing cookies
+	accessToken, _ := c.Cookie("access_token")
+	refreshToken, _ := c.Cookie("refresh_token")
+
+	// Blacklist access token if present
+	if accessToken != "" {
+		token, err := jwt.ParseWithClaims(accessToken, &jwt.RegisteredClaims{}, func(t *jwt.Token) (interface{}, error) {
+			return utils.AccessSecret, nil
+		})
+		if err == nil && token.Valid {
+			if claims, ok := token.Claims.(*jwt.RegisteredClaims); ok && claims.ExpiresAt != nil {
+				utils.BlacklistToken(accessToken, claims.ExpiresAt.Time)
+			}
+		}
+	}
+
+	// Blacklist refresh token if present
+	if refreshToken != "" {
+		token, err := jwt.ParseWithClaims(refreshToken, &jwt.RegisteredClaims{}, func(t *jwt.Token) (interface{}, error) {
+			return utils.RefreshSecret, nil
+		})
+		if err == nil && token.Valid {
+			if claims, ok := token.Claims.(*jwt.RegisteredClaims); ok && claims.ExpiresAt != nil {
+				utils.BlacklistToken(refreshToken, claims.ExpiresAt.Time)
+			}
+		}
+	}
+
 	// Clear the session
 	session := sessions.Default(c)
 	session.Clear()
@@ -262,14 +302,22 @@ func UpdateCurrentUser(c *gin.Context) {
 		return
 	}
 
-	if input.Username == "" {
-		utils.BadRequestError(c, "Username cannot be empty")
+	// Validate username for malicious characters
+	if errKey := utils.ValidateUsername(input.Username); errKey != "" {
+		utils.BadRequestError(c, errKey)
 		return
 	}
 
 	user.Username = input.Username
 	if err := config.DB.Save(&user).Error; err != nil {
-		utils.InternalServerError(c, err.Error())
+		// Check for duplicate username without exposing SQL details
+		if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "UNIQUE constraint") {
+			if strings.Contains(err.Error(), "username") {
+				utils.ConflictError(c, "Username already taken")
+				return
+			}
+		}
+		utils.InternalServerError(c, "Failed to update username")
 		return
 	}
 	utils.OKResponse(c, gin.H{
@@ -314,7 +362,7 @@ func UpdateCurrentUserPassword(c *gin.Context) {
 
 	user.Password = string(hashedPassword)
 	if err := config.DB.Save(&user).Error; err != nil {
-		utils.InternalServerError(c, err.Error())
+		utils.InternalServerError(c, "Failed to update password")
 		return
 	}
 	utils.OKResponse(c, gin.H{"message": "Password updated"})
@@ -335,7 +383,7 @@ func DeleteCurrentUser(c *gin.Context) {
 	}
 
 	if err := config.DB.Delete(&user).Error; err != nil {
-		utils.InternalServerError(c, err.Error())
+		utils.InternalServerError(c, "Failed to delete user")
 		return
 	}
 	utils.OKResponse(c, gin.H{"message": "User deleted"})

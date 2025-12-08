@@ -44,6 +44,12 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
+	// Validate username for malicious characters
+	if errKey := utils.ValidateUsername(input.Username); errKey != "" {
+		utils.BadRequestError(c, errKey)
+		return
+	}
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	if err != nil {
 		utils.InternalServerError(c, "Internal server error")
@@ -82,6 +88,12 @@ func UpdateUser(c *gin.Context) {
 	var input dto.UserInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		utils.BadRequestError(c, "Username (max 32), email (max 254) or password invalid: "+err.Error())
+		return
+	}
+
+	// Validate username for malicious characters
+	if errKey := utils.ValidateUsername(input.Username); errKey != "" {
+		utils.BadRequestError(c, errKey)
 		return
 	}
 

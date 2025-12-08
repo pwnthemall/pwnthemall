@@ -1,12 +1,13 @@
 package utils
 
 import (
+	"github.com/pwnthemall/pwnthemall/backend/debug"
 	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
+	
 	"os"
 	"path/filepath"
 	"reflect"
@@ -141,7 +142,7 @@ func parseChallengeByType(base meta.BaseChallengeMetadata, content []byte, objec
 
 // SyncAllChallengesFromMinIO syncs all challenges from MinIO on startup
 func SyncAllChallengesFromMinIO(ctx context.Context, updatesHub *Hub) error {
-	log.Printf("Starting initial sync of all challenges from MinIO bucket: %s", bucketNameChallenges)
+	debug.Log("Starting initial sync of all challenges from MinIO bucket: %s", bucketNameChallenges)
 	
 	// List all objects in the challenges bucket
 	objectCh := config.FS.ListObjects(ctx, bucketNameChallenges, minio.ListObjectsOptions{
@@ -153,7 +154,7 @@ func SyncAllChallengesFromMinIO(ctx context.Context, updatesHub *Hub) error {
 	
 	for object := range objectCh {
 		if object.Err != nil {
-			log.Printf("Error listing object: %v", object.Err)
+			debug.Log("Error listing object: %v", object.Err)
 			errorCount++
 			continue
 		}
@@ -166,31 +167,31 @@ func SyncAllChallengesFromMinIO(ctx context.Context, updatesHub *Hub) error {
 		// Sync this challenge
 		key := bucketNameChallenges + "/" + object.Key
 		if err := SyncChallengesFromMinIO(ctx, key, updatesHub); err != nil {
-			log.Printf("Error syncing %s: %v", object.Key, err)
+			debug.Log("Error syncing %s: %v", object.Key, err)
 			errorCount++
 		} else {
 			syncCount++
 		}
 	}
 	
-	log.Printf("Initial sync completed: %d challenges synced, %d errors", syncCount, errorCount)
+	debug.Log("Initial sync completed: %d challenges synced, %d errors", syncCount, errorCount)
 	return nil
 }
 
 func SyncChallengesFromMinIO(ctx context.Context, key string, updatesHub *Hub) error {
 	objectKey := parseObjectKey(key)
-	log.Printf("SyncChallengesFromMinIO begin for bucket: %s, key: %s", bucketNameChallenges, objectKey)
+	debug.Log("SyncChallengesFromMinIO begin for bucket: %s, key: %s", bucketNameChallenges, objectKey)
 
 	// Try to retrieve and validate object
 	obj, err := retrieveAndValidateObject(ctx, bucketNameChallenges, objectKey)
 	if err != nil {
-		log.Printf("Object not found or error retrieving object %s: %v", objectKey, err)
+		debug.Log("Object not found or error retrieving object %s: %v", objectKey, err)
 		slug := strings.Split(objectKey, "/")[0]
 		if err := deleteChallengeFromDB(slug); err != nil {
-			log.Printf("Error deleting challenge from DB: %v", err)
+			debug.Log("Error deleting challenge from DB: %v", err)
 			return err
 		}
-		log.Printf("Deleted challenge with slug %s from DB", slug)
+		debug.Log("Deleted challenge with slug %s from DB", slug)
 		return nil
 	}
 	defer obj.Close()
@@ -198,28 +199,28 @@ func SyncChallengesFromMinIO(ctx context.Context, key string, updatesHub *Hub) e
 	// Read object content
 	buf, err := readObjectContent(obj)
 	if err != nil {
-		log.Printf("Error reading object %s: %v", objectKey, err)
+		debug.Log("Error reading object %s: %v", objectKey, err)
 		return err
 	}
 
 	// Parse base metadata to determine type
 	var base meta.BaseChallengeMetadata
 	if err := yaml.Unmarshal(buf.Bytes(), &base); err != nil {
-		log.Printf("Invalid YAML for %s: %v", objectKey, err)
+		debug.Log("Invalid YAML for %s: %v", objectKey, err)
 		return err
 	}
 
 	// Parse type-specific metadata
 	metaData, ports, geoMeta, err := parseChallengeByType(base, buf.Bytes(), objectKey)
 	if err != nil {
-		log.Printf("Error parsing challenge metadata: %v", err)
+		debug.Log("Error parsing challenge metadata: %v", err)
 		return err
 	}
 
 	// Update or create the challenge in the database
 	slug := strings.Split(objectKey, "/")[0]
 	if err := updateOrCreateChallengeInDB(metaData, slug, ports, updatesHub); err != nil {
-		log.Printf("Error updating or creating challenge in DB: %v", err)
+		debug.Log("Error updating or creating challenge in DB: %v", err)
 		return err
 	}
 
@@ -228,7 +229,7 @@ func SyncChallengesFromMinIO(ctx context.Context, key string, updatesHub *Hub) e
 		saveGeoSpecForChallenge(slug, *geoMeta)
 	}
 
-	log.Printf("Synced %s to DB", objectKey)
+	debug.Log("Synced %s to DB", objectKey)
 	return nil
 }
 
@@ -504,11 +505,11 @@ func updateOrCreateChallengeInDB(metaData meta.BaseChallengeMetadata, slug strin
 	if metaData.CoverImg != "" {
 		ctx := context.Background()
 		if processedPath, err := ProcessChallengeCoverImage(ctx, slug, metaData.CoverImg); err != nil {
-			log.Printf("Warning: Failed to process cover image for %s: %v", slug, err)
+			debug.Log("Warning: Failed to process cover image for %s: %v", slug, err)
 			// Don't fail sync - challenge still works without cover image
 		} else {
 			coverImgPath = processedPath
-			log.Printf("Successfully processed cover image for %s: %s", slug, coverImgPath)
+			debug.Log("Successfully processed cover image for %s: %s", slug, coverImgPath)
 		}
 	}
 	challenge.CoverImg = coverImgPath
@@ -544,18 +545,18 @@ func RetrieveFileContentFromMinio(path string) ([]byte, error) {
 	const bucketName = bucketNameChallenges
 	object, err := config.FS.GetObject(context.Background(), bucketName, path, minio.GetObjectOptions{})
 	if err != nil {
-		log.Println(err)
+		debug.Println(err)
 		return nil, err
 	}
 	defer object.Close()
 
 	content, err := io.ReadAll(object)
 	if err != nil {
-		log.Println(err)
+		debug.Println(err)
 		return nil, err
 	}
 
-	log.Printf("File %s retrieved on MinIO", path)
+	debug.Log("File %s retrieved on MinIO", path)
 	return content, nil
 }
 

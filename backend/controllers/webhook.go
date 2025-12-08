@@ -1,8 +1,9 @@
 package controllers
 
 import (
+	"github.com/pwnthemall/pwnthemall/backend/debug"
 	"context"
-	"log"
+	
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -21,12 +22,12 @@ func MinioWebhook(c *gin.Context) {
 			go func() {
 				ctx := context.Background()
 				if err := utils.SyncChallengesFromMinIO(ctx, key, utils.UpdatesHub); err != nil {
-					log.Printf("MinIO sync error: %v", err)
+					debug.Log("MinIO sync error: %v", err)
 				}
 			}()
 		}
 	} else {
-		log.Printf("Key not found or not a string")
+		debug.Log("Key not found or not a string")
 	}
 
 	utils.OKResponse(c, gin.H{"status": "challenge sync started"})

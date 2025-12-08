@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
+	
 	"net"
 	"os"
 	"path/filepath"
@@ -129,17 +129,17 @@ func BuildDockerImage(slug string, sourceDir string) (string, error) {
 	}
 	defer buildResponse.Body.Close()
 	if err := streamAndDetectBuildError(buildResponse.Body); err != nil {
-		log.Printf("Docker build failed: %v", err)
+		debug.Log("Docker build failed: %v", err)
 		return imageName, err
 	}
 	io.Copy(os.Stdout, buildResponse.Body)
-	log.Printf("Built image %s for challenge %s", imageName, slug)
+	debug.Log("Built image %s for challenge %s", imageName, slug)
 	return imageName, nil
 }
 
 func IsImageBuilt(slug string) (string, bool) {
 	if err := EnsureDockerClientConnected(); err != nil {
-		log.Printf("Docker client not connected: %v", err)
+		debug.Log("Docker client not connected: %v", err)
 		return "", false
 	}
 
@@ -147,7 +147,7 @@ func IsImageBuilt(slug string) (string, bool) {
 
 	prefix, err := getDockerImagePrefix()
 	if err != nil {
-		log.Printf("Could not get Docker image prefix: %v", err)
+		debug.Log("Could not get Docker image prefix: %v", err)
 		return "", false
 	}
 
@@ -160,7 +160,7 @@ func IsImageBuilt(slug string) (string, bool) {
 		Filters: filtersArgs,
 	})
 	if err != nil {
-		log.Printf("Failed to list docker images: %v", err)
+		debug.Log("Failed to list docker images: %v", err)
 		return "", false
 	}
 
@@ -278,7 +278,7 @@ func StartDockerInstance(image string, teamId int, userId int, internalPorts []i
 		return "", fmt.Errorf("failed to start container: %w", err)
 	}
 
-	log.Printf(
+	debug.Log(
 		"Started container %s for team %d user %d on host ports %v mapping to internal %v",
 		containerName, teamId, userId, hostPorts, internalPorts,
 	)
