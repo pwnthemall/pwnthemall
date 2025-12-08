@@ -18,7 +18,7 @@ import (
 func SendNotification(c *gin.Context) {
 	var input dto.NotificationInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		utils.BadRequestError(c, "Invalid input: "+err.Error())
+		utils.BadRequestError(c, "Invalid input")
 		return
 	}
 
@@ -30,7 +30,7 @@ func SendNotification(c *gin.Context) {
 	copier.Copy(&notification, &input)
 
 	if err := config.DB.Create(&notification).Error; err != nil {
-		utils.InternalServerError(c, "Failed to create notification: "+err.Error())
+		utils.InternalServerError(c, "Failed to create notification")
 		return
 	}
 

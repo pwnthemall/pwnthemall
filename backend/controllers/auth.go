@@ -303,7 +303,14 @@ func UpdateCurrentUser(c *gin.Context) {
 
 	user.Username = input.Username
 	if err := config.DB.Save(&user).Error; err != nil {
-		utils.InternalServerError(c, err.Error())
+		// Check for duplicate username without exposing SQL details
+		if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "UNIQUE constraint") {
+			if strings.Contains(err.Error(), "username") {
+				utils.ConflictError(c, "Username already taken")
+				return
+			}
+		}
+		utils.InternalServerError(c, "Failed to update username")
 		return
 	}
 	utils.OKResponse(c, gin.H{
@@ -348,7 +355,7 @@ func UpdateCurrentUserPassword(c *gin.Context) {
 
 	user.Password = string(hashedPassword)
 	if err := config.DB.Save(&user).Error; err != nil {
-		utils.InternalServerError(c, err.Error())
+		utils.InternalServerError(c, "Failed to update password")
 		return
 	}
 	utils.OKResponse(c, gin.H{"message": "Password updated"})
@@ -369,7 +376,7 @@ func DeleteCurrentUser(c *gin.Context) {
 	}
 
 	if err := config.DB.Delete(&user).Error; err != nil {
-		utils.InternalServerError(c, err.Error())
+		utils.InternalServerError(c, "Failed to delete user")
 		return
 	}
 	utils.OKResponse(c, gin.H{"message": "User deleted"})

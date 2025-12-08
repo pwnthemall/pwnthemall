@@ -482,7 +482,7 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
                         getLocalInstanceStatus(challenge.id) === 'running' 
                           ? 'bg-green-300 dark:bg-green-700 text-green-900 dark:text-green-100 border border-green-500 dark:border-green-400' 
                           : getLocalInstanceStatus(challenge.id) === 'building'
-                          ? 'bg-yellow-300 dark:bg-yellow-700 text-yellow-900 dark:text-yellow-100 border border-yellow-500 dark:border-yellow-400'
+                          ? 'bg-orange-300 dark:bg-orange-700 text-orange-900 dark:text-orange-100 border border-orange-500 dark:border-orange-400'
                           : getLocalInstanceStatus(challenge.id) === 'stopping'
                           ? 'bg-orange-300 dark:bg-orange-700 text-orange-900 dark:text-orange-100 border border-orange-500 dark:border-orange-400'
                           : getLocalInstanceStatus(challenge.id) === 'expired'
@@ -968,8 +968,8 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
                                       )}
                                       {getLocalInstanceStatus(selectedChallenge.id) === 'building' && (
                                         <>
-                                          <Settings className="w-4 h-4 text-yellow-600 animate-spin" />
-                                          <span className="text-sm font-medium text-yellow-600">{t('building')}</span>
+                                          <Settings className="w-4 h-4 text-orange-600 animate-spin" />
+                                          <span className="text-sm font-medium text-orange-600">{t('building')}</span>
                                         </>
                                       )}
                                       {getLocalInstanceStatus(selectedChallenge.id) === 'stopping' && (

@@ -166,7 +166,7 @@ export const InstanceControls: React.FC<InstanceControlsProps> = ({
         );
       default:
         return (
-          <Badge variant="secondary" className="bg-yellow-300 dark:bg-yellow-700 text-yellow-900 dark:text-yellow-100">
+          <Badge variant="secondary" className="bg-orange-300 dark:bg-orange-700 text-orange-900 dark:text-orange-100">
             {status}
           </Badge>
         );

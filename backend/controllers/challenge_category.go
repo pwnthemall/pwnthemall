@@ -46,7 +46,7 @@ func GetChallengeCategory(c *gin.Context) {
 func CreateChallengeCategory(c *gin.Context) {
 	var input dto.ChallengeCategoryInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		utils.BadRequestError(c, err.Error())
+		utils.BadRequestError(c, "Invalid input")
 		return
 	}
 
@@ -54,7 +54,7 @@ func CreateChallengeCategory(c *gin.Context) {
 	copier.Copy(&challengeCategory, &input)
 
 	if err := config.DB.Create(&challengeCategory).Error; err != nil {
-		utils.InternalServerError(c, err.Error())
+		utils.InternalServerError(c, "Failed to create category")
 		return
 	}
 
