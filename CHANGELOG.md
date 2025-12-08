@@ -1,5 +1,13 @@
 # 🚀 Changelog
 
+## [0.3.2](https://github.com/pwnthemall/pwnthemall/compare/v0.3.1...v0.3.2) (2025-12-08)
+
+
+### 🐛 Bug fixes
+
+* **backend:** Main.go wrong function call ([e969308](https://github.com/pwnthemall/pwnthemall/commit/e96930814dcb12ee15584bc8cd14f9014a8fd6e1))
+* **frontend-challenge:** Fixed pagination showing 'page {1} of {2}' and editing challenge was picking a default value instead of the actual challenge cat/diff ([0a367f6](https://github.com/pwnthemall/pwnthemall/commit/0a367f6359ffdff9c0ab27d56f04c1f7d33b011b))
+
 ## [0.3.1](https://github.com/pwnthemall/pwnthemall/compare/v0.3.0...v0.3.1) (2025-12-08)
 
 
