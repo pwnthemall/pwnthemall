@@ -187,8 +187,10 @@ test.describe('Submissions', () => {
     headers: { 'Cookie': challengeCookie }
   });
 
+  console.log(`Found ${challenges.length} challenges`);
+  
   if (challenges.length === 0) {
-    return;
+    throw new Error('No challenges found in database. Please seed challenges before running this test.');
   }
   
   for (const team of teams) {
@@ -300,12 +302,21 @@ test.describe('Submissions', () => {
 
           if (instanceResp.ok()) {
             const instanceData = await instanceResp.json();
-            console.log(`  ✓ Started instance: ${challenge.name} (ID: ${instanceData.id || 'N/A'})`);
+            
+            // Check if instance was actually started or already existed
+            if (instanceData.status === 'instance_already_running') {
+              console.log(`  ⚠ ${challenge.name}: Already running (skipped)`);
+            } else if (instanceData.status === 'instance_started') {
+              console.log(`  ✓ Started instance: ${challenge.name} (ID: ${instanceData.id || 'N/A'})`);
+            } else {
+              console.log(`  ℹ ${challenge.name}: ${instanceData.status || 'Unknown status'}`);
+            }
           } else {
             const errorText = await instanceResp.text();
-            if (errorText.includes('already has a running instance') || 
-                errorText.includes('cooldown') ||
-                errorText.includes('instance_already_running')) {
+            // Handle both old and new error formats
+            if (errorText.includes('cooldown')) {
+              console.log(`  ⚠ ${challenge.name}: Cooldown active (skipped)`);
+            } else if (errorText.includes('instance_already_running')) {
               console.log(`  ⚠ ${challenge.name}: Already running (skipped)`);
             } else {
               console.log(`  ✗ Failed: ${challenge.name}: ${errorText}`);
