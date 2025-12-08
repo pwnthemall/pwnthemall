@@ -50,8 +50,8 @@
     "enabled": "Enabled",
     "disabled": "Disabled",
     "no_challenges_found": "No challenges found matching your search criteria.",
-    "showing_x_to_y_of_z": "Showing {{from}} to {{to}} of {{total}}",
-    "page_x_of_y": "Page {{current}} of {{total}}",
+    "showing_x_to_y_of_z": "Showing {from} to {to} of {total}",
+    "page_x_of_y": "Page {current} of {total}",
     "edit_challenge_configuration": "Edit challenge configuration",
     "configure_challenge_description": "Configure points, decay formula, first blood bonus, and hints for this challenge"
   },
