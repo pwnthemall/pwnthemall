@@ -187,6 +187,12 @@ func Refresh(c *gin.Context) {
 		return
 	}
 
+	// Check if refresh token is blacklisted
+	if _, blacklisted := utils.TokenBlacklist.Load(tokenStr); blacklisted {
+		utils.UnauthorizedError(c, "token invalidated")
+		return
+	}
+
 	token, err := jwt.ParseWithClaims(tokenStr, &jwt.RegisteredClaims{}, func(t *jwt.Token) (interface{}, error) {
 		return utils.RefreshSecret, nil
 	})
@@ -225,8 +231,36 @@ func Refresh(c *gin.Context) {
 	utils.OKResponse(c, gin.H{"message": "Token refreshed"})
 }
 
-// Logout clears the user session
+// Logout clears the user session and blacklists JWT tokens
 func Logout(c *gin.Context) {
+	// Get tokens before clearing cookies
+	accessToken, _ := c.Cookie("access_token")
+	refreshToken, _ := c.Cookie("refresh_token")
+
+	// Blacklist access token if present
+	if accessToken != "" {
+		token, err := jwt.ParseWithClaims(accessToken, &jwt.RegisteredClaims{}, func(t *jwt.Token) (interface{}, error) {
+			return utils.AccessSecret, nil
+		})
+		if err == nil && token.Valid {
+			if claims, ok := token.Claims.(*jwt.RegisteredClaims); ok && claims.ExpiresAt != nil {
+				utils.BlacklistToken(accessToken, claims.ExpiresAt.Time)
+			}
+		}
+	}
+
+	// Blacklist refresh token if present
+	if refreshToken != "" {
+		token, err := jwt.ParseWithClaims(refreshToken, &jwt.RegisteredClaims{}, func(t *jwt.Token) (interface{}, error) {
+			return utils.RefreshSecret, nil
+		})
+		if err == nil && token.Valid {
+			if claims, ok := token.Claims.(*jwt.RegisteredClaims); ok && claims.ExpiresAt != nil {
+				utils.BlacklistToken(refreshToken, claims.ExpiresAt.Time)
+			}
+		}
+	}
+
 	// Clear the session
 	session := sessions.Default(c)
 	session.Clear()
