@@ -1,6 +1,21 @@
+{
+    servers {
+        protocols h1 h2 h3
+    }
+}
+
 demo.pwnthemall.com {
+    header /* {
+        defer
+        Server ""
+        -X-Powered-By
+    }
+    
     handle_path /api/* {
-        reverse_proxy backend:8080
+        reverse_proxy backend:8080 {
+            header_down -Server
+            header_down -X-Powered-By
+        }
     }
 
     # WebSocket endpoint should be proxied to backend
@@ -10,6 +25,9 @@ demo.pwnthemall.com {
     }
 
     handle {
-        reverse_proxy frontend:3000
+        reverse_proxy frontend:3000 {
+            header_down -Server
+            header_down -X-Powered-By
+        }
     }
 }
