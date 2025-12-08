@@ -87,7 +87,7 @@ func main() {
 	debug.Println("INFO: Launching initial challenge sync goroutine...")
 	go func() {
 		ctx := context.Background()
-		if err := utils.SyncAllChallengesFromMinIO(ctx); err != nil {
+		if err := utils.SyncAllChallengesFromMinIO(ctx, utils.UpdatesHub); err != nil {
 			debug.Log("Warning: Initial challenge sync failed: %v", err)
 		} else {
 			debug.Println("INFO: Initial challenge sync goroutine completed successfully")
