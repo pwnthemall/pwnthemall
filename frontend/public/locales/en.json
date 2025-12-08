@@ -394,6 +394,7 @@
     "learn_more": "Learn more.",
     "please_fill_fields": "Please fill in all fields",
     "tip": "Tip",
+    "too_many_login_attempts": "Too many login attempts. Please wait a minute before trying again.",
     "warning": "Warning",
     "welcome_back": "Welcome back",
     "incorrect_location": "Incorrect location. You're not close enough to the target!",
