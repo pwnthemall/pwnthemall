@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"flag"
-	"log"
 	"net/http"
 	"os"
 
@@ -54,20 +53,22 @@ func main() {
 		config.ConnectDB()
 
 		if *cleanDemo {
-			log.Println("Running: clean-demo")
+			debug.Println("Running: clean-demo")
 			if err := config.CleanDemoData(); err != nil {
-				log.Fatalf("Failed to clean demo data: %v", err)
+				debug.Log("Failed to clean demo data: %v", err)
+				os.Exit(1)
 			}
-			log.Println("Demo data cleaned successfully")
+			debug.Println("Demo data cleaned successfully")
 			os.Exit(0)
 		}
 
 		if *seedDemo {
-			log.Printf("Running: seed-demo (teams=%d, time-range=%dh)\n", *seedTeams, *seedTimeRange)
+			debug.Log("Running: seed-demo (teams=%d, time-range=%dh)", *seedTeams, *seedTimeRange)
 			if err := config.SeedDemoData(*seedTeams, *seedTimeRange); err != nil {
-				log.Fatalf("Failed to seed demo data: %v", err)
+				debug.Log("Failed to seed demo data: %v", err)
+				os.Exit(1)
 			}
-			log.Println("Demo data seeded successfully")
+			debug.Println("Demo data seeded successfully")
 			os.Exit(0)
 		}
 	}
@@ -77,19 +78,19 @@ func main() {
 	config.InitCasbin()
 
 	if err := config.ConnectDocker(); err != nil {
-		log.Printf("Failed to connect to docker host: %s", err.Error())
+		debug.Log("Failed to connect to docker host: %s", err.Error())
 	}
 
 	initWebSocketHub()
 
 	// Sync all challenges from MinIO on startup
-	log.Println("INFO: Launching initial challenge sync goroutine...")
+	debug.Println("INFO: Launching initial challenge sync goroutine...")
 	go func() {
 		ctx := context.Background()
-		if err := utils.SyncAllChallengesFromMinIO(ctx, utils.UpdatesHub); err != nil {
-			log.Printf("Warning: Initial challenge sync failed: %v", err)
+		if err := utils.SyncAllChallengesFromMinIO(ctx); err != nil {
+			debug.Log("Warning: Initial challenge sync failed: %v", err)
 		} else {
-			log.Println("INFO: Initial challenge sync goroutine completed successfully")
+			debug.Println("INFO: Initial challenge sync goroutine completed successfully")
 		}
 	}()
 
@@ -151,6 +152,6 @@ func main() {
 	}
 
 	debug.Log("Starting server on port %s", port)
-	log.Printf("Server starting on port %s", port)
+	debug.Log("Server starting on port %s", port)
 	router.Run(":" + port)
 }

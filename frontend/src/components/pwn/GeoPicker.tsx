@@ -46,6 +46,9 @@ export default function GeoPicker({ value, onChange, height = 320, radiusKm }: G
         lng: (Math.random() * 360) - 180  // Random longitude between -180 and 180
       });
       const initial = value || getRandomLocation();
+      
+      // Double-check mapRef is still available before calling L.map()
+      if (!mapRef.current) return;
       const map = L.map(mapRef.current).setView([initial.lat, initial.lng], 50);
       instanceRef.current = map;
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {

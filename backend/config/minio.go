@@ -1,11 +1,11 @@
 package config
 
 import (
-	"log"
 	"os"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	"github.com/pwnthemall/pwnthemall/backend/debug"
 )
 
 var FS *minio.Client
@@ -19,7 +19,8 @@ func ConnectMinio() *minio.Client {
 		Secure: useSSL,
 	})
 	if err != nil {
-		log.Fatalln(err)
+		debug.Log("Failed to connect to MinIO: %v", err)
+		os.Exit(1)
 	}
 	FS = minioClient
 	return minioClient

@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
+	
 	"net/http"
 
 	"strings"
@@ -20,15 +20,15 @@ var DockerClient *client.Client
 func ConnectDocker() error {
 	var dockerCfg models.DockerConfig
 	if err := DB.First(&dockerCfg).Error; err != nil {
-		log.Println("Unable to load DockerConfig from DB:", err)
-		log.Println("This might be due to missing environment variables or database seeding issues")
+		debug.Println("Unable to load DockerConfig from DB:", err)
+		debug.Println("This might be due to missing environment variables or database seeding issues")
 		return err
 	}
 
 	debug.Log("Docker config loaded from DB - Host: %s, ImagePrefix: %s", dockerCfg.Host, dockerCfg.ImagePrefix)
 
 	if dockerCfg.Host == "" {
-		log.Println("ERROR: DockerConfig.Host is empty in DB")
+		debug.Println("ERROR: DockerConfig.Host is empty in DB")
 		return errors.New("DockerConfig.Host is empty in DB")
 	}
 
@@ -37,7 +37,7 @@ func ConnectDocker() error {
 
 	// Handle Unix socket directly (local Docker daemon)
 	if dockerCfg.Host == "/var/run/docker.sock" || strings.HasPrefix(dockerCfg.Host, "unix://") || strings.HasPrefix(dockerCfg.Host, "/") {
-		log.Printf("DEBUG: Using local Unix socket: %s", dockerCfg.Host)
+		debug.Log("DEBUG: Using local Unix socket: %s", dockerCfg.Host)
 
 		// For Unix sockets, use a simple client configuration
 		clientOpts := []client.Opt{
@@ -47,12 +47,12 @@ func ConnectDocker() error {
 
 		cl, err = client.NewClientWithOpts(clientOpts...)
 		if err != nil {
-			log.Println("Unable to create docker client for Unix socket:", err)
+			debug.Println("Unable to create docker client for Unix socket:", err)
 			return fmt.Errorf("unable to create docker client for Unix socket: %w", err)
 		}
 	} else {
 		// Handle remote Docker daemon (SSH, TCP, etc.)
-		log.Printf("DEBUG: Using remote Docker daemon: %s", dockerCfg.Host)
+		debug.Log("DEBUG: Using remote Docker daemon: %s", dockerCfg.Host)
 		var helper *connhelper.ConnectionHelper
 		if strings.HasPrefix(dockerCfg.Host, "ssh://") {
 			sshOpts := []string{
@@ -61,22 +61,22 @@ func ConnectDocker() error {
 
 			helper, err = connhelper.GetConnectionHelperWithSSHOpts(dockerCfg.Host, sshOpts)
 			if err != nil {
-				log.Println("Failed to create connection helper:", err)
+				debug.Println("Failed to create connection helper:", err)
 				return err
 			}
 			if helper == nil {
-				log.Println("Unable to create connection helper (nil)")
+				debug.Println("Unable to create connection helper (nil)")
 				return errors.New("unable to create connection helper")
 			}
 
 		} else {
 			helper, err = connhelper.GetConnectionHelper(dockerCfg.Host)
 			if err != nil {
-				log.Println("Failed to create connection helper:", err)
+				debug.Println("Failed to create connection helper:", err)
 				return err
 			}
 			if helper == nil {
-				log.Println("Unable to create connection helper (nil)")
+				debug.Println("Unable to create connection helper (nil)")
 				return errors.New("unable to create connection helper")
 			}
 		}
@@ -96,22 +96,22 @@ func ConnectDocker() error {
 
 		cl, err = client.NewClientWithOpts(clientOpts...)
 		if err != nil {
-			log.Println("Unable to create docker client:", err)
+			debug.Println("Unable to create docker client:", err)
 			return errors.New("unable to create docker client")
 		}
 	}
 
 	if cl == nil {
-		log.Println("Unable to create docker client")
+		debug.Println("Unable to create docker client")
 		return errors.New("unable to create docker client")
 	}
 
 	ver, err := cl.ServerVersion(context.Background())
 	if err != nil {
-		log.Println("Unable to connect to docker daemon:", err)
+		debug.Println("Unable to connect to docker daemon:", err)
 		return fmt.Errorf("unable to connect to docker daemon: %s", err.Error())
 	}
-	log.Printf("Connected to %s | Docker Version: %s", dockerCfg.Host, ver.Version)
+	debug.Log("Connected to %s | Docker Version: %s", dockerCfg.Host, ver.Version)
 
 	DockerClient = cl
 	return nil

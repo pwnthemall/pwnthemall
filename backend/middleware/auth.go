@@ -2,13 +2,13 @@ package middleware
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"os"
 	"strings"
 
 	"github.com/pwnthemall/pwnthemall/backend/config"
+	"github.com/pwnthemall/pwnthemall/backend/debug"
 	"github.com/pwnthemall/pwnthemall/backend/models"
 	"github.com/pwnthemall/pwnthemall/backend/utils"
 
@@ -136,20 +136,20 @@ func CheckPolicy(obj string, act string) gin.HandlerFunc {
 		err := config.CEF.LoadPolicy()
 
 		if err != nil {
-			log.Fatalf("Casbin error: %v", err)
+			debug.Log("Casbin error: %v", err)
 			c.AbortWithStatusJSON(500, gin.H{"error": "Internal server error"})
 			return
 
 		}
 		ok, err := config.CEF.Enforce(sub, obj, act)
 		if err != nil {
-			log.Printf("Casbin error: %v", err)
+			debug.Log("Casbin error: %v", err)
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "authorization error"})
 			return
 		}
 
 		if !ok {
-			// log.Printf("Unauthorized action: sub:%s act:%s obj:%s", sub, act, obj)
+			// debug.Log("Unauthorized action: sub:%s act:%s obj:%s", sub, act, obj)
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "unauthorized: wrong permissions"})
 			return
 		}

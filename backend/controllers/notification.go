@@ -1,8 +1,9 @@
 package controllers
 
 import (
+	"github.com/pwnthemall/pwnthemall/backend/debug"
 	"encoding/json"
-	"log"
+	
 
 	"time"
 
@@ -100,7 +101,7 @@ func GetUserNotifications(c *gin.Context) {
 	}
 
 	// Log the response for debugging
-	log.Printf("User %d notifications: %+v", userID, response)
+	debug.Log("User %d notifications: %+v", userID, response)
 
 	utils.OKResponse(c, response)
 }
@@ -199,7 +200,7 @@ func GetUnreadCount(c *gin.Context) {
 	}
 
 	// Log the count for debugging
-	log.Printf("User %d unread count: %d", userID, count)
+	debug.Log("User %d unread count: %d", userID, count)
 
 	utils.OKResponse(c, gin.H{"count": count})
 }
@@ -215,7 +216,7 @@ func GetSentNotifications(c *gin.Context) {
 	}
 
 	// Log the raw notifications for debugging
-	log.Printf("Raw notifications from DB: %+v", notifications)
+	debug.Log("Raw notifications from DB: %+v", notifications)
 
 	// Convert to response format with user info
 
@@ -240,7 +241,7 @@ func GetSentNotifications(c *gin.Context) {
 		response = []dto.SentNotificationResponse{}
 	}
 
-	log.Printf("Final response: %+v", response)
+	debug.Log("Final response: %+v", response)
 	utils.OKResponse(c, response)
 }
 
