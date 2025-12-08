@@ -389,13 +389,13 @@
   },
   "messages": {
     "error": "Erreur",
-    "info": "Info",
+    "info": "Information",
     "invalid_server_response": "Réponse du serveur invalide. Veuillez réessayer.",
     "learn_more": "En savoir plus.",
     "please_fill_fields": "Veuillez remplir tous les champs",
     "tip": "Astuce",
+    "warning": "Avertissement",
     "too_many_login_attempts": "Trop de tentatives de connexion. Veuillez attendre une minute avant de réessayer.",
-    "warning": "Attention",
     "welcome_back": "Bienvenue",
     "incorrect_location": "Emplacement incorrect. Vous n'êtes pas assez proche de la cible !",
     "flag_already_submitted": "Vous avez déjà soumis ce flag"
