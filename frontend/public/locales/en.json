@@ -356,7 +356,7 @@
   },
   "hints": {
     "available": "Available",
-    "available_hints": "Available Hints",
+    "available_hints": "Available hints",
     "buy_for_points": "Buy for {cost} points",
     "hint": "Hint",
     "hint_locked": "This hint is locked. Buy it to reveal its content.",
@@ -366,7 +366,7 @@
     "purchasing": "Purchasing...",
     "reveal_hint": "Reveal hint (Admin)",
     "spent": "Spent",
-    "team_score": "Team Score",
+    "team_score": "Team score",
     "total": "Total"
   },
   "instance": {
@@ -394,6 +394,7 @@
     "learn_more": "Learn more.",
     "please_fill_fields": "Please fill in all fields",
     "tip": "Tip",
+    "too_many_login_attempts": "Too many login attempts. Please wait a minute before trying again.",
     "warning": "Warning",
     "welcome_back": "Welcome back",
     "incorrect_location": "Incorrect location. You're not close enough to the target!",
@@ -575,11 +576,14 @@
   },
   "username": {
     "change_username": "Change Username",
+    "change_username_confirm": "Are you sure you want to change your username?",
     "update_username": "Update Username",
     "username": "Username",
     "username_exists": "Username already exists.",
+    "username_invalid_characters": "Username can only contain letters, numbers, underscores, and hyphens. Special characters and Unicode symbols are not allowed.",
     "username_length": "Username must be at most 32 characters.",
     "username_or_email": "Username or Email",
+    "username_required": "Username is required.",
     "username_too_long": "Username too long (max 32 characters)",
     "username_updated": "Username updated successfully!"
   },

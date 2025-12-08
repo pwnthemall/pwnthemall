@@ -9,12 +9,12 @@ export interface Challenge {
   slug: string
   name: string
   description: string
-  difficulty: ChallengeDifficulty
-  difficultyId: number
-  type: ChallengeType
-  typeId: number
-  category: ChallengeCategory
-  categoryId: number
+  challengeDifficulty: ChallengeDifficulty
+  challengeDifficultyId: number
+  challengeType: ChallengeType
+  challengeTypeId: number
+  challengeCategory: ChallengeCategory
+  challengeCategoryId: number
   createdAt?: string
   updatedAt?: string
   solvers?: User[]

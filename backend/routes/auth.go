@@ -9,7 +9,7 @@ import (
 func RegisterAuthRoutes(router *gin.Engine) {
 	auth := router.Group("/")
 	{
-		auth.POST("login", controllers.Login)
+		auth.POST("login", middleware.RateLimitLogin(), controllers.Login)
 		auth.POST("refresh", controllers.Refresh)
 		auth.POST("register", controllers.Register)
 		auth.POST("logout", middleware.AuthRequired(false), controllers.Logout)

@@ -3,6 +3,7 @@ package utils
 import (
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -12,6 +13,8 @@ import (
 var (
 	AccessSecret  = []byte(os.Getenv("JWT_SECRET"))
 	RefreshSecret = []byte(os.Getenv("REFRESH_SECRET"))
+	// TokenBlacklist stores invalidated tokens (in production, use Redis)
+	TokenBlacklist = &sync.Map{}
 )
 
 type TokenClaims struct {
@@ -47,6 +50,11 @@ func GetClaimsFromCookie(c *gin.Context) (*TokenClaims, error) {
 		return nil, err
 	}
 
+	// Check if token is blacklisted
+	if _, blacklisted := TokenBlacklist.Load(tokenStr); blacklisted {
+		return nil, jwt.ErrTokenInvalidClaims
+	}
+
 	token, err := jwt.ParseWithClaims(tokenStr, &TokenClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return AccessSecret, nil
 	})
@@ -55,4 +63,17 @@ func GetClaimsFromCookie(c *gin.Context) (*TokenClaims, error) {
 	}
 
 	return token.Claims.(*TokenClaims), nil
+}
+
+// BlacklistToken adds a token to the blacklist with TTL based on expiration
+func BlacklistToken(tokenStr string, expiresAt time.Time) {
+	TokenBlacklist.Store(tokenStr, true)
+	// Schedule cleanup after token expiration
+	go func() {
+		ttl := time.Until(expiresAt)
+		if ttl > 0 {
+			time.Sleep(ttl)
+		}
+		TokenBlacklist.Delete(tokenStr)
+	}()
 }

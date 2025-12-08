@@ -1,6 +1,8 @@
 package dto
 
-import "github.com/pwnthemall/pwnthemall/backend/models"
+import (
+	"github.com/pwnthemall/pwnthemall/backend/models"
+)
 
 // FlagInput represents flag submission request
 type FlagInput struct {
@@ -17,9 +19,9 @@ type GeoFlagInput struct {
 type ChallengeAdminUpdateRequest struct {
 	Name              *string        `json:"name"`
 	Description       *string        `json:"description"`
-	Difficulty        *uint          `json:"difficulty"`
-	Category          *uint          `json:"category"`
-	Type              *uint          `json:"type"`
+	DifficultyID      *uint          `json:"difficultyId"`
+	CategoryID        *uint          `json:"categoryId"`
+	TypeID            *uint          `json:"typeId"`
 	Hidden            *bool          `json:"hidden"`
 	Points            *int           `json:"points"`
 	DecayFormulaID    *uint          `json:"decayFormulaId"`
@@ -31,37 +33,24 @@ type ChallengeAdminUpdateRequest struct {
 
 // ChallengeGeneralUpdateRequest represents general challenge info update
 type ChallengeGeneralUpdateRequest struct {
-	Name           string `json:"name" binding:"required"`
-	Description    string `json:"description" binding:"required"`
-	Author         string `json:"author"`
-	Hidden         *bool  `json:"hidden"`
-	CategoryID     *uint  `json:"categoryId"`
-	DifficultyID   *uint  `json:"difficultyId"`
+	Name           string   `json:"name" binding:"required"`
+	Description    string   `json:"description" binding:"required"`
+	Author         string   `json:"author"`
+	Hidden         *bool    `json:"hidden"`
+	CategoryID     *uint    `json:"categoryId"`
+	DifficultyID   *uint    `json:"difficultyId"`
 	CoverPositionX *float64 `json:"coverPositionX"`
 	CoverPositionY *float64 `json:"coverPositionY"`
 	CoverZoom      *float64 `json:"coverZoom"`
 }
 
-// HintRequest represents hint creation/update request
-type HintRequest struct {
-	Content string `json:"content" binding:"required"`
-	Cost    int    `json:"cost" binding:"min=0"`
-}
-
-// HintWithPurchased represents a hint with purchase status
-type HintWithPurchased struct {
-	models.Hint
-	Purchased bool `json:"purchased"`
-}
-
 // ChallengeWithSolved represents a challenge with solve status and hints
 type ChallengeWithSolved struct {
-	models.Challenge
-	Solved             bool                `json:"solved"`
-	Locked             bool                `json:"locked,omitempty"`       // True if depends_on requirement not met
-	Hints              []HintWithPurchased `json:"hints,omitempty"`
-	GeoRadiusKm        *float64            `json:"geoRadiusKm,omitempty"`
-	TeamFailedAttempts int64               `json:"teamFailedAttempts,omitempty"`
+	SafeChallenge
+	Solved             bool     `json:"solved"`
+	Locked             bool     `json:"locked,omitempty"` // True if depends_on requirement not met
+	GeoRadiusKm        *float64 `json:"geoRadiusKm,omitempty"`
+	TeamFailedAttempts int64    `json:"teamFailedAttempts,omitempty"`
 }
 
 // SolveWithUser represents a solve with user information
@@ -93,7 +82,7 @@ type InstanceEvent struct {
 	TeamID         uint        `json:"teamId"`
 	UserID         uint        `json:"userId"`
 	Username       string      `json:"username,omitempty"`
-	Name      string      `json:"name,omitempty"`
+	Name           string      `json:"name,omitempty"`
 	ChallengeID    uint        `json:"challengeId,omitempty"`
 	Status         string      `json:"status,omitempty"`
 	UpdatedAt      int64       `json:"updatedAt,omitempty"`
@@ -101,4 +90,27 @@ type InstanceEvent struct {
 	ExpiresAt      int64       `json:"expiresAt,omitempty"`
 	Ports          interface{} `json:"ports,omitempty"`
 	ConnectionInfo interface{} `json:"connectionInfo,omitempty"`
+}
+
+type SafeChallenge struct {
+	ID                    uint                        `json:"id"`
+	Slug                  string                      `json:"slug"`
+	Name                  string                      `json:"name"`
+	Description           string                      `json:"description"`
+	ChallengeDifficultyID uint                        `json:"difficultyId"`
+	ChallengeDifficulty   *models.ChallengeDifficulty `json:"challengeDifficulty"`
+	ChallengeCategoryID   uint                        `json:"categoryId"`
+	ChallengeCategory     *ChallengeCategory          `json:"challengeCategory"`
+	ChallengeTypeID       uint                        `json:"typeId"`
+	ChallengeType         *models.ChallengeType       `json:"challengeType"`
+	Author                string                      `json:"author"`
+	Points                int                         `json:"points"` // maybe rename it basePoints
+	CurrentPoints         int                         `json:"currentPoints"`
+	Order                 int                         `json:"order" gorm:"default:0"`
+	CoverImg              string                      `json:"coverImg,omitempty"` // Cover image filename (e.g., "cover_resized.webp")
+	Emoji                 string                      `json:"emoji,omitempty"`    // Emoji to display when no cover image
+	CoverPositionX        float64                     `json:"coverPositionX"`     // X position for cover image (0-100, default 50 = center)
+	CoverPositionY        float64                     `json:"coverPositionY"`     // Y position for cover image (0-100, default 50 = center)
+	CoverZoom             float64                     `json:"coverZoom"`          // Zoom level for cover image (100-200, default 100 = no zoom)
+	Hints                 []HintWithPurchased         `json:"hints,omitempty"`
 }

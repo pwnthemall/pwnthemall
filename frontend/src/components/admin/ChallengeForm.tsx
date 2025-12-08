@@ -33,9 +33,9 @@ export default function ChallengeForm({
     name: initialData?.name || "",
     description: initialData?.description || "",
     points: 100,
-    categoryId: initialData?.categoryId || 1,
-    typeId: initialData?.typeId || 1,
-    difficultyId: initialData?.difficultyId || 1,
+    categoryId: initialData?.challengeCategoryId || 1,
+    typeId: initialData?.challengeTypeId || 1,
+    difficultyId: initialData?.challengeDifficultyId || 1,
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

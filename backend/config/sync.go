@@ -1,9 +1,9 @@
 package config
 
 import (
-	"log"
 	"os"
 
+	"github.com/pwnthemall/pwnthemall/backend/debug"
 	"github.com/pwnthemall/pwnthemall/backend/models"
 )
 
@@ -27,12 +27,12 @@ func SynchronizeEnvWithDb() {
 	// }
 	var dockerConfig models.DockerConfig
 	if err := DB.Select("host").Find(&dockerConfig).Error; err != nil {
-		log.Printf("Failed to retrieve host from docker config: %s", err.Error())
+		debug.Log("Failed to retrieve host from docker config: %s", err.Error())
 	} else {
 		if err := os.Setenv("DOCKER_HOST", dockerConfig.Host); err != nil {
-			log.Printf("Failed to set env variable DOCKER_HOST: %v", err)
+			debug.Log("Failed to set env variable DOCKER_HOST: %v", err)
 		} else {
-			log.Printf("Env variable set from DB: DOCKER_HOST=%s", dockerConfig.Host)
+			debug.Log("Env variable set from DB: DOCKER_HOST=%s", dockerConfig.Host)
 		}
 	}
 

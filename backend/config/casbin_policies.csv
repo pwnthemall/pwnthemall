@@ -16,8 +16,6 @@ p, member, /challenges/:id/files/:filename, read
 p, member, /challenges/:id/cover, read
 p, member, /challenges/hints/:id/purchase, write
 p, member, /challenges-categories, read
-p, member, /instances, read
-p, member, /instances/:id, read
 p, member, /challenges-categories/:id, read
 p, member, /teams/leaderboard, read
 p, member, /teams/timeline, read
@@ -30,7 +28,6 @@ p, member, /teams/leave, write
 p, member, /teams/transfer-owner, write
 p, member, /teams/disband, write
 p, member, /teams/kick, write
-p, member, /teams/recalculate-points, write
 p, member, /notifications, read
 p, member, /notifications/unread-count, read
 p, member, /notifications/:id/read, write

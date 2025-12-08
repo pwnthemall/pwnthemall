@@ -1,10 +1,29 @@
+{
+    servers {
+        protocols h1 h2 h3
+    }
+}
+
 %PTA_PUBLIC_DOMAIN% {
+    header /* {
+        defer
+        Server ""
+        -X-Powered-By
+        X-Frame-Options "DENY"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "geolocation=(), microphone=(), camera=()"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: blob: https: https://*.tile.openstreetmap.org; font-src 'self' data:; connect-src 'self' wss: ws: https://nominatim.openstreetmap.org https://unpkg.com; frame-ancestors 'none'"
+    }
+    
     handle_path /api/* {
         reverse_proxy backend:8080 {
             header_up X-Real-IP {remote_host}
             header_up X-Forwarded-For {remote_host}
             header_up X-Forwarded-Proto {scheme}
-            header_up X-Forwarded-Host {host}
+            header_down -Server
+            header_down -X-Powered-By
         }
     }
 
@@ -14,16 +33,21 @@
             header_up X-Real-IP {remote_host}
             header_up X-Forwarded-For {remote_host}
             header_up X-Forwarded-Proto {scheme}
-            header_up X-Forwarded-Host {host}
         }
     }
 
     handle_path /minio-api/* {
-        reverse_proxy minio:9000
+        reverse_proxy minio:9000 {
+            header_down -Server
+            header_down -X-Powered-By
+        }
     }
 
     handle_path /minio/* {
-        reverse_proxy minio:9001
+        reverse_proxy minio:9001 {
+            header_down -Server
+            header_down -X-Powered-By
+        }
     }
 
     handle {
@@ -31,7 +55,8 @@
             header_up X-Real-IP {remote_host}
             header_up X-Forwarded-For {remote_host}
             header_up X-Forwarded-Proto {scheme}
-            header_up X-Forwarded-Host {host}
+            header_down -Server
+            header_down -X-Powered-By
         }
     }
 }

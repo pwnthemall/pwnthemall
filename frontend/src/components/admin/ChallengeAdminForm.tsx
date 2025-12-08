@@ -111,8 +111,8 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
     description: challenge.description || "",
     author: challenge.author || "",
     hidden: challenge.hidden || false,
-    categoryId: challenge.categoryId || 1,
-    difficultyId: challenge.difficultyId || 1,
+    categoryId: challenge.challengeCategoryId || 1,
+    difficultyId: challenge.challengeDifficultyId || 1,
   })
   const [coverPosition, setCoverPosition] = useState({
     x: challenge.coverPositionX ?? 50,
@@ -595,8 +595,8 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
                           description: generalData.description || challenge.description,
                           author: generalData.author || challenge.author,
                           hidden: generalData.hidden,
-                          categoryId: generalData.categoryId || challenge.categoryId,
-                          difficultyId: generalData.difficultyId || challenge.difficultyId,
+                          categoryId: generalData.categoryId || challenge.challengeCategoryId,
+                          difficultyId: generalData.difficultyId || challenge.challengeDifficultyId,
                           coverPositionX: coverPosition.x,
                           coverPositionY: coverPosition.y,
                           coverZoom: coverZoom,

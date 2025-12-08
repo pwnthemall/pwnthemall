@@ -2,20 +2,18 @@ package dto
 
 import (
 	"time"
-
-	"github.com/pwnthemall/pwnthemall/backend/models"
 )
 
 type InstanceDTO struct {
-	ID          uint             `json:"id"`
-	Name        string           `json:"name"`
-	UserID      uint             `json:"userId"`
-	TeamID      uint             `json:"teamId"`
-	ChallengeID uint             `json:"challengeId"`
-	User        models.User      `json:"user"`
-	Team        models.Team      `json:"team"`
-	Challenge   models.Challenge `json:"challenge"`
-	CreatedAt   time.Time        `json:"createdAt"`
+	ID          uint          `json:"id"`
+	Name        string        `json:"name"`
+	UserID      uint          `json:"userId"`
+	TeamID      uint          `json:"teamId"`
+	ChallengeID uint          `json:"challengeId"`
+	User        SafeUser      `json:"user"`
+	Team        SafeTeam      `json:"team"`
+	Challenge   SafeChallenge `json:"challenge"`
+	CreatedAt   time.Time     `json:"createdAt"`
 }
 
 type AdminInstanceDTO struct {

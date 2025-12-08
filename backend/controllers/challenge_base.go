@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/copier"
 	"github.com/minio/minio-go/v7"
 	"github.com/pwnthemall/pwnthemall/backend/config"
 	"github.com/pwnthemall/pwnthemall/backend/debug"
@@ -72,28 +73,29 @@ func getTeamFailedAttempts(teamID uint, challenges []models.Challenge) map[uint]
 // processHintsWithPurchaseStatus filters hints and adds purchase status
 func processHintsWithPurchaseStatus(hints []models.Hint, purchasedHintIds []uint, userRole string) []dto.HintWithPurchased {
 	var hintsWithPurchased []dto.HintWithPurchased
-
+	debug.Log("processHintsWithPurchaseStatus (hints): %v", hints)
 	for _, hint := range hints {
 		debug.Log("Hint ID %d: IsActive=%t, User Role=%s", hint.ID, hint.IsActive, userRole)
 
-		// Skip inactive hints unless user is admin
 		if !hint.IsActive && userRole != "admin" {
 			debug.Log("Skipping inactive hint ID %d for non-admin user", hint.ID)
 			continue
 		}
+		var hintWithPurchased dto.HintWithPurchased
+		var hintDTO dto.Hint
+		copier.Copy(&hintDTO, &hint)
 
-		purchased := false
+		hintWithPurchased.Hint = hintDTO
+		hintWithPurchased.Hint.Content = ""
+		hintWithPurchased.Purchased = false
 		for _, purchasedId := range purchasedHintIds {
 			if hint.ID == purchasedId {
-				purchased = true
+				hintWithPurchased.Hint = hintDTO
+				hintWithPurchased.Purchased = true
 				break
 			}
 		}
-
-		hintsWithPurchased = append(hintsWithPurchased, dto.HintWithPurchased{
-			Hint:      hint,
-			Purchased: purchased,
-		})
+		hintsWithPurchased = append(hintsWithPurchased, hintWithPurchased)
 	}
 
 	return hintsWithPurchased
@@ -125,14 +127,12 @@ func buildChallengeWithSolved(challenge models.Challenge, solvedChallengeIds []u
 
 	// Process hints
 	hintsWithPurchased := processHintsWithPurchaseStatus(challenge.Hints, purchasedHintIds, userRole)
-
 	item := dto.ChallengeWithSolved{
-		Challenge:          challenge,
 		Solved:             solved,
-		Hints:              hintsWithPurchased,
 		TeamFailedAttempts: failedAttemptsMap[challenge.ID],
 	}
-
+	copier.Copy(&item, &challenge)
+	item.Hints = hintsWithPurchased
 	// Add geo spec if applicable
 	addGeoSpecIfNeeded(challenge, &item)
 
@@ -143,7 +143,6 @@ func CheckChallengeDependancies(c *gin.Context, challenge models.Challenge) bool
 	userI, _ := c.Get("user")
 	user, ok := userI.(*models.User)
 	if !ok {
-		utils.InternalServerError(c, "user_wrong_type")
 		return false
 	}
 	if user.Role == "admin" {
@@ -327,18 +326,14 @@ func GetChallengesByCategoryName(c *gin.Context) {
 	// Build response from ordered challenges
 	for _, challenge := range orderedChallenges {
 		// Check if challenge has a dependency and if user is not admin
-		if challenge.DependsOn != "" && user.Role != "admin" {
-			// Check if the required challenge has been solved
-			if !solvedNamesMap[challenge.DependsOn] {
-				// Skip locked challenges - don't show them until dependency is solved
-				continue
-			}
+		if !CheckChallengeDependancies(c, challenge) {
+			continue
 		}
 
 		item := buildChallengeWithSolved(challenge, solvedChallengeIds, purchasedHintIds, failedAttemptsMap, user.Role, decayService)
 		challengesWithSolved = append(challengesWithSolved, item)
 	}
-
+	debug.Log("challengesWithSolved: %v", challengesWithSolved)
 	utils.OKResponse(c, challengesWithSolved)
 }
 

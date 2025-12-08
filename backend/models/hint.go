@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type Hint struct {
 	ID           uint       `gorm:"primaryKey" json:"id"`

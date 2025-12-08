@@ -34,7 +34,7 @@ export function useChallengeInstances(
   const { startInstance, stopInstance, getInstanceStatus: fetchInstanceStatus } = useInstances();
 
   const isDockerChallenge = (challenge: Challenge) => {
-    const typeName = challenge.type?.name?.toLowerCase();
+    const typeName = challenge.challengeType?.name?.toLowerCase();
     return typeName === 'docker' || typeName === 'compose';
   };
 

@@ -19,7 +19,7 @@ import (
 func GetTeams(c *gin.Context) {
 	var teams []models.Team
 	if err := config.DB.Preload("Users").Find(&teams).Error; err != nil {
-		utils.InternalServerError(c, err.Error())
+		utils.InternalServerError(c, "Failed to fetch teams")
 		return
 	}
 	utils.OKResponse(c, teams)

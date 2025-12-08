@@ -67,9 +67,9 @@ function SortableItem({ challenge, isDragOverlay = false }: SortableItemProps) {
         <div className="flex-1">
           <div className="font-medium">{challenge.name}</div>
           <div className="flex items-center gap-2 mt-1">
-            {challenge.difficulty && (
-              <Badge className={getDifficultyColor(challenge.difficulty.name)} variant="secondary">
-                {challenge.difficulty.name}
+            {challenge.challengeDifficulty && (
+              <Badge className={getDifficultyColor(challenge.challengeDifficulty.name)} variant="secondary">
+                {challenge.challengeDifficulty.name}
               </Badge>
             )}
             <span className="text-sm text-muted-foreground">{challenge.points} pts</span>
@@ -96,9 +96,9 @@ function SortableItem({ challenge, isDragOverlay = false }: SortableItemProps) {
       <div className="flex-1">
         <div className="font-medium">{challenge.name}</div>
         <div className="flex items-center gap-2 mt-1">
-          {challenge.difficulty && (
-            <Badge className={getDifficultyColor(challenge.difficulty.name)} variant="secondary">
-              {challenge.difficulty.name}
+          {challenge.challengeDifficulty && (
+            <Badge className={getDifficultyColor(challenge.challengeDifficulty.name)} variant="secondary">
+              {challenge.challengeDifficulty.name}
             </Badge>
           )}
           <span className="text-sm text-muted-foreground">{challenge.points} pts</span>

@@ -358,7 +358,7 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
   };
 
   const isDockerChallenge = (challenge: Challenge) => {
-    if ((challenge.type?.name?.toLowerCase() === 'docker') || (challenge.type?.name?.toLowerCase() === 'compose')) {
+    if ((challenge.challengeType?.name?.toLowerCase() === 'docker') || (challenge.challengeType?.name?.toLowerCase() === 'compose')) {
       return true
     }
   };
@@ -473,7 +473,7 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
                     variant="secondary"
                     className="text-xs bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-400 dark:border-gray-500 pointer-events-none select-none"
                   >
-                    {challenge.difficulty?.name || 'Unknown Difficulty'}
+                    {challenge.challengeDifficulty?.name || 'Unknown Difficulty'}
                   </Badge>
                   {isDockerChallenge(challenge) && (
                     <Badge 
@@ -482,7 +482,7 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
                         getLocalInstanceStatus(challenge.id) === 'running' 
                           ? 'bg-green-300 dark:bg-green-700 text-green-900 dark:text-green-100 border border-green-500 dark:border-green-400' 
                           : getLocalInstanceStatus(challenge.id) === 'building'
-                          ? 'bg-yellow-300 dark:bg-yellow-700 text-yellow-900 dark:text-yellow-100 border border-yellow-500 dark:border-yellow-400'
+                          ? 'bg-orange-300 dark:bg-orange-700 text-orange-900 dark:text-orange-100 border border-orange-500 dark:border-orange-400'
                           : getLocalInstanceStatus(challenge.id) === 'stopping'
                           ? 'bg-orange-300 dark:bg-orange-700 text-orange-900 dark:text-orange-100 border border-orange-500 dark:border-orange-400'
                           : getLocalInstanceStatus(challenge.id) === 'expired'
@@ -516,7 +516,7 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
                 )}
               </DialogTitle>
               <DialogDescription className="text-sm text-muted-foreground">
-                {t('difficulty')}: {selectedChallenge?.difficulty?.name || 'Unknown'} - {t('author')}: {selectedChallenge?.author || 'Unknown'}
+                {t('difficulty')}: {selectedChallenge?.challengeDifficulty?.name || 'Unknown'} - {t('author')}: {selectedChallenge?.author || 'Unknown'}
               </DialogDescription>
             </DialogHeader>
 
@@ -635,7 +635,7 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
                             </div>
                           ) : (
                             <div className="mt-4 flex flex-col gap-4 pb-2">
-                              {selectedChallenge?.type?.name?.toLowerCase() === 'geo' ? (
+                              {selectedChallenge?.challengeType?.name?.toLowerCase() === 'geo' ? (
                                 <div className="w-full" style={{ height: '40vh', maxHeight: 420 }}>
                                   <GeoPicker value={geoCoords} onChange={setGeoCoords} height={'100%'} radiusKm={selectedChallenge?.geoRadiusKm ?? null} />
                                 </div>
@@ -657,7 +657,7 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
                                 onClick={handleSubmit}
                                 disabled={
                                   loading || 
-                                  (selectedChallenge?.type?.name?.toLowerCase() === 'geo' ? !geoCoords : !flag.trim()) ||
+                                  (selectedChallenge?.challengeType?.name?.toLowerCase() === 'geo' ? !geoCoords : !flag.trim()) ||
                                   !!(selectedChallenge?.maxAttempts && selectedChallenge.maxAttempts > 0 && (selectedChallenge.teamFailedAttempts || 0) >= selectedChallenge.maxAttempts)
                                 }
                                 className="bg-cyan-600 hover:bg-cyan-700 dark:bg-cyan-500 dark:hover:bg-cyan-600"
@@ -782,7 +782,7 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
                                                   
                                                   // Ensuite, recharger les données du serveur en arrière-plan
                                                   try {
-                                                    const response = await axios.get(`/api/challenges/category/${selectedChallenge.category?.name || cat}`);
+                                                    const response = await axios.get(`/api/challenges/category/${selectedChallenge.challengeCategory?.name || cat}`);
                                                     const updatedChallenges = response.data;
                                                     const updatedChallenge = updatedChallenges.find((c: any) => c.id === selectedChallenge.id);
                                                     
@@ -968,8 +968,14 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
                                       )}
                                       {getLocalInstanceStatus(selectedChallenge.id) === 'building' && (
                                         <>
-                                          <Settings className="w-4 h-4 text-yellow-600 animate-spin" />
-                                          <span className="text-sm font-medium text-yellow-600">{t('building')}</span>
+                                          <Settings className="w-4 h-4 text-orange-600 animate-spin" />
+                                          <span className="text-sm font-medium text-orange-600">{t('building')}</span>
+                                        </>
+                                      )}
+                                      {getLocalInstanceStatus(selectedChallenge.id) === 'stopping' && (
+                                        <>
+                                          <Settings className="w-4 h-4 text-orange-600 animate-spin" />
+                                          <span className="text-sm font-medium text-orange-600">{t('stopping')}</span>
                                         </>
                                       )}
                                       {getLocalInstanceStatus(selectedChallenge.id) === 'expired' && (
