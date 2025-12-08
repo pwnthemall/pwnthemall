@@ -1,10 +1,10 @@
 package utils
 
 import (
-	"log"
 	"time"
 
 	"github.com/pwnthemall/pwnthemall/backend/config"
+	"github.com/pwnthemall/pwnthemall/backend/debug"
 	"github.com/pwnthemall/pwnthemall/backend/models"
 )
 
@@ -26,14 +26,14 @@ func NewHintScheduler() *HintScheduler {
 // Start begins the hint activation scheduler
 func (hs *HintScheduler) Start() {
 	if hs.running {
-		log.Println("Hint scheduler is already running")
+		debug.Println("Hint scheduler is already running")
 		return
 	}
 
 	hs.ticker = time.NewTicker(1 * time.Minute)
 	hs.running = true
 
-	log.Println("Hint scheduler started, checking every minute")
+	debug.Println("Hint scheduler started, checking every minute")
 
 	// Check immediately on startup
 	ActivateScheduledHints()
@@ -44,7 +44,7 @@ func (hs *HintScheduler) Start() {
 			case <-hs.ticker.C:
 				ActivateScheduledHints()
 			case <-hs.stopChan:
-				log.Println("Hint scheduler stopped")
+				debug.Println("Hint scheduler stopped")
 				return
 			}
 		}
@@ -89,16 +89,16 @@ func ActivateScheduledHints() {
 	// Find hints that should be activated now
 	var hints []models.Hint
 	if err := config.DB.Where("auto_active_at IS NOT NULL AND auto_active_at <= ? AND is_active = false", now).Find(&hints).Error; err != nil {
-		log.Printf("Failed to fetch scheduled hints: %v", err)
+		debug.Log("Failed to fetch scheduled hints: %v", err)
 		return
 	}
 
 	for _, hint := range hints {
 		hint.IsActive = true
 		if err := config.DB.Save(&hint).Error; err != nil {
-			log.Printf("Failed to auto-activate hint %d: %v", hint.ID, err)
+			debug.Log("Failed to auto-activate hint %d: %v", hint.ID, err)
 		} else {
-			log.Printf("Auto-activated hint %d (%s) for challenge %d", hint.ID, hint.Title, hint.ChallengeID)
+			debug.Log("Auto-activated hint %d (%s) for challenge %d", hint.ID, hint.Title, hint.ChallengeID)
 		}
 	}
 }
@@ -114,9 +114,9 @@ func CheckAndActivateHintsForChallenges(challenges []models.Challenge) {
 			if hint.AutoActiveAt != nil && !hint.IsActive && hint.AutoActiveAt.Before(now) {
 				hint.IsActive = true
 				if err := config.DB.Save(hint).Error; err != nil {
-					log.Printf("Failed to auto-activate hint %d: %v", hint.ID, err)
+					debug.Log("Failed to auto-activate hint %d: %v", hint.ID, err)
 				} else {
-					log.Printf("Auto-activated hint %d (%s) for challenge %d", hint.ID, hint.Title, hint.ChallengeID)
+					debug.Log("Auto-activated hint %d (%s) for challenge %d", hint.ID, hint.Title, hint.ChallengeID)
 				}
 			}
 		}

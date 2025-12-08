@@ -2,13 +2,13 @@ package config
 
 import (
 	"fmt"
-	"log"
 	"math/rand"
 	"os"
 	"strconv"
 	"time"
 
 	"github.com/casbin/casbin/v2"
+	"github.com/pwnthemall/pwnthemall/backend/debug"
 	"github.com/pwnthemall/pwnthemall/backend/models"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -55,11 +55,11 @@ func GetCTFStatus() CTFStatus {
 				Public: true,
 			}
 			if createErr := DB.Create(&startConfig).Error; createErr != nil {
-				log.Printf("Failed to create CTF_START_TIME config: %v", createErr)
+				debug.Log("Failed to create CTF_START_TIME config: %v", createErr)
 				return CTFNoTiming
 			}
 		} else {
-			log.Printf("Database error getting CTF_START_TIME: %v", err)
+			debug.Log("Database error getting CTF_START_TIME: %v", err)
 			return CTFNoTiming
 		}
 	}
@@ -74,11 +74,11 @@ func GetCTFStatus() CTFStatus {
 				Public: true,
 			}
 			if createErr := DB.Create(&endConfig).Error; createErr != nil {
-				log.Printf("Failed to create CTF_END_TIME config: %v", createErr)
+				debug.Log("Failed to create CTF_END_TIME config: %v", createErr)
 				return CTFNoTiming
 			}
 		} else {
-			log.Printf("Database error getting CTF_END_TIME: %v", err)
+			debug.Log("Database error getting CTF_END_TIME: %v", err)
 			return CTFNoTiming
 		}
 	}
@@ -91,13 +91,13 @@ func GetCTFStatus() CTFStatus {
 	// Parse times (expecting RFC3339 format: 2006-01-02T15:04:05Z07:00)
 	startTime, err := time.Parse(time.RFC3339, startConfig.Value)
 	if err != nil {
-		log.Printf("Failed to parse CTF start time")
+		debug.Log("Failed to parse CTF start time")
 		return CTFNoTiming
 	}
 
 	endTime, err := time.Parse(time.RFC3339, endConfig.Value)
 	if err != nil {
-		log.Printf("Failed to parse CTF end time: %v", err)
+		debug.Log("Failed to parse CTF end time: %v", err)
 		return CTFNoTiming
 	}
 
@@ -142,17 +142,17 @@ func seedConfig() {
 			continue
 		}
 		if err := DB.Create(&item).Error; err != nil {
-			log.Printf("Failed to seed config %s: %v\n", item.Key, err)
+			debug.Log("Failed to seed config %s: %v\n", item.Key, err)
 		}
 	}
-	log.Println("Seeding: config finished")
+	debug.Println("Seeding: config finished")
 }
 
 func seedDockerConfig() {
 	var existing models.DockerConfig
 	err := DB.First(&existing).Error
 	if err == nil {
-		log.Println("Seeding: docker config already exists, skipping")
+		debug.Println("Seeding: docker config already exists, skipping")
 		return
 	}
 
@@ -200,10 +200,10 @@ func seedDockerConfig() {
 	}
 
 	if err := DB.Create(&config).Error; err != nil {
-		log.Printf("Failed to seed docker config: %s", err.Error())
+		debug.Log("Failed to seed docker config: %s", err.Error())
 		return
 	}
-	log.Println("Seeding: docker config finished")
+	debug.Println("Seeding: docker config finished")
 }
 
 func seedChallengeCategory() {
@@ -215,17 +215,17 @@ func seedChallengeCategory() {
 		var existing models.ChallengeCategory
 		err := DB.Where("name = ?", challengeCategory.Name).First(&existing).Error
 		if err != nil && err != gorm.ErrRecordNotFound {
-			log.Printf("Failed to check challengeCategory %s: %v\n", challengeCategory.Name, err)
+			debug.Log("Failed to check challengeCategory %s: %v\n", challengeCategory.Name, err)
 			continue
 		}
 		if err == nil {
 			continue
 		}
 		if err := DB.Create(&challengeCategory).Error; err != nil {
-			log.Printf("Failed to seed challengeCategory %s: %v\n", challengeCategory.Name, err)
+			debug.Log("Failed to seed challengeCategory %s: %v\n", challengeCategory.Name, err)
 		}
 	}
-	log.Println("Seeding: challengeCategories finished")
+	debug.Println("Seeding: challengeCategories finished")
 }
 
 func seedChallengeType() {
@@ -239,17 +239,17 @@ func seedChallengeType() {
 		var existing models.ChallengeType
 		err := DB.Where("name = ?", challengeType.Name).First(&existing).Error
 		if err != nil && err != gorm.ErrRecordNotFound {
-			log.Printf("Failed to check challengeType %s: %v\n", challengeType.Name, err)
+			debug.Log("Failed to check challengeType %s: %v\n", challengeType.Name, err)
 			continue
 		}
 		if err == nil {
 			continue
 		}
 		if err := DB.Create(&challengeType).Error; err != nil {
-			log.Printf("Failed to seed challengeType %s: %v\n", challengeType.Name, err)
+			debug.Log("Failed to seed challengeType %s: %v\n", challengeType.Name, err)
 		}
 	}
-	log.Println("Seeding: challengeTypes finished")
+	debug.Println("Seeding: challengeTypes finished")
 }
 
 func seedChallengeDifficulty() {
@@ -264,17 +264,17 @@ func seedChallengeDifficulty() {
 		var existing models.ChallengeDifficulty
 		err := DB.Where("name = ?", challengeDifficulty.Name).First(&existing).Error
 		if err != nil && err != gorm.ErrRecordNotFound {
-			log.Printf("Failed to check challengeDifficulty %s: %v\n", challengeDifficulty.Name, err)
+			debug.Log("Failed to check challengeDifficulty %s: %v\n", challengeDifficulty.Name, err)
 			continue
 		}
 		if err == nil {
 			continue
 		}
 		if err := DB.Create(&challengeDifficulty).Error; err != nil {
-			log.Printf("Failed to seed challengeDifficulty %s: %v\n", challengeDifficulty.Name, err)
+			debug.Log("Failed to seed challengeDifficulty %s: %v\n", challengeDifficulty.Name, err)
 		}
 	}
-	log.Println("Seeding: challengeTypes finished")
+	debug.Println("Seeding: challengeTypes finished")
 }
 
 func seedDecayFormulas() {
@@ -321,17 +321,17 @@ func seedDecayFormulas() {
 		var existing models.DecayFormula
 		err := DB.Where("name = ?", formula.Name).First(&existing).Error
 		if err != nil && err != gorm.ErrRecordNotFound {
-			log.Printf("Failed to check decay formula %s: %v\n", formula.Name, err)
+			debug.Log("Failed to check decay formula %s: %v\n", formula.Name, err)
 			continue
 		}
 		if err == nil {
 			continue
 		}
 		if err := DB.Create(&formula).Error; err != nil {
-			log.Printf("Failed to seed decay formula %s: %v\n", formula.Name, err)
+			debug.Log("Failed to seed decay formula %s: %v\n", formula.Name, err)
 		}
 	}
-	log.Println("Seeding: decay formulas finished")
+	debug.Println("Seeding: decay formulas finished")
 }
 
 func seedDefaultUsers() {
@@ -349,7 +349,7 @@ func seedDefaultUsers() {
 		var existing models.User
 		err := DB.Where("username = ? OR email = ?", user.Username, user.Email).First(&existing).Error
 		if err != nil && err != gorm.ErrRecordNotFound {
-			log.Printf("Failed to check user %s: %v\n", user.Username, err)
+			debug.Log("Failed to check user %s: %v\n", user.Username, err)
 			continue
 		}
 		if err == nil {
@@ -358,19 +358,19 @@ func seedDefaultUsers() {
 
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 		if err != nil {
-			log.Printf("Failed to hash password for user %s: %v\n", user.Username, err)
+			debug.Log("Failed to hash password for user %s: %v\n", user.Username, err)
 			continue
 		}
 		user.Password = string(hashedPassword)
 		if err := DB.Create(&user).Error; err != nil {
-			log.Printf("Failed to seed user %s: %v\n", user.Username, err)
+			debug.Log("Failed to seed user %s: %v\n", user.Username, err)
 		}
 	}
-	log.Println("Seeding: users finished")
+	debug.Println("Seeding: users finished")
 }
 
 func SeedCasbin(enforcer *casbin.Enforcer) {
-	log.Println("Seeding: Casbin rules..")
+	debug.Println("Seeding: Casbin rules..")
 	if hasPolicy, _ := enforcer.HasPolicy("anonymous", "/login", "*"); !hasPolicy {
 		enforcer.AddPolicy("anonymous", "/login", "*")
 	}
@@ -389,24 +389,24 @@ func SeedCasbin(enforcer *casbin.Enforcer) {
 		enforcer.AddPolicy("admin", "/*", "*")
 	}
 	enforcer.SavePolicy()
-	log.Println("Seeding: Casbin finished")
+	debug.Println("Seeding: Casbin finished")
 
 }
 
 func SeedCasbinFromCsv(enforcer *casbin.Enforcer) {
-	log.Println("Seeding: Casbin rules from CSV..")
+	debug.Println("Seeding: Casbin rules from CSV..")
 	e, err := casbin.NewEnforcer("config/casbin_model.conf", "config/casbin_policies.csv")
 	if err != nil {
-		log.Fatal(err.Error())
+		debug.Println(err.Error())
 	}
 	e.LoadPolicy()
 	e.SetAdapter(enforcer.GetAdapter())
 	e.SavePolicy()
-	log.Println("Seeding: Casbin from CSV finished")
+	debug.Println("Seeding: Casbin from CSV finished")
 }
 
 func SeedDatabase() {
-	log.Println("Seeding: Database..")
+	debug.Println("Seeding: Database..")
 	seedConfig()
 	seedDockerConfig()
 	seedChallengeDifficulty()
@@ -420,7 +420,7 @@ func SeedDatabase() {
 // SeedDemoData creates demo teams, users, and solves with timestamps spread over a time range
 // This is useful for testing the scoreboard timeline without using Playwright tests
 func SeedDemoData(teamCount int, timeRangeHours int) error {
-	log.Printf("Seeding: Demo data with %d teams over %d hours...\n", teamCount, timeRangeHours)
+	debug.Log("Seeding: Demo data with %d teams over %d hours...\n", teamCount, timeRangeHours)
 
 	// Check if challenges exist
 	var challengeCount int64
@@ -430,7 +430,7 @@ func SeedDemoData(teamCount int, timeRangeHours int) error {
 	if challengeCount == 0 {
 		return fmt.Errorf("no challenges found - please sync challenges from MinIO first")
 	}
-	log.Printf("Found %d challenges to use for demo data\n", challengeCount)
+	debug.Log("Found %d challenges to use for demo data\n", challengeCount)
 
 	// Get all visible challenges
 	var challenges []models.Challenge
@@ -444,7 +444,7 @@ func SeedDemoData(teamCount int, timeRangeHours int) error {
 		return fmt.Errorf("failed to check existing demo teams: %w", err)
 	}
 	if existingDemoTeams > 0 {
-		log.Printf("Found %d existing demo teams - skipping creation (use clean-demo first)\n", existingDemoTeams)
+		debug.Log("Found %d existing demo teams - skipping creation (use clean-demo first)\n", existingDemoTeams)
 		return nil
 	}
 
@@ -470,7 +470,7 @@ func SeedDemoData(teamCount int, timeRangeHours int) error {
 			Role:     "member",
 		}
 		if err := DB.Create(&user).Error; err != nil {
-			log.Printf("Failed to create demo user %d: %v\n", i, err)
+			debug.Log("Failed to create demo user %d: %v\n", i, err)
 			continue
 		}
 
@@ -481,19 +481,19 @@ func SeedDemoData(teamCount int, timeRangeHours int) error {
 			CreatorID: user.ID,
 		}
 		if err := DB.Create(&team).Error; err != nil {
-			log.Printf("Failed to create demo team %d: %v\n", i, err)
+			debug.Log("Failed to create demo team %d: %v\n", i, err)
 			continue
 		}
 
 		// Assign user to team
 		user.TeamID = &team.ID
 		if err := DB.Save(&user).Error; err != nil {
-			log.Printf("Failed to assign user to team %d: %v\n", i, err)
+			debug.Log("Failed to assign user to team %d: %v\n", i, err)
 			continue
 		}
 
 		createdTeams = append(createdTeams, team)
-		log.Printf("Created Demo Team %d with user demo-user-%d\n", i, i)
+		debug.Log("Created Demo Team %d with user demo-user-%d\n", i, i)
 	}
 
 	// Create solves with spread timestamps
@@ -507,7 +507,7 @@ func SeedDemoData(teamCount int, timeRangeHours int) error {
 		// Get team's user
 		var user models.User
 		if err := DB.Where("team_id = ?", team.ID).First(&user).Error; err != nil {
-			log.Printf("Failed to find user for team %d: %v\n", team.ID, err)
+			debug.Log("Failed to find user for team %d: %v\n", team.ID, err)
 			continue
 		}
 
@@ -519,7 +519,7 @@ func SeedDemoData(teamCount int, timeRangeHours int) error {
 		for j := 0; j < solvesCount && j < len(teamChallenges); j++ {
 			challenge := teamChallenges[j]
 
-			// Check if team already solved this challenge 
+			// Check if team already solved this challenge
 			var existingSolve models.Solve
 			result := DB.Session(&gorm.Session{Logger: DB.Logger.LogMode(logger.Silent)}).
 				Where("team_id = ? AND challenge_id = ?", team.ID, challenge.ID).First(&existingSolve)
@@ -564,13 +564,13 @@ func SeedDemoData(teamCount int, timeRangeHours int) error {
 
 			// Set CreatedAt manually for the spread effect
 			if err := DB.Create(&solve).Error; err != nil {
-				log.Printf("Failed to create solve for team %d, challenge %d: %v\n", team.ID, challenge.ID, err)
+				debug.Log("Failed to create solve for team %d, challenge %d: %v\n", team.ID, challenge.ID, err)
 				continue
 			}
 
 			// Update the timestamp directly (GORM auto-sets CreatedAt)
 			if err := DB.Model(&solve).Update("created_at", solveTime).Error; err != nil {
-				log.Printf("Failed to update solve timestamp: %v\n", err)
+				debug.Log("Failed to update solve timestamp: %v\n", err)
 			}
 
 			// Create first blood entry if applicable
@@ -593,14 +593,14 @@ func SeedDemoData(teamCount int, timeRangeHours int) error {
 		}
 	}
 
-	log.Printf("Seeding: Demo data complete - created %d teams and %d solves\n", len(createdTeams), totalSolves)
-	log.Printf("Solve timestamps spread from %s to %s\n", startTime.Format(time.RFC3339), now.Format(time.RFC3339))
+	debug.Log("Seeding: Demo data complete - created %d teams and %d solves\n", len(createdTeams), totalSolves)
+	debug.Log("Solve timestamps spread from %s to %s\n", startTime.Format(time.RFC3339), now.Format(time.RFC3339))
 	return nil
 }
 
 // CleanDemoData removes all demo teams, users, and their associated data
 func CleanDemoData() error {
-	log.Println("Cleaning: Demo data...")
+	debug.Println("Cleaning: Demo data...")
 
 	// Get demo team IDs
 	var demoTeams []models.Team
@@ -609,7 +609,7 @@ func CleanDemoData() error {
 	}
 
 	if len(demoTeams) == 0 {
-		log.Println("No demo teams found to clean")
+		debug.Println("No demo teams found to clean")
 		return nil
 	}
 
@@ -620,22 +620,22 @@ func CleanDemoData() error {
 
 	// Delete solves for demo teams
 	if err := DB.Where(queryTeamIDIn, teamIDs).Delete(&models.Solve{}).Error; err != nil {
-		log.Printf("Failed to delete demo solves: %v\n", err)
+		debug.Log("Failed to delete demo solves: %v\n", err)
 	}
 
 	// Delete first bloods for demo teams
 	if err := DB.Where(queryTeamIDIn, teamIDs).Delete(&models.FirstBlood{}).Error; err != nil {
-		log.Printf("Failed to delete demo first bloods: %v\n", err)
+		debug.Log("Failed to delete demo first bloods: %v\n", err)
 	}
 
 	// Delete hint purchases for demo teams
 	if err := DB.Where(queryTeamIDIn, teamIDs).Delete(&models.HintPurchase{}).Error; err != nil {
-		log.Printf("Failed to delete demo hint purchases: %v\n", err)
+		debug.Log("Failed to delete demo hint purchases: %v\n", err)
 	}
 
 	// Delete demo users
 	if err := DB.Where("username LIKE ?", queryDemoUserPattern).Delete(&models.User{}).Error; err != nil {
-		log.Printf("Failed to delete demo users: %v\n", err)
+		debug.Log("Failed to delete demo users: %v\n", err)
 	}
 
 	// Delete demo teams
@@ -643,7 +643,7 @@ func CleanDemoData() error {
 		return fmt.Errorf("failed to delete demo teams: %w", err)
 	}
 
-	log.Printf("Cleaning: Removed %d demo teams and associated data\n", len(demoTeams))
+	debug.Log("Cleaning: Removed %d demo teams and associated data\n", len(demoTeams))
 	return nil
 }
 

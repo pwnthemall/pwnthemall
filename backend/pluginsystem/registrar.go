@@ -3,7 +3,7 @@ package pluginsystem
 import (
 	"bytes"
 	"io"
-	"log"
+	
 	"net/http"
 
 	"github.com/casbin/casbin/v2"
@@ -88,7 +88,7 @@ func (g *GinRouteRegistrar) createAuthMiddleware(path, method, requireRole strin
 		if g.enforcer != nil {
 			ok, err := g.enforcer.Enforce(role, path, action)
 			if err != nil {
-				log.Printf("Casbin error for plugin route %s: %v", path, err)
+				debug.Log("Casbin error for plugin route %s: %v", path, err)
 				c.AbortWithStatusJSON(500, gin.H{"error": "authorization error"})
 				return
 			}

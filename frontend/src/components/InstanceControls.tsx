@@ -27,6 +27,7 @@ export const InstanceControls: React.FC<InstanceControlsProps> = ({
 }) => {
   const [instanceStatus, setInstanceStatus] = useState<InstanceStatus | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isStopping, setIsStopping] = useState(false);
   const { t } = useLanguage();
   const { 
     loading: instanceLoading, 
@@ -53,21 +54,25 @@ export const InstanceControls: React.FC<InstanceControlsProps> = ({
     const handler = (e: any) => {
       try {
         const data = e?.detail ?? (typeof e?.data === 'string' ? JSON.parse(e.data) : e?.data);
-        if (data && data.event === 'instance_update') {
+        if (data?.event === 'instance_update') {
           const cid = Number(data.challengeId);
           if (cid === challengeId) {
+            // If instance was stopped, clear the stopping state
+            if (data.status === 'stopped') {
+              setIsStopping(false);
+            }
             fetchStatus();
           }
         }
       } catch {}
     };
-    if (typeof window !== 'undefined') {
-      window.addEventListener('instance-update', handler as EventListener);
+    if (typeof globalThis.window !== 'undefined') {
+      globalThis.window.addEventListener('instance-update', handler as EventListener);
     }
     return () => {
       clearInterval(interval);
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('instance-update', handler as EventListener);
+      if (typeof globalThis.window !== 'undefined') {
+        globalThis.window.removeEventListener('instance-update', handler as EventListener);
       }
     };
   }, [fetchStatus]);
@@ -87,6 +92,7 @@ export const InstanceControls: React.FC<InstanceControlsProps> = ({
 
   const handleStopInstance = async () => {
     setLoading(true);
+    setIsStopping(true);
     try {
       debugLog(`InstanceControls: Stopping instance for challenge ${challengeId}`);
       await stopInstance(challengeId.toString());
@@ -97,6 +103,7 @@ export const InstanceControls: React.FC<InstanceControlsProps> = ({
       debugError('InstanceControls: Failed to stop instance:', error);
     } finally {
       setLoading(false);
+      setIsStopping(false);
     }
   };
 
@@ -135,6 +142,15 @@ export const InstanceControls: React.FC<InstanceControlsProps> = ({
       );
     }
 
+    // Show "Stopping" state when user clicked stop button
+    if (isStopping) {
+      return (
+        <Badge variant="secondary" className="bg-orange-300 dark:bg-orange-700 text-orange-900 dark:text-orange-100">
+          {t('stopping') || 'Stopping...'}
+        </Badge>
+      );
+    }
+
     switch (status) {
       case 'running':
         return (
@@ -150,7 +166,7 @@ export const InstanceControls: React.FC<InstanceControlsProps> = ({
         );
       default:
         return (
-          <Badge variant="secondary" className="bg-yellow-300 dark:bg-yellow-700 text-yellow-900 dark:text-yellow-100">
+          <Badge variant="secondary" className="bg-orange-300 dark:bg-orange-700 text-orange-900 dark:text-orange-100">
             {status}
           </Badge>
         );

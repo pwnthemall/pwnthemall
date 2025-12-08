@@ -1,12 +1,12 @@
 package controllers
 
 import (
-	"log"
 	"sort"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/copier"
 	"github.com/pwnthemall/pwnthemall/backend/config"
+	"github.com/pwnthemall/pwnthemall/backend/debug"
 	"github.com/pwnthemall/pwnthemall/backend/dto"
 	"github.com/pwnthemall/pwnthemall/backend/models"
 	"github.com/pwnthemall/pwnthemall/backend/utils"
@@ -75,7 +75,7 @@ func calculateTeamScore(teamID uint, decayService *utils.DecayService) (int, err
 		position := getSolvePosition(challenge.ID, solve.CreatedAt)
 		points := calculateSolvePointsWithDecay(&solve, &challenge, position, decayService)
 		totalScore += points
-		log.Printf("[DEBUG] Team %d, Challenge %d (slug: %s), Position: %d, CurrentPoints: %d, DecayFormulaID: %d",
+		debug.Log("[DEBUG] Team %d, Challenge %d (slug: %s), Position: %d, CurrentPoints: %d, DecayFormulaID: %d",
 			teamID, challenge.ID, challenge.Slug, position, points, challenge.DecayFormulaID)
 	}
 
@@ -132,7 +132,7 @@ func processSolveRecalculation(solve *models.Solve, position int, decayService *
 
 	if firstBloodBonus > 0 {
 		if err := createFirstBloodEntryForRecalc(&challenge, solve, position, firstBloodBonus); err != nil {
-			log.Printf("Failed to recreate FirstBlood entry: %v", err)
+			debug.Log("Failed to recreate FirstBlood entry: %v", err)
 		}
 	}
 
@@ -268,7 +268,7 @@ func RecalculateTeamPoints(c *gin.Context) {
 
 	// Delete all existing FirstBlood entries and recreate them
 	if err := config.DB.Delete(&models.FirstBlood{}, "1=1").Error; err != nil {
-		log.Printf("Failed to delete existing FirstBlood entries: %v", err)
+		debug.Log("Failed to delete existing FirstBlood entries: %v", err)
 	}
 
 	// Get all solves grouped by challenge and ordered by creation time
@@ -294,7 +294,7 @@ func RecalculateTeamPoints(c *gin.Context) {
 		if solve.Points != newPointsWithBonus {
 			solve.Points = newPointsWithBonus
 			if err := config.DB.Save(&solve).Error; err != nil {
-				log.Printf("Failed to update solve for team %d, challenge %d: %v", solve.TeamID, solve.ChallengeID, err)
+				debug.Log("Failed to update solve for team %d, challenge %d: %v", solve.TeamID, solve.ChallengeID, err)
 				continue
 			}
 			updatedCount++

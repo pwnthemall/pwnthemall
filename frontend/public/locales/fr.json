@@ -375,7 +375,7 @@
     "instance_status": "Statut de l'instance"
   },
   "instance_actions": {
-    "instance_cooldown_wait": "Veuillez patienter avant de démarrer une autre instance. Période de refroidissement active.",
+    "instance_cooldown_wait": "Veuillez patienter avant de démarrer une autre instance.",
     "instance_stopped_success": "Instance arrêtée avec succès",
     "instance_create_failed": "Échec de la création de l'instance",
     "kill_instance": "Tuer l'instance",
@@ -395,6 +395,7 @@
     "please_fill_fields": "Veuillez remplir tous les champs",
     "tip": "Astuce",
     "warning": "Avertissement",
+    "too_many_login_attempts": "Trop de tentatives de connexion. Veuillez attendre une minute avant de réessayer.",
     "welcome_back": "Bienvenue",
     "incorrect_location": "Emplacement incorrect. Vous n'êtes pas assez proche de la cible !",
     "flag_already_submitted": "Vous avez déjà soumis ce flag"
@@ -576,12 +577,15 @@
   },
   "username": {
     "change_username": "Changer le nom d'utilisateur",
+    "change_username_confirm": "Êtes-vous sûr de vouloir changer votre nom d'utilisateur ?",
     "update_username": "Mettre à jour le nom d'utilisateur",
     "username": "Nom d'utilisateur",
-    "username_exists": "Ce nom d'utilisateur existe déjà",
-    "username_length": "Le nom d'utilisateur doit contenir au plus 32 caractères",
-    "username_or_email": "Nom d'utilisateur ou E-mail",
-    "username_too_long": "Nom d'utilisateur trop long (32 caractères max)",
+    "username_exists": "Ce nom d'utilisateur existe déjà.",
+    "username_invalid_characters": "Le nom d'utilisateur ne peut contenir que des lettres, chiffres, underscores et tirets. Les caractères spéciaux et symboles Unicode ne sont pas autorisés.",
+    "username_length": "Le nom d'utilisateur doit comporter au maximum 32 caractères.",
+    "username_or_email": "Nom d'utilisateur ou Email",
+    "username_required": "Le nom d'utilisateur est requis.",
+    "username_too_long": "Nom d'utilisateur trop long (max 32 caractères)",
     "username_updated": "Nom d'utilisateur mis à jour avec succès !"
   },
   "dashboard": {

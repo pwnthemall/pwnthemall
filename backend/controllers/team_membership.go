@@ -1,8 +1,9 @@
 package controllers
 
 import (
+	"github.com/pwnthemall/pwnthemall/backend/debug"
 	"fmt"
-	"log"
+	
 
 	"github.com/gin-gonic/gin"
 	"github.com/pwnthemall/pwnthemall/backend/config"
@@ -296,43 +297,43 @@ func deleteTeamCompletely(teamID uint) error {
 	return config.DB.Transaction(func(tx *gorm.DB) error {
 		var userIds []uint
 		if err := tx.Model(&models.User{}).Where("team_id = ?", teamID).Pluck("id", &userIds).Error; err != nil {
-			log.Printf("Failed to get user IDs for team %d: %v", teamID, err)
+			debug.Log("Failed to get user IDs for team %d: %v", teamID, err)
 			return err
 		}
 
 		if len(userIds) > 0 {
 			if err := tx.Where("user_id IN ?", userIds).Delete(&models.Submission{}).Error; err != nil {
-				log.Printf("Failed to delete submissions for team %d: %v", teamID, err)
+				debug.Log("Failed to delete submissions for team %d: %v", teamID, err)
 				return err
 			}
 		}
 
 		if err := tx.Where("team_id = ?", teamID).Delete(&models.Instance{}).Error; err != nil {
-			log.Printf("Failed to delete instances for team %d: %v", teamID, err)
+			debug.Log("Failed to delete instances for team %d: %v", teamID, err)
 			return err
 		}
 
 		if err := tx.Where("team_id = ?", teamID).Delete(&models.DynamicFlag{}).Error; err != nil {
-			log.Printf("Failed to delete dynamic flags for team %d: %v", teamID, err)
+			debug.Log("Failed to delete dynamic flags for team %d: %v", teamID, err)
 			return err
 		}
 
 		if err := tx.Where("team_id = ?", teamID).Delete(&models.Solve{}).Error; err != nil {
-			log.Printf("Failed to delete solves for team %d: %v", teamID, err)
+			debug.Log("Failed to delete solves for team %d: %v", teamID, err)
 			return err
 		}
 
 		if err := tx.Where("team_id = ?", teamID).Delete(&models.HintPurchase{}).Error; err != nil {
-			log.Printf("Failed to delete hint purchases for team %d: %v", teamID, err)
+			debug.Log("Failed to delete hint purchases for team %d: %v", teamID, err)
 			return err
 		}
 
 		if err := tx.Delete(&models.Team{}, teamID).Error; err != nil {
-			log.Printf("Failed to delete team %d: %v", teamID, err)
+			debug.Log("Failed to delete team %d: %v", teamID, err)
 			return err
 		}
 
-		log.Printf("Successfully deleted team %d and all related records", teamID)
+		debug.Log("Successfully deleted team %d and all related records", teamID)
 		return nil
 	})
 }
