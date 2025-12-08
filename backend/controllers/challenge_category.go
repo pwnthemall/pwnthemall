@@ -29,7 +29,9 @@ func GetChallengeCategories(c *gin.Context) {
 		utils.InternalServerError(c, result.Error.Error())
 		return
 	}
-	utils.OKResponse(c, challengeCategories)
+	var safeChallengeCategories []dto.ChallengeCategory
+	copier.Copy(&safeChallengeCategories, &challengeCategories)
+	utils.OKResponse(c, safeChallengeCategories)
 }
 
 func GetChallengeCategory(c *gin.Context) {
@@ -41,7 +43,9 @@ func GetChallengeCategory(c *gin.Context) {
 		utils.NotFoundError(c, "Challenge category not found")
 		return
 	}
-	utils.OKResponse(c, challengeCategory)
+	var safeChallengeCategory dto.ChallengeCategory
+	copier.Copy(&safeChallengeCategory, &challengeCategory)
+	utils.OKResponse(c, safeChallengeCategory)
 }
 
 func CreateChallengeCategory(c *gin.Context) {
@@ -103,8 +107,9 @@ func UpdateChallengeCategory(c *gin.Context) {
 			utils.UpdatesHub.SendToAll(payload)
 		}
 	}
-
-	utils.OKResponse(c, challengeCategory)
+	var safeChallengeCategory dto.ChallengeCategory
+	copier.Copy(&safeChallengeCategory, &challengeCategory)
+	utils.OKResponse(c, safeChallengeCategory)
 }
 
 func DeleteChallengeCategory(c *gin.Context) {
@@ -128,7 +133,7 @@ func DeleteChallengeCategory(c *gin.Context) {
 		}
 	}
 
-	utils.OKResponse(c, gin.H{"message": "Challenge category deleted"})
+	utils.OKResponse(c, gin.H{"message": "challenge_category_deleted"})
 }
 
 func ReorderChallenges(c *gin.Context) {
@@ -136,7 +141,7 @@ func ReorderChallenges(c *gin.Context) {
 
 	var category models.ChallengeCategory
 	if err := config.DB.First(&category, categoryId).Error; err != nil {
-		utils.NotFoundError(c, "Challenge category not found")
+		utils.NotFoundError(c, "Challenge_category_not_found")
 		return
 	}
 
@@ -164,5 +169,5 @@ func ReorderChallenges(c *gin.Context) {
 		}
 	}
 
-	utils.OKResponse(c, gin.H{"message": "Challenges reordered successfully"})
+	utils.OKResponse(c, gin.H{"message": "challenges_reordered_successfully"})
 }

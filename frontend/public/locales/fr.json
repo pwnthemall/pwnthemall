@@ -195,7 +195,7 @@
     "select_category_drag_description": "Sélectionnez une catégorie et faites glisser les challenges pour modifier leur ordre d'affichage"
   },
   "challenge_solve": {
-    "already_solved": "Déjà Résolu",
+    "already_solved": "Déjà résolu",
     "be_the_first": "Soyez le premier à résoudre ce challenge !",
     "challenge_already_solved": "Vous avez déjà résolu ce challenge !",
     "challenges_completed": "Challenges complétés",
@@ -356,7 +356,7 @@
   },
   "hints": {
     "available": "Disponible",
-    "available_hints": "Indices Disponibles",
+    "available_hints": "Indices disponibles",
     "buy_for_points": "Acheter pour {cost} points",
     "hint": "Indice",
     "hint_locked": "Cet indice est verrouillé. Achetez-le pour révéler son contenu.",

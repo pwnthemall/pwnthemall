@@ -37,12 +37,12 @@ export default function ChallengesContent({ challenges, onRefresh }: ChallengesC
 
   // Get unique values for filters
   const categories = useMemo(() => {
-    const uniqueCategories = Array.from(new Set(challenges.map(c => c.category?.name).filter(Boolean)))
+    const uniqueCategories = Array.from(new Set(challenges.map(c => c.challengeCategory?.name).filter(Boolean)))
     return uniqueCategories.sort((a, b) => a.localeCompare(b))
   }, [challenges])
 
   const difficulties = useMemo(() => {
-    const uniqueDifficulties = Array.from(new Set(challenges.map(c => c.difficulty?.name).filter(Boolean)))
+    const uniqueDifficulties = Array.from(new Set(challenges.map(c => c.challengeDifficulty?.name).filter(Boolean)))
     return uniqueDifficulties.sort((a, b) => a.localeCompare(b))
   }, [challenges])
 
@@ -52,14 +52,14 @@ export default function ChallengesContent({ challenges, onRefresh }: ChallengesC
       // Search filter
       const matchesSearch = searchTerm === "" || 
         challenge.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        challenge.category?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        challenge.type?.name.toLowerCase().includes(searchTerm.toLowerCase())
+        challenge.challengeCategory?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        challenge.challengeType?.name.toLowerCase().includes(searchTerm.toLowerCase())
 
       // Category filter
-      const matchesCategory = filterCategory === "all" || challenge.category?.name === filterCategory
+      const matchesCategory = filterCategory === "all" || challenge.challengeCategory?.name === filterCategory
 
       // Difficulty filter
-      const matchesDifficulty = filterDifficulty === "all" || challenge.difficulty?.name === filterDifficulty
+      const matchesDifficulty = filterDifficulty === "all" || challenge.challengeDifficulty?.name === filterDifficulty
 
       // Status filter
       const matchesStatus = filterStatus === "all" || 
@@ -78,21 +78,21 @@ export default function ChallengesContent({ challenges, onRefresh }: ChallengesC
           aValue = a.name
           bValue = b.name
           break
-        case "category":
-          aValue = a.category?.name || ""
-          bValue = b.category?.name || ""
+        case "challengeCategory":
+          aValue = a.challengeCategory?.name || ""
+          bValue = b.challengeCategory?.name || ""
           break
-        case "difficulty":
-          aValue = a.difficulty?.name || ""
-          bValue = b.difficulty?.name || ""
+        case "challengeDifficulty":
+          aValue = a.challengeDifficulty?.name || ""
+          bValue = b.challengeDifficulty?.name || ""
           break
         case "points":
           aValue = a.points
           bValue = b.points
           break
-        case "type":
-          aValue = a.type?.name || ""
-          bValue = b.type?.name || ""
+        case "challengeType":
+          aValue = a.challengeType?.name || ""
+          bValue = b.challengeType?.name || ""
           break
         default:
           return 0
@@ -126,12 +126,12 @@ export default function ChallengesContent({ challenges, onRefresh }: ChallengesC
         description: "",
         points: 0,
         hidden: false,
-        category: null as any,
-        categoryId: 0,
-        type: null as any,
-        typeId: 0,
-        difficulty: null as any,
-        difficultyId: 0,
+        challengeCategory: null as any,
+        challengeCategoryId: 0,
+        challengeType: null as any,
+        challengeTypeId: 0,
+        challengeDifficulty: null as any,
+        challengeDifficultyId: 0,
         author: "",
         enableFirstBlood: false,
       } as Challenge))
@@ -300,7 +300,7 @@ export default function ChallengesContent({ challenges, onRefresh }: ChallengesC
                     <Button
                       variant="ghost"
                       className="h-auto p-0 font-semibold hover:bg-transparent"
-                      onClick={() => handleSort("category")}
+                      onClick={() => handleSort("challengeCategory")}
                     >
                       {t('admin_challenges.category')}
                       <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -310,7 +310,7 @@ export default function ChallengesContent({ challenges, onRefresh }: ChallengesC
                     <Button
                       variant="ghost"
                       className="h-auto p-0 font-semibold hover:bg-transparent"
-                      onClick={() => handleSort("type")}
+                      onClick={() => handleSort("challengeType")}
                     >
                       {t('admin_challenges.type')}
                       <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -320,7 +320,7 @@ export default function ChallengesContent({ challenges, onRefresh }: ChallengesC
                     <Button
                       variant="ghost"
                       className="h-auto p-0 font-semibold hover:bg-transparent"
-                      onClick={() => handleSort("difficulty")}
+                      onClick={() => handleSort("challengeDifficulty")}
                     >
                       {t('admin_challenges.difficulty')}
                       <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -360,22 +360,22 @@ export default function ChallengesContent({ challenges, onRefresh }: ChallengesC
                       </td>
                       <td className="w-[120px] px-3 py-2 align-middle truncate">
                         {challenge.id >= 0 ? (
-                          challenge.category?.name || "N/A"
+                          challenge.challengeCategory?.name || "N/A"
                         ) : (
                           <div className="h-[22px]">&nbsp;</div>
                         )}
                       </td>
                       <td className="w-[120px] px-3 py-2 align-middle truncate">
                         {challenge.id >= 0 ? (
-                          challenge.type?.name || "N/A"
+                          challenge.challengeType?.name || "N/A"
                         ) : (
                           <div className="h-[22px]">&nbsp;</div>
                         )}
                       </td>
                       <td className="w-[120px] px-3 py-2 align-middle">
                         {challenge.id >= 0 ? (
-                          <Badge className={getDifficultyColor(challenge.difficulty?.name || "")}>
-                            {challenge.difficulty?.name || "N/A"}
+                          <Badge className={getDifficultyColor(challenge.challengeDifficulty?.name || "")}>
+                            {challenge.challengeDifficulty?.name || "N/A"}
                           </Badge>
                         ) : (
                           <div className="h-[22px]">&nbsp;</div>

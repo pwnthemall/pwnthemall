@@ -356,7 +356,7 @@
   },
   "hints": {
     "available": "Available",
-    "available_hints": "Available Hints",
+    "available_hints": "Available hints",
     "buy_for_points": "Buy for {cost} points",
     "hint": "Hint",
     "hint_locked": "This hint is locked. Buy it to reveal its content.",
@@ -366,7 +366,7 @@
     "purchasing": "Purchasing...",
     "reveal_hint": "Reveal hint (Admin)",
     "spent": "Spent",
-    "team_score": "Team Score",
+    "team_score": "Team score",
     "total": "Total"
   },
   "instance": {

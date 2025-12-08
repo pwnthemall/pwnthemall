@@ -32,7 +32,7 @@ export function buildSubmitPayload(
   flag: string,
   geoCoords: GeoCoords | null
 ): any {
-  if (challenge.type?.name?.toLowerCase() === 'geo') {
+  if (challenge.challengeType?.name?.toLowerCase() === 'geo') {
     const coords = parseGeoCoords(flag, geoCoords);
     return coords || { flag };
   }
