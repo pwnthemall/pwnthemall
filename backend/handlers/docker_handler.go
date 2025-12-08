@@ -81,7 +81,7 @@ func (h *dockerChallengeHandler) validateInstanceStartPreconditions(c *gin.Conte
 		// Instance exists, return its info as success
 		c.JSON(http.StatusOK, gin.H{
 			"status":     "instance_already_running",
-			"name":       existingInstance.Container,
+			"name":       existingInstance.Name,
 			"ports":      existingInstance.Ports,
 			"expires_at": existingInstance.ExpiresAt,
 		})
@@ -231,11 +231,11 @@ func (h *dockerChallengeHandler) Start(c *gin.Context, challenge shared.Challeng
 	h.broadcastInstanceStart(&instance, user, challenge, hostPorts)
 
 	c.JSON(http.StatusOK, gin.H{
-		"status":         "instance_started",
-		"image_name":     imageName,
-		"name": containerName,
-		"expires_at":     expiresAt,
-		"ports":          hostPorts,
+		"status":     "instance_started",
+		"image_name": imageName,
+		"name":       containerName,
+		"expires_at": expiresAt,
+		"ports":      hostPorts,
 	})
 
 	return nil
