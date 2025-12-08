@@ -50,8 +50,8 @@
     "enabled": "Activé",
     "disabled": "Désactivé",
     "no_challenges_found": "Aucun challenge trouvé correspondant à vos critères.",
-    "showing_x_to_y_of_z": "Affichage de {from} à {to} sur {total}",
-    "page_x_of_y": "Page {current} sur {total}",
+    "showing_x_to_y_of_z": "Affichage de {{from}} à {{to}} sur {{total}}",
+    "page_x_of_y": "Page {{current}} sur {{total}}",
     "edit_challenge_configuration": "Configuration du challenge",
     "configure_challenge_description": "Configurer les points, la formule de decay, le bonus first blood et les indices"
   },

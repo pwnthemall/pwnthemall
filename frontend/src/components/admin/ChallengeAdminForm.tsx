@@ -142,13 +142,6 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
         hints: challengeData.hints || []
       })
 
-      // Update general data with correct category and difficulty IDs
-      setGeneralData(prev => ({
-        ...prev,
-        categoryId: challengeData.categoryId || challengeData.challengeCategoryId || prev.categoryId,
-        difficultyId: challengeData.difficultyId || challengeData.challengeDifficultyId || prev.difficultyId,
-      }))
-
       const bonuses = challengeData.firstBloodBonuses || []
       const badges = challengeData.firstBloodBadges || []
       
