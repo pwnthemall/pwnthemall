@@ -257,7 +257,7 @@ test.describe('Submissions', () => {
   // Start docker/compose challenge instances for teams
   console.log('\n=== Starting Docker Challenge Instances ===');
   const dockerChallenges = challenges.filter((c: any) => 
-    c.type?.name === 'docker' || c.type?.name === 'compose'
+    c.challengeType?.name === 'docker' || c.challengeType?.name === 'compose'
   );
 
   if (dockerChallenges.length > 0) {

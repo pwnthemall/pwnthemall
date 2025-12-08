@@ -111,8 +111,8 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
     description: challenge.description || "",
     author: challenge.author || "",
     hidden: challenge.hidden || false,
-    categoryId: challenge.categoryId || 1,
-    difficultyId: challenge.difficultyId || 1,
+    categoryId: challenge.challengeCategoryId || 1,
+    difficultyId: challenge.challengeDifficultyId || 1,
   })
   const [coverPosition, setCoverPosition] = useState({
     x: challenge.coverPositionX ?? 50,
@@ -189,8 +189,8 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
   const fetchChallengeDifficulties = async () => {
     try {
       const response = await axios.get(`/api/admin/challenges/${challenge.id}`)
-      if (response.data.challengeDifficulties) {
-        setChallengeDifficulties(response.data.challengeDifficulties)
+      if (response.data.difficulties) {
+        setChallengeDifficulties(response.data.difficulties)
       }
     } catch (error) {
       console.error("Failed to fetch challenge difficulties:", error)
@@ -440,7 +440,7 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
                     <SelectValue placeholder={t('challenge_form.select_category')} />
                   </SelectTrigger>
                   <SelectContent>
-                    {challengeCategories.map((category) => (
+                    {categories.map((category) => (
                       <SelectItem key={category.id} value={category.id.toString()}>
                         {category.name}
                       </SelectItem>
@@ -459,7 +459,7 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
                     <SelectValue placeholder={t('challenge_form.select_difficulty')} />
                   </SelectTrigger>
                   <SelectContent>
-                    {challengeDifficulties.map((difficulty) => (
+                    {difficulties.map((difficulty) => (
                       <SelectItem key={difficulty.id} value={difficulty.id.toString()}>
                         {difficulty.name}
                       </SelectItem>
