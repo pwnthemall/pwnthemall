@@ -389,7 +389,7 @@
   },
   "messages": {
     "error": "Erreur",
-    "info": "Info",
+    "info": "Information",
     "invalid_server_response": "Réponse du serveur invalide. Veuillez réessayer.",
     "learn_more": "En savoir plus.",
     "please_fill_fields": "Veuillez remplir tous les champs",
