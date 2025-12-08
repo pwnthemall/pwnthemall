@@ -575,11 +575,14 @@
   },
   "username": {
     "change_username": "Change Username",
+    "change_username_confirm": "Are you sure you want to change your username?",
     "update_username": "Update Username",
     "username": "Username",
     "username_exists": "Username already exists.",
+    "username_invalid_characters": "Username can only contain letters, numbers, underscores, and hyphens. Special characters and Unicode symbols are not allowed.",
     "username_length": "Username must be at most 32 characters.",
     "username_or_email": "Username or Email",
+    "username_required": "Username is required.",
     "username_too_long": "Username too long (max 32 characters)",
     "username_updated": "Username updated successfully!"
   },

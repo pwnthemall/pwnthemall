@@ -59,6 +59,12 @@ func Register(c *gin.Context) {
 		return
 	}
 
+	// Validate username for malicious characters
+	if errKey := utils.ValidateUsername(input.Username); errKey != "" {
+		utils.BadRequestError(c, errKey)
+		return
+	}
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	if err != nil {
 		utils.InternalServerError(c, "Erreur lors du hash du mot de passe")
@@ -101,11 +107,11 @@ func Register(c *gin.Context) {
 // validateLoginInput validates the login input
 func validateLoginInput(input *dto.LoginInput) (string, error) {
 	usernameOrEmail := strings.TrimSpace(input.Username)
-	
+
 	if usernameOrEmail == "" || strings.TrimSpace(input.Password) == "" {
 		return "", fmt.Errorf("please_fill_fields")
 	}
-	
+
 	return usernameOrEmail, nil
 }
 
@@ -115,15 +121,15 @@ func authenticateUser(usernameOrEmail, password string) (*models.User, error) {
 	if err := config.DB.Where("username = ? OR email = ?", usernameOrEmail, usernameOrEmail).First(&user).Error; err != nil {
 		return nil, fmt.Errorf("invalid_credentials")
 	}
-	
+
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
 		return nil, fmt.Errorf("invalid_credentials")
 	}
-	
+
 	if user.Banned {
 		return nil, fmt.Errorf("banned")
 	}
-	
+
 	return &user, nil
 }
 
@@ -133,16 +139,16 @@ func generateAndSetTokens(c *gin.Context, userID uint, role string) error {
 	if err != nil {
 		return fmt.Errorf("could not create access token")
 	}
-	
+
 	refreshToken, err := utils.GenerateRefreshToken(userID)
 	if err != nil {
 		return fmt.Errorf("could not create refresh token")
 	}
-	
+
 	// Set both tokens as secure HTTP-only cookies
 	c.SetCookie("access_token", accessToken, 3600, "/", "", true, true)        // 1 hour, secure, httpOnly
 	c.SetCookie("refresh_token", refreshToken, 7*24*3600, "/", "", true, true) // 7 days, secure, httpOnly
-	
+
 	return nil
 }
 
@@ -152,14 +158,14 @@ func Login(c *gin.Context) {
 		utils.BadRequestError(c, "invalid_input")
 		return
 	}
-	
+
 	// Validate input
 	usernameOrEmail, err := validateLoginInput(&input)
 	if err != nil {
 		utils.BadRequestError(c, err.Error())
 		return
 	}
-	
+
 	// Authenticate user
 	user, err := authenticateUser(usernameOrEmail, input.Password)
 	if err != nil {
@@ -170,13 +176,13 @@ func Login(c *gin.Context) {
 		}
 		return
 	}
-	
+
 	// Generate and set tokens
 	if err := generateAndSetTokens(c, user.ID, user.Role); err != nil {
 		utils.InternalServerError(c, err.Error())
 		return
 	}
-	
+
 	utils.OKResponse(c, gin.H{"message": "Login successful"})
 }
 
@@ -296,8 +302,9 @@ func UpdateCurrentUser(c *gin.Context) {
 		return
 	}
 
-	if input.Username == "" {
-		utils.BadRequestError(c, "Username cannot be empty")
+	// Validate username for malicious characters
+	if errKey := utils.ValidateUsername(input.Username); errKey != "" {
+		utils.BadRequestError(c, errKey)
 		return
 	}
 
