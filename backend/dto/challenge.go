@@ -19,9 +19,9 @@ type GeoFlagInput struct {
 type ChallengeAdminUpdateRequest struct {
 	Name              *string        `json:"name"`
 	Description       *string        `json:"description"`
-	Difficulty        *uint          `json:"difficulty"`
-	Category          *uint          `json:"category"`
-	Type              *uint          `json:"type"`
+	DifficultyID      *uint          `json:"difficultyId"`
+	CategoryID        *uint          `json:"categoryId"`
+	TypeID            *uint          `json:"typeId"`
 	Hidden            *bool          `json:"hidden"`
 	Points            *int           `json:"points"`
 	DecayFormulaID    *uint          `json:"decayFormulaId"`

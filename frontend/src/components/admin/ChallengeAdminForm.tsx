@@ -189,8 +189,8 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
   const fetchChallengeDifficulties = async () => {
     try {
       const response = await axios.get(`/api/admin/challenges/${challenge.id}`)
-      if (response.data.difficulties) {
-        setChallengeDifficulties(response.data.difficulties)
+      if (response.data.challengeDifficulties) {
+        setChallengeDifficulties(response.data.challengeDifficulties)
       }
     } catch (error) {
       console.error("Failed to fetch challenge difficulties:", error)
@@ -440,7 +440,7 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
                     <SelectValue placeholder={t('challenge_form.select_category')} />
                   </SelectTrigger>
                   <SelectContent>
-                    {categories.map((category) => (
+                    {challengeCategories.map((category) => (
                       <SelectItem key={category.id} value={category.id.toString()}>
                         {category.name}
                       </SelectItem>
@@ -459,7 +459,7 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
                     <SelectValue placeholder={t('challenge_form.select_difficulty')} />
                   </SelectTrigger>
                   <SelectContent>
-                    {difficulties.map((difficulty) => (
+                    {challengeDifficulties.map((difficulty) => (
                       <SelectItem key={difficulty.id} value={difficulty.id.toString()}>
                         {difficulty.name}
                       </SelectItem>
