@@ -9,10 +9,10 @@ import (
 )
 
 type rateLimiter struct {
-	attempts  map[string][]time.Time
-	mu        sync.RWMutex
-	maxTries  int
-	window    time.Duration
+	attempts map[string][]time.Time
+	mu       sync.RWMutex
+	maxTries int
+	window   time.Duration
 }
 
 var joinTeamLimiter = &rateLimiter{
