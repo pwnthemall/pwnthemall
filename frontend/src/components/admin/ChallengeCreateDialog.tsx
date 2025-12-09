@@ -52,6 +52,10 @@ interface CreateChallengeForm {
   targetLat: number | null
   targetLng: number | null
   radiusKm: number | null
+  enableCover: boolean
+  coverFile: File | null
+  coverPosition: { x: number; y: number }
+  coverZoom: number
 }
 
 const initialFormState: CreateChallengeForm = {
@@ -68,6 +72,10 @@ const initialFormState: CreateChallengeForm = {
   targetLat: null,
   targetLng: null,
   radiusKm: null,
+  enableCover: false,
+  coverFile: null,
+  coverPosition: { x: 50, y: 50 },
+  coverZoom: 100,
 }
 
 export default function ChallengeCreateDialog({
@@ -256,7 +264,7 @@ export default function ChallengeCreateDialog({
           </DialogTitle>
           <DialogDescription>
             {t("challenge_create.description") ||
-              "Create a new standard or geo challenge on the fly. You can add cover images and attachments after creation."}
+              "Create a new standard or geo challenge with optional cover image. You can add attachments after creation."}
           </DialogDescription>
         </DialogHeader>
 
@@ -553,6 +561,146 @@ export default function ChallengeCreateDialog({
               </div>
             </div>
           )}
+
+          {/* Cover Image */}
+          <div className="p-6 space-y-4 border rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="enableCover">Cover Image</Label>
+                <p className="text-sm text-muted-foreground">
+                  Upload a cover image for this challenge
+                </p>
+              </div>
+              <Switch
+                id="enableCover"
+                checked={formData.enableCover}
+                onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, enableCover: checked, coverFile: checked ? prev.coverFile : null }))}
+              />
+            </div>
+
+            {formData.enableCover && (
+              <div className="space-y-4 pt-2">
+                <div className="space-y-2">
+                  <Label htmlFor="coverFile">Upload Image</Label>
+                  <Input
+                    id="coverFile"
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        setFormData((prev) => ({ ...prev, coverFile: file }))
+                      }
+                    }}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Accepted: JPG, PNG, GIF, WebP • Max 5MB • Recommended: 800x450px
+                  </p>
+                </div>
+
+                {formData.coverFile && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      {/* Left: Focal point selector */}
+                      <div className="space-y-2">
+                        <Label>Drag Focal Point</Label>
+                        {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
+                        <div
+                          className="relative border rounded-lg overflow-hidden bg-muted select-none"
+                          style={{ maxHeight: '240px' }}
+                        >
+                          {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
+                          <div
+                            className="relative flex justify-center"
+                            onMouseMove={(e) => {
+                              if (e.buttons !== 1) return
+                              const img = e.currentTarget.querySelector('img')
+                              if (!img) return
+                              const rect = img.getBoundingClientRect()
+                              const x = ((e.clientX - rect.left) / rect.width) * 100
+                              const y = ((e.clientY - rect.top) / rect.height) * 100
+                              setFormData((prev) => ({
+                                ...prev,
+                                coverPosition: {
+                                  x: Math.max(0, Math.min(100, x)),
+                                  y: Math.max(0, Math.min(100, y))
+                                }
+                              }))
+                            }}
+                            onMouseDown={(e) => {
+                              e.preventDefault()
+                              const img = e.currentTarget.querySelector('img')
+                              if (!img) return
+                              const rect = img.getBoundingClientRect()
+                              const x = ((e.clientX - rect.left) / rect.width) * 100
+                              const y = ((e.clientY - rect.top) / rect.height) * 100
+                              setFormData((prev) => ({
+                                ...prev,
+                                coverPosition: {
+                                  x: Math.max(0, Math.min(100, x)),
+                                  y: Math.max(0, Math.min(100, y))
+                                }
+                              }))
+                            }}
+                          >
+                            <img
+                              src={URL.createObjectURL(formData.coverFile)}
+                              alt="Cover preview"
+                              className="max-h-[240px] w-auto pointer-events-none select-none"
+                              draggable={false}
+                            />
+                            {/* Focal point marker */}
+                            <div
+                              className="absolute w-6 h-6 border-2 border-white rounded-full shadow-lg transform -translate-x-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing"
+                              style={{
+                                left: `${formData.coverPosition.x}%`,
+                                top: `${formData.coverPosition.y}%`,
+                                backgroundColor: 'rgba(59, 130, 246, 0.8)'
+                              }}
+                            >
+                              <div className="absolute inset-1 rounded-full bg-white/60" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right: Live preview */}
+                      <div className="space-y-2">
+                        <Label>Card Preview</Label>
+                        <div className="border rounded-lg overflow-hidden bg-muted">
+                          <div className="w-full aspect-[411/192]">
+                            <img
+                              src={URL.createObjectURL(formData.coverFile)}
+                              alt="Card preview"
+                              className="w-full h-full object-cover"
+                              style={{
+                                objectPosition: `${formData.coverPosition.x}% ${formData.coverPosition.y}%`,
+                                transform: `scale(${formData.coverZoom / 100})`
+                              }}
+                            />
+                          </div>
+                        </div>
+                        {/* Zoom slider */}
+                        <div className="flex items-center gap-2 pt-2">
+                          <span className="text-xs text-muted-foreground w-10">Zoom</span>
+                          <input
+                            type="range"
+                            min="100"
+                            max="200"
+                            step="5"
+                            value={formData.coverZoom}
+                            onChange={(e) => setFormData((prev) => ({ ...prev, coverZoom: Number(e.target.value) }))}
+                            className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer"
+                          />
+                          <span className="text-xs text-muted-foreground w-10 text-right">{formData.coverZoom}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Hidden toggle */}
           <div className="p-6 space-y-4 border rounded-lg">
