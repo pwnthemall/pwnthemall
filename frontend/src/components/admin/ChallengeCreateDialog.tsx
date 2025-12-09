@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Plus, Trash2, MapPin, Flag } from "lucide-react"
 import axios from "@/lib/axios"
 import { toast } from "sonner"
+import GeoPicker from "@/components/pwn/GeoPicker"
 import {
   Dialog,
   DialogContent,
@@ -500,64 +501,56 @@ export default function ChallengeCreateDialog({
                 <MapPin className="h-4 w-4" />
                 GeoInt Configuration
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="targetLat">Target Latitude *</Label>
-                  <Input
-                    id="targetLat"
-                    type="number"
-                    step="any"
-                    min={-90}
-                    max={90}
-                    value={formData.targetLat ?? ""}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        targetLat: e.target.value ? parseFloat(e.target.value) : null,
-                      }))
-                    }
-                    placeholder="-90 to 90"
-                  />
+                  <Label>Map Location & Radius *</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Click on the map to place the target pin. Use scroll/zoom to adjust the circle radius.
+                  </p>
+                  <div className="border rounded-lg overflow-hidden" style={{ height: 400 }}>
+                    <GeoPicker
+                      value={
+                        formData.targetLat !== null && formData.targetLng !== null
+                          ? { lat: formData.targetLat, lng: formData.targetLng }
+                          : null
+                      }
+                      onChange={(coords: { lat: number; lng: number }) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          targetLat: coords.lat,
+                          targetLng: coords.lng,
+                        }))
+                      }}
+                      radiusKm={formData.radiusKm}
+                      height="100%"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="targetLng">Target Longitude *</Label>
-                  <Input
-                    id="targetLng"
-                    type="number"
-                    step="any"
-                    min={-180}
-                    max={180}
-                    value={formData.targetLng ?? ""}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        targetLng: e.target.value ? parseFloat(e.target.value) : null,
-                      }))
-                    }
-                    placeholder="-180 to 180"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="radiusKm">Radius (km) *</Label>
-                  <Input
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="radiusKm">Radius (km) *</Label>
+                    <span className="text-sm text-muted-foreground">{formData.radiusKm?.toFixed(2) ?? "0.50"} km</span>
+                  </div>
+                  <input
                     id="radiusKm"
-                    type="number"
-                    step="any"
-                    min={0.001}
-                    value={formData.radiusKm ?? ""}
+                    type="range"
+                    min="0.01"
+                    max="10"
+                    step="0.01"
+                    value={formData.radiusKm ?? 0.5}
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
-                        radiusKm: e.target.value ? parseFloat(e.target.value) : null,
+                        radiusKm: Number.parseFloat(e.target.value),
                       }))
                     }
-                    placeholder="e.g., 0.5"
+                    className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Players must submit coordinates within this radius to solve the challenge.
+                  </p>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Players must submit coordinates within the radius to solve this challenge.
-              </p>
             </div>
           )}
 
