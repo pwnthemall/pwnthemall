@@ -293,10 +293,7 @@ export default function ChallengeCreateDialog({
                 rows={4}
               />
             </div>
-          </div>
 
-          {/* Type Selection */}
-          <div className="p-6 space-y-4 border rounded-lg">
             <div className="space-y-4">
               <Label>{t("challenge_create.type") || "Challenge Type"} *</Label>
               <div className="flex gap-4">
@@ -320,10 +317,7 @@ export default function ChallengeCreateDialog({
                 </Button>
               </div>
             </div>
-          </div>
 
-          {/* Category & Difficulty */}
-          <div className="p-6 space-y-4 border rounded-lg">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t("challenge_form.category") || "Category"} *</Label>
@@ -399,23 +393,7 @@ export default function ChallengeCreateDialog({
             </div>
           </div>
 
-          {/* Points */}
-          <div className="p-6 space-y-4 border rounded-lg">
-            <div className="space-y-2">
-              <Label htmlFor="points">{t("challenge_form.base_points") || "Points"} *</Label>
-              <Input
-                id="points"
-                type="number"
-                min={1}
-                value={formData.points}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, points: parseInt(e.target.value) || 1 }))
-                }
-              />
-            </div>
-          </div>
-
-          {/* Flags */}
+          {/* Points, Flags, and Hints */}
           <div className="p-6 space-y-4 border rounded-lg">
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
@@ -441,18 +419,28 @@ export default function ChallengeCreateDialog({
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     )}
+                    {index === formData.flags.length - 1 && (
+                      <Button type="button" variant="outline" size="icon" onClick={handleAddFlag}>
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 ))}
-                <Button type="button" variant="outline" size="sm" onClick={handleAddFlag}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add another flag
-                </Button>
               </div>
             </div>
-          </div>
 
-          {/* Hints (optional) */}
-          <div className="p-6 space-y-4 border rounded-lg">
+            <div className="space-y-2">
+              <Label htmlFor="points">{t("challenge_form.base_points") || "Points"} *</Label>
+              <Input
+                id="points"
+                type="number"
+                min={1}
+                value={formData.points}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, points: parseInt(e.target.value) || 1 }))
+                }
+              />
+            </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label>{t("challenge_create.hints") || "Hints"} {t("challenge_create.optional") || "(optional)"}</Label>
@@ -506,8 +494,6 @@ export default function ChallengeCreateDialog({
               )}
             </div>
           </div>
-
-          {/* Geo-specific fields */}
           {formData.type === "geo" && (
             <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
               <div className="flex items-center gap-2 text-sm font-medium">
