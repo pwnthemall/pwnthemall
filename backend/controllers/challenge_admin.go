@@ -149,6 +149,23 @@ func CreateChallengeAdmin(c *gin.Context) {
 		}
 	}
 
+	// Create hints if provided
+	for _, hintReq := range req.Hints {
+		hint := models.Hint{
+			Title:       hintReq.Title,
+			Content:     hintReq.Content,
+			Cost:        hintReq.Cost,
+			ChallengeID: challenge.ID,
+			IsActive:    hintReq.IsActive,
+			// AutoActiveAt parsing can be added later if needed
+		}
+		if err := tx.Create(&hint).Error; err != nil {
+			tx.Rollback()
+			utils.InternalServerError(c, "Failed to create hint")
+			return
+		}
+	}
+
 	// Create GeoSpec if geo challenge
 	if req.Type == "geo" {
 		geoSpec := models.GeoSpec{
@@ -399,7 +416,7 @@ func GetChallengeAdmin(c *gin.Context) {
 
 func GetAllChallengesAdmin(c *gin.Context) {
 	var challenges []models.Challenge
-	if err := config.DB.Preload("ChallengeCategory").Preload("ChallengeType").Preload("ChallengeDifficulty").Find(&challenges).Error; err != nil {
+	if err := config.DB.Preload("ChallengeCategory").Preload("ChallengeType").Preload("ChallengeDifficulty").Preload("Hints").Find(&challenges).Error; err != nil {
 		utils.InternalServerError(c, err.Error())
 		return
 	}

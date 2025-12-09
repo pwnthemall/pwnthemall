@@ -15,6 +15,15 @@ type GeoFlagInput struct {
 	Lng float64 `json:"lng"`
 }
 
+// HintCreateRequest represents a hint to create
+type HintCreateRequest struct {
+	Title      string `json:"title"`
+	Content    string `json:"content"`
+	Cost       int    `json:"cost"`
+	IsActive   bool   `json:"isActive"`
+	AutoActiveAt *string `json:"autoActiveAt"`
+}
+
 // ChallengeCreateRequest represents admin challenge creation request
 // Used for creating challenges "on the fly" during competitions
 type ChallengeCreateRequest struct {
@@ -25,6 +34,7 @@ type ChallengeCreateRequest struct {
 	Difficulty  string   `json:"difficulty" binding:"required,min=1,max=50"`
 	Points      int      `json:"points" binding:"required,min=1"`
 	Flags       []string `json:"flags" binding:"required,min=1,dive,min=1"`
+	Hints       []HintCreateRequest `json:"hints"`
 	Hidden      bool     `json:"hidden"`
 	Author      string   `json:"author"`
 	// Geo-specific fields (required when type=geo)

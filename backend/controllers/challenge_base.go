@@ -175,7 +175,7 @@ func GetChallenges(c *gin.Context) {
 	}
 
 	var challenges []models.Challenge
-	result := config.DB.Preload("DecayFormula").Where("hidden = false").Find(&challenges)
+	result := config.DB.Preload("DecayFormula").Preload("Hints").Where("hidden = false").Find(&challenges)
 	if result.Error != nil {
 		utils.InternalServerError(c, result.Error.Error())
 		return
@@ -205,7 +205,7 @@ func GetChallenge(c *gin.Context) {
 	var challenge models.Challenge
 	id := c.Param("id")
 
-	result := config.DB.Preload("DecayFormula").First(&challenge, id)
+	result := config.DB.Preload("DecayFormula").Preload("Hints").First(&challenge, id)
 	if result.Error != nil {
 		utils.NotFoundError(c, "challenge_not_found")
 		return
