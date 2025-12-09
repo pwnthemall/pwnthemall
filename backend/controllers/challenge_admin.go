@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pwnthemall/pwnthemall/backend/config"
@@ -9,7 +10,176 @@ import (
 	"github.com/pwnthemall/pwnthemall/backend/dto"
 	"github.com/pwnthemall/pwnthemall/backend/models"
 	"github.com/pwnthemall/pwnthemall/backend/utils"
+	"gorm.io/gorm/clause"
 )
+
+const (
+	queryChallengeIDAdmin    = "challenge_id = ?"
+	errChallengeNotFoundMsg  = "Challenge not found"
+	queryNameEquals          = "name = ?"
+)
+
+// CreateChallengeAdmin creates a new challenge for admins
+// Supports standard and geo challenge types for "on the fly" creation during competitions
+func CreateChallengeAdmin(c *gin.Context) {
+	var req dto.ChallengeCreateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.BadRequestError(c, err.Error())
+		return
+	}
+
+	// Validate geo fields if type is geo
+	if req.Type == "geo" {
+		if req.TargetLat == nil || req.TargetLng == nil || req.RadiusKm == nil {
+			utils.BadRequestError(c, "geo challenges require targetLat, targetLng, and radiusKm")
+			return
+		}
+		// Validate coordinate ranges
+		if *req.TargetLat < -90 || *req.TargetLat > 90 {
+			utils.BadRequestError(c, "targetLat must be between -90 and 90")
+			return
+		}
+		if *req.TargetLng < -180 || *req.TargetLng > 180 {
+			utils.BadRequestError(c, "targetLng must be between -180 and 180")
+			return
+		}
+		if *req.RadiusKm <= 0 {
+			utils.BadRequestError(c, "radiusKm must be greater than 0")
+			return
+		}
+	}
+
+	// Generate unique slug
+	slug, err := utils.GenerateUniqueSlug(req.Name)
+	if err != nil {
+		utils.BadRequestError(c, err.Error())
+		return
+	}
+
+	// Start transaction
+	tx := config.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// Create or get category
+	category := models.ChallengeCategory{Name: req.Category}
+	if err := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(&category).Error; err != nil {
+		tx.Rollback()
+		utils.InternalServerError(c, "Failed to create category")
+		return
+	}
+	if category.ID == 0 {
+		if err := tx.Where(queryNameEquals, req.Category).First(&category).Error; err != nil {
+			tx.Rollback()
+			utils.InternalServerError(c, "Failed to find category")
+			return
+		}
+	}
+
+	// Create or get difficulty
+	difficulty := models.ChallengeDifficulty{Name: req.Difficulty}
+	if err := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(&difficulty).Error; err != nil {
+		tx.Rollback()
+		utils.InternalServerError(c, "Failed to create difficulty")
+		return
+	}
+	if difficulty.ID == 0 {
+		if err := tx.Where(queryNameEquals, req.Difficulty).First(&difficulty).Error; err != nil {
+			tx.Rollback()
+			utils.InternalServerError(c, "Failed to find difficulty")
+			return
+		}
+	}
+
+	// Get challenge type
+	var challengeType models.ChallengeType
+	if err := tx.Where(queryNameEquals, req.Type).First(&challengeType).Error; err != nil {
+		tx.Rollback()
+		utils.BadRequestError(c, fmt.Sprintf("invalid challenge type: %s", req.Type))
+		return
+	}
+
+	// Get default decay formula (No Decay)
+	var decayFormula models.DecayFormula
+	if err := tx.Where(queryNameEquals, "No Decay").First(&decayFormula).Error; err != nil {
+		// If no decay formula found, just continue without it
+		debug.Log("No decay formula found, continuing without")
+	}
+
+	// Create challenge
+	challenge := models.Challenge{
+		Slug:                  slug,
+		Name:                  req.Name,
+		Description:           req.Description,
+		ChallengeCategoryID:   category.ID,
+		ChallengeDifficultyID: difficulty.ID,
+		ChallengeTypeID:       challengeType.ID,
+		Points:                req.Points,
+		Hidden:                req.Hidden,
+		Author:                req.Author,
+		CoverPositionX:        50, // Default center
+		CoverPositionY:        50,
+		CoverZoom:             100,
+	}
+
+	if decayFormula.ID > 0 {
+		challenge.DecayFormulaID = decayFormula.ID
+	}
+
+	if err := tx.Create(&challenge).Error; err != nil {
+		tx.Rollback()
+		utils.InternalServerError(c, "Failed to create challenge")
+		return
+	}
+
+	// Create flags (hashed)
+	for _, flagValue := range req.Flags {
+		hashed := utils.HashFlag(flagValue)
+		flag := models.Flag{
+			Value:       hashed,
+			ChallengeID: challenge.ID,
+		}
+		if err := tx.Create(&flag).Error; err != nil {
+			tx.Rollback()
+			utils.InternalServerError(c, "Failed to create flag")
+			return
+		}
+	}
+
+	// Create GeoSpec if geo challenge
+	if req.Type == "geo" {
+		geoSpec := models.GeoSpec{
+			ChallengeID: challenge.ID,
+			TargetLat:   *req.TargetLat,
+			TargetLng:   *req.TargetLng,
+			RadiusKm:    *req.RadiusKm,
+		}
+		if err := tx.Create(&geoSpec).Error; err != nil {
+			tx.Rollback()
+			utils.InternalServerError(c, "Failed to create geo spec")
+			return
+		}
+	}
+
+	// Commit transaction
+	if err := tx.Commit().Error; err != nil {
+		utils.InternalServerError(c, "Failed to commit transaction")
+		return
+	}
+
+	// Broadcast challenge creation
+	broadcastChallengeUpdate()
+
+	// Reload challenge with associations
+	config.DB.Preload("ChallengeCategory").Preload("ChallengeDifficulty").Preload("ChallengeType").First(&challenge, challenge.ID)
+
+	debug.Log("Created challenge: ID=%d, Slug=%s, Name=%s, Type=%s", challenge.ID, challenge.Slug, challenge.Name, req.Type)
+
+	utils.CreatedResponse(c, challenge)
+}
 
 // updateChallengeFields updates the basic challenge fields from the request
 func updateChallengeFields(challenge *models.Challenge, req *dto.ChallengeAdminUpdateRequest) {
@@ -103,7 +273,7 @@ func UpdateChallengeAdmin(c *gin.Context) {
 	id := c.Param("id")
 	
 	if err := config.DB.First(&challenge, id).Error; err != nil {
-		utils.NotFoundError(c, "Challenge not found")
+		utils.NotFoundError(c, errChallengeNotFoundMsg)
 		return
 	}
 	
@@ -151,7 +321,7 @@ func UpdateChallengeGeneralAdmin(c *gin.Context) {
 	id := c.Param("id")
 
 	if err := config.DB.First(&challenge, id).Error; err != nil {
-		utils.NotFoundError(c, "Challenge not found")
+		utils.NotFoundError(c, errChallengeNotFoundMsg)
 		return
 	}
 
@@ -203,7 +373,7 @@ func GetChallengeAdmin(c *gin.Context) {
 	id := c.Param("id")
 
 	if err := config.DB.Preload("DecayFormula").Preload("Hints").Preload("FirstBlood").First(&challenge, id).Error; err != nil {
-		utils.NotFoundError(c, "Challenge not found")
+		utils.NotFoundError(c, errChallengeNotFoundMsg)
 		return
 	}
 

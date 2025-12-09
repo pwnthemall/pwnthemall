@@ -39,6 +39,7 @@ func RegisterChallengeRoutes(router *gin.Engine) {
 		// Allow admins access without requiring a team; policy check restricts to admin role
 		adminChallenges.GET("", middleware.AuthRequired(false), middleware.CheckPolicy("/admin/challenges", "read"), controllers.GetAllChallengesAdmin)
 		adminChallenges.GET("/:id", middleware.AuthRequired(false), middleware.CheckPolicy("/admin/challenges/:id", "read"), controllers.GetChallengeAdmin)
+		adminChallenges.POST("", middleware.AuthRequired(false), middleware.CheckPolicy("/admin/challenges", "write"), controllers.CreateChallengeAdmin)
 		adminChallenges.PUT("/:id", middleware.AuthRequired(false), middleware.CheckPolicy("/admin/challenges/:id", "write"), controllers.UpdateChallengeAdmin)
 		adminChallenges.PUT("/:id/general", middleware.AuthRequired(false), middleware.CheckPolicy("/admin/challenges/:id", "write"), controllers.UpdateChallengeGeneralAdmin)
 		adminChallenges.DELETE("/hints/:hintId", middleware.AuthRequired(false), middleware.CheckPolicy("/admin/challenges/hints/:hintId", "write"), controllers.DeleteHint)

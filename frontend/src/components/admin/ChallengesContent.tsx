@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Edit, Plus, Search, ArrowUpDown } from "lucide-react"
 import ChallengeAdminForm from "./ChallengeAdminForm"
+import ChallengeCreateDialog from "./ChallengeCreateDialog"
 import {
   Dialog,
   DialogContent,
@@ -16,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import axios from "@/lib/axios"
 
 interface ChallengesContentProps {
   challenges: Challenge[]
@@ -26,6 +28,7 @@ export default function ChallengesContent({ challenges, onRefresh }: ChallengesC
   const { t } = useLanguage()
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [sortBy, setSortBy] = useState("name")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
@@ -45,6 +48,20 @@ export default function ChallengesContent({ challenges, onRefresh }: ChallengesC
     const uniqueDifficulties = Array.from(new Set(challenges.map(c => c.challengeDifficulty?.name).filter(Boolean)))
     return uniqueDifficulties.sort((a, b) => a.localeCompare(b))
   }, [challenges])
+
+  // Handle challenge created - fetch and open edit dialog
+  const handleChallengeCreated = async (challengeId: number) => {
+    onRefresh() // Refresh the list
+    try {
+      // Fetch the newly created challenge to open edit dialog
+      const response = await axios.get(`/api/admin/challenges/${challengeId}`)
+      const newChallenge = response.data.challenge
+      setSelectedChallenge(newChallenge)
+      setIsDialogOpen(true)
+    } catch (error) {
+      console.error("Failed to fetch new challenge:", error)
+    }
+  }
 
   // Filter and sort challenges
   const filteredAndSortedChallenges = useMemo(() => {
@@ -194,7 +211,10 @@ export default function ChallengesContent({ challenges, onRefresh }: ChallengesC
         <div className="mb-4 flex items-center justify-between">
           <h1 className="text-3xl font-bold">{t('admin_challenges.challenge_management')}</h1>
           <div className="flex items-center gap-2">
-            {/* Placeholder for future actions to mirror admin pages layout */}
+            <Button onClick={() => setIsCreateDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              {t('admin_challenges.create_challenge') || 'Create Challenge'}
+            </Button>
           </div>
         </div>
 
@@ -477,6 +497,12 @@ export default function ChallengesContent({ challenges, onRefresh }: ChallengesC
             )}
           </DialogContent>
         </Dialog>
+
+        <ChallengeCreateDialog
+          open={isCreateDialogOpen}
+          onOpenChange={setIsCreateDialogOpen}
+          onCreated={handleChallengeCreated}
+        />
       </div>
     </>
   )

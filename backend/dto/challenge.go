@@ -15,6 +15,24 @@ type GeoFlagInput struct {
 	Lng float64 `json:"lng"`
 }
 
+// ChallengeCreateRequest represents admin challenge creation request
+// Used for creating challenges "on the fly" during competitions
+type ChallengeCreateRequest struct {
+	Name        string   `json:"name" binding:"required,min=1,max=255"`
+	Description string   `json:"description" binding:"required"`
+	Type        string   `json:"type" binding:"required,oneof=standard geo"`
+	Category    string   `json:"category" binding:"required,min=1,max=100"`
+	Difficulty  string   `json:"difficulty" binding:"required,min=1,max=50"`
+	Points      int      `json:"points" binding:"required,min=1"`
+	Flags       []string `json:"flags" binding:"required,min=1,dive,min=1"`
+	Hidden      bool     `json:"hidden"`
+	Author      string   `json:"author"`
+	// Geo-specific fields (required when type=geo)
+	TargetLat *float64 `json:"targetLat"`
+	TargetLng *float64 `json:"targetLng"`
+	RadiusKm  *float64 `json:"radiusKm"`
+}
+
 // ChallengeAdminUpdateRequest represents admin challenge update request
 type ChallengeAdminUpdateRequest struct {
 	Name              *string        `json:"name"`
