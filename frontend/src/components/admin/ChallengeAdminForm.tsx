@@ -559,7 +559,8 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
                             className="w-full h-full object-cover"
                             style={{ 
                               objectPosition: `${coverPosition.x}% ${coverPosition.y}%`,
-                              transform: `scale(${coverZoom / 100})`
+                              transform: `scale(${coverZoom / 100})`,
+                              transformOrigin: `${coverPosition.x}% ${coverPosition.y}%`
                             }}
                           />
                         </div>

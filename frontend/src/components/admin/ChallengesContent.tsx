@@ -49,18 +49,9 @@ export default function ChallengesContent({ challenges, onRefresh }: ChallengesC
     return uniqueDifficulties.sort((a, b) => a.localeCompare(b))
   }, [challenges])
 
-  // Handle challenge created - fetch and open edit dialog
+  // Handle challenge created - just refresh the list
   const handleChallengeCreated = async (challengeId: number) => {
-    onRefresh() // Refresh the list
-    try {
-      // Fetch the newly created challenge to open edit dialog
-      const response = await axios.get(`/api/admin/challenges/${challengeId}`)
-      const newChallenge = response.data.challenge
-      setSelectedChallenge(newChallenge)
-      setIsDialogOpen(true)
-    } catch (error) {
-      console.error("Failed to fetch new challenge:", error)
-    }
+    onRefresh() // Refresh the list to show the new challenge
   }
 
   // Filter and sort challenges

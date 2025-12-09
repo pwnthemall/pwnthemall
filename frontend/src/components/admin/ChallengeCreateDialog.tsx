@@ -241,7 +241,26 @@ export default function ChallengeCreateDialog({
         }),
       }
 
-      const response = await axios.post("/api/admin/challenges", payload)
+      let response
+      if (formData.enableCover && formData.coverFile) {
+        // Send as multipart/form-data with cover image
+        const formDataToSend = new FormData()
+        formDataToSend.append("meta", JSON.stringify(payload))
+        formDataToSend.append("cover", formData.coverFile)
+        formDataToSend.append("coverPositionX", formData.coverPosition.x.toString())
+        formDataToSend.append("coverPositionY", formData.coverPosition.y.toString())
+        formDataToSend.append("coverZoom", formData.coverZoom.toString())
+
+        response = await axios.post("/api/admin/challenges", formDataToSend, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        })
+      } else {
+        // Send as JSON (no cover)
+        response = await axios.post("/api/admin/challenges", payload)
+      }
+
       toast.success(`Challenge "${formData.name}" created successfully!`)
       onOpenChange(false)
       onCreated(response.data.id)
@@ -675,7 +694,8 @@ export default function ChallengeCreateDialog({
                               className="w-full h-full object-cover"
                               style={{
                                 objectPosition: `${formData.coverPosition.x}% ${formData.coverPosition.y}%`,
-                                transform: `scale(${formData.coverZoom / 100})`
+                                transform: `scale(${formData.coverZoom / 100})`,
+                                transformOrigin: `${formData.coverPosition.x}% ${formData.coverPosition.y}%`
                               }}
                             />
                           </div>

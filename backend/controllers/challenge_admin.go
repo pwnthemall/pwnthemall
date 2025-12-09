@@ -1,10 +1,17 @@
 package controllers
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"mime/multipart"
+	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/minio/minio-go/v7"
 	"github.com/pwnthemall/pwnthemall/backend/config"
 	"github.com/pwnthemall/pwnthemall/backend/debug"
 	"github.com/pwnthemall/pwnthemall/backend/dto"
@@ -22,10 +29,60 @@ const (
 // CreateChallengeAdmin creates a new challenge for admins
 // Supports standard and geo challenge types for "on the fly" creation during competitions
 func CreateChallengeAdmin(c *gin.Context) {
+	// Check if this is multipart form (with cover) or JSON only
+	contentType := c.GetHeader("Content-Type")
 	var req dto.ChallengeCreateRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.BadRequestError(c, err.Error())
-		return
+	var coverFile *multipart.FileHeader
+	var coverPositionX, coverPositionY float64 = 50, 50
+	var coverZoom float64 = 100
+	
+	if strings.Contains(contentType, "multipart/form-data") {
+		// Parse multipart form
+		if err := c.Request.ParseMultipartForm(10 << 20); err != nil { // 10MB max
+			utils.BadRequestError(c, "Failed to parse multipart form")
+			return
+		}
+
+		// Get JSON metadata from form field
+		metaJSON := c.PostForm("meta")
+		if metaJSON == "" {
+			utils.BadRequestError(c, "Missing metadata")
+			return
+		}
+
+		if err := json.Unmarshal([]byte(metaJSON), &req); err != nil {
+			utils.BadRequestError(c, "Invalid metadata JSON")
+			return
+		}
+
+		// Get cover file if present
+		file, err := c.FormFile("cover")
+		if err == nil {
+			coverFile = file
+			
+			// Get cover position and zoom
+			if posX := c.PostForm("coverPositionX"); posX != "" {
+				if val, err := strconv.ParseFloat(posX, 64); err == nil {
+					coverPositionX = val
+				}
+			}
+			if posY := c.PostForm("coverPositionY"); posY != "" {
+				if val, err := strconv.ParseFloat(posY, 64); err == nil {
+					coverPositionY = val
+				}
+			}
+			if zoom := c.PostForm("coverZoom"); zoom != "" {
+				if val, err := strconv.ParseFloat(zoom, 64); err == nil {
+					coverZoom = val
+				}
+			}
+		}
+	} else {
+		// Standard JSON request
+		if err := c.ShouldBindJSON(&req); err != nil {
+			utils.BadRequestError(c, err.Error())
+			return
+		}
 	}
 
 	// Validate geo fields if type is geo
@@ -120,9 +177,9 @@ func CreateChallengeAdmin(c *gin.Context) {
 		Points:                req.Points,
 		Hidden:                req.Hidden,
 		Author:                req.Author,
-		CoverPositionX:        50, // Default center
-		CoverPositionY:        50,
-		CoverZoom:             100,
+		CoverPositionX:        coverPositionX,
+		CoverPositionY:        coverPositionY,
+		CoverZoom:             coverZoom,
 	}
 
 	if decayFormula.ID > 0 {
@@ -185,6 +242,66 @@ func CreateChallengeAdmin(c *gin.Context) {
 	if err := tx.Commit().Error; err != nil {
 		utils.InternalServerError(c, "Failed to commit transaction")
 		return
+	}
+
+	// Process cover image if provided
+	if coverFile != nil {
+		debug.Log("Processing cover image for challenge %d: %s", challenge.ID, coverFile.Filename)
+		
+		// Open the uploaded file
+		file, err := coverFile.Open()
+		if err != nil {
+			debug.Log("Failed to open cover file: %v", err)
+		} else {
+			defer file.Close()
+			
+			// Read file data
+			fileData, err := io.ReadAll(file)
+			if err != nil {
+				debug.Log("Failed to read cover file: %v", err)
+			} else {
+				// Store original in MinIO
+				bucketName := "challenges"
+				originalPath := fmt.Sprintf("%s/%s", challenge.Slug, coverFile.Filename)
+				
+				// Detect content type from filename
+				contentType := "image/jpeg"
+				filename := strings.ToLower(coverFile.Filename)
+				if strings.HasSuffix(filename, ".png") {
+					contentType = "image/png"
+				} else if strings.HasSuffix(filename, ".gif") {
+					contentType = "image/gif"
+				} else if strings.HasSuffix(filename, ".webp") {
+					contentType = "image/webp"
+				}
+				
+				_, err = config.FS.PutObject(
+					context.Background(),
+					bucketName,
+					originalPath,
+					bytes.NewReader(fileData),
+					int64(len(fileData)),
+					minio.PutObjectOptions{
+						ContentType: contentType,
+					},
+				)
+				
+				if err != nil {
+					debug.Log("Failed to store cover image: %v", err)
+				} else {
+					// Process image (resize, validate, etc)
+					processedPath, err := utils.ProcessChallengeCoverImage(context.Background(), challenge.Slug, coverFile.Filename)
+					if err != nil {
+						debug.Log("Failed to process cover image: %v", err)
+					} else {
+						// Update challenge with cover path
+						challenge.CoverImg = processedPath
+						config.DB.Model(&challenge).Update("cover_img", processedPath)
+						debug.Log("Cover image processed successfully: %s", processedPath)
+					}
+				}
+			}
+		}
 	}
 
 	// Broadcast challenge creation
