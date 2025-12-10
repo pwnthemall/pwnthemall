@@ -535,60 +535,143 @@ func createChallengeZipFromDB(challengeID uint) ([]byte, error) {
 		return nil, fmt.Errorf("failed to write chall.yml: %w", err)
 	}
 
-	// Copy all challenge files from MinIO
-	bucketName := "challenges"
-	for _, fileName := range challenge.Files {
-		objectPath := fmt.Sprintf("%s/%s", challenge.Slug, fileName)
-		obj, err := config.FS.GetObject(context.Background(), bucketName, objectPath, minio.GetObjectOptions{})
-		if err != nil {
-			debug.Log("Skipping file %s (not found in MinIO): %v", fileName, err)
-			continue
-		}
-
-		fileWriter, err := zipWriter.Create(fileName)
-		if err != nil {
-			obj.Close()
-			debug.Log("Failed to create file %s in ZIP: %v", fileName, err)
-			continue
-		}
-
-		if _, err := io.Copy(fileWriter, obj); err != nil {
-			debug.Log("Failed to copy file %s to ZIP: %v", fileName, err)
-		}
-		obj.Close()
-	}
-
-	// Copy cover image if it exists (excluding processed versions)
-	if challenge.CoverImg != "" {
-		// Try to get the original cover image (not the processed _resized.webp version)
-		originalCover := challenge.CoverImg
-		if strings.Contains(originalCover, "_resized.webp") {
-			// Try common extensions for the original
-			for _, ext := range []string{".jpg", ".jpeg", ".png", ".webp", ".gif"} {
-				baseName := strings.TrimSuffix(challenge.Slug, "/") + ext
-				coverPath := fmt.Sprintf("%s/%s", challenge.Slug, baseName)
-				obj, err := config.FS.GetObject(context.Background(), bucketName, coverPath, minio.GetObjectOptions{})
-				if err == nil {
-					fileWriter, err := zipWriter.Create(baseName)
-					if err == nil {
-						io.Copy(fileWriter, obj)
-						obj.Close()
-						break
+	// Try to get files from the challenge ZIP in MinIO (new system)
+	bucketName := bucketChallengeFiles
+	zipPath := fmt.Sprintf("challenges/%s.zip", challenge.Slug)
+	filesAdded := false
+	
+	zipObj, err := config.FS.GetObject(context.Background(), bucketName, zipPath, minio.GetObjectOptions{})
+	if err == nil {
+		defer zipObj.Close()
+		
+		// Read the ZIP into memory
+		zipData, err := io.ReadAll(zipObj)
+		if err == nil {
+			// Open the ZIP archive
+			zipReader, err := zip.NewReader(bytes.NewReader(zipData), int64(len(zipData)))
+			if err == nil {
+				// Copy all files from the original ZIP to the export ZIP
+				for _, f := range zipReader.File {
+					// Skip chall.yml if it exists (we create our own)
+					if f.Name == "chall.yml" {
+						continue
 					}
-					obj.Close()
+					
+					rc, err := f.Open()
+					if err != nil {
+						debug.Log("Failed to open file %s from ZIP: %v", f.Name, err)
+						continue
+					}
+					
+					w, err := zipWriter.Create(f.Name)
+					if err != nil {
+						rc.Close()
+						debug.Log("Failed to create file %s in export ZIP: %v", f.Name, err)
+						continue
+					}
+					
+					if _, err := io.Copy(w, rc); err != nil {
+						debug.Log("Failed to copy file %s to export ZIP: %v", f.Name, err)
+					}
+					rc.Close()
+					filesAdded = true
 				}
+			} else {
+				debug.Log("Failed to open challenge ZIP: %v", err)
 			}
 		} else {
-			// Use the cover image as-is
-			coverPath := fmt.Sprintf("%s/%s", challenge.Slug, challenge.CoverImg)
-			obj, err := config.FS.GetObject(context.Background(), bucketName, coverPath, minio.GetObjectOptions{})
-			if err == nil {
-				fileWriter, err := zipWriter.Create(challenge.CoverImg)
-				if err == nil {
-					io.Copy(fileWriter, obj)
-				}
-				obj.Close()
+			debug.Log("Failed to read challenge ZIP: %v", err)
+		}
+	} else {
+		debug.Log("Challenge ZIP not found in MinIO at %s: %v", zipPath, err)
+	}
+
+	// Fallback: Try to copy individual files from old system (challenges bucket, {slug}/{filename})
+	if !filesAdded {
+		debug.Log("Trying to get files from old system for challenge %s", challenge.Slug)
+		oldBucket := "challenges"
+		
+		// Try to copy files listed in challenge.Files
+		for _, fileName := range challenge.Files {
+			objectPath := fmt.Sprintf("%s/%s", challenge.Slug, fileName)
+			obj, err := config.FS.GetObject(context.Background(), oldBucket, objectPath, minio.GetObjectOptions{})
+			if err != nil {
+				debug.Log("File %s not found in old system: %v", fileName, err)
+				continue
 			}
+
+			fileWriter, err := zipWriter.Create(fileName)
+			if err != nil {
+				obj.Close()
+				debug.Log("Failed to create file %s in ZIP: %v", fileName, err)
+				continue
+			}
+
+			if _, err := io.Copy(fileWriter, obj); err != nil {
+				debug.Log("Failed to copy file %s to ZIP: %v", fileName, err)
+			}
+			obj.Close()
+			filesAdded = true
+		}
+		
+		// Also try to list all files under the slug directory
+		objectCh := config.FS.ListObjects(context.Background(), oldBucket, minio.ListObjectsOptions{
+			Prefix:    challenge.Slug + "/",
+			Recursive: true,
+		})
+		
+		for object := range objectCh {
+			if object.Err != nil {
+				debug.Log("Error listing objects: %v", object.Err)
+				continue
+			}
+			
+			// Get relative filename (remove slug prefix)
+			fileName := strings.TrimPrefix(object.Key, challenge.Slug+"/")
+			if fileName == "" {
+				continue
+			}
+			
+			// Skip chall.yml (we create our own)
+			if fileName == "chall.yml" {
+				continue
+			}
+			
+			// Skip resized cover images (only include original)
+			if strings.Contains(fileName, "_resized.webp") {
+				continue
+			}
+			
+			// Skip if already added from challenge.Files
+			alreadyAdded := false
+			for _, f := range challenge.Files {
+				if f == fileName {
+					alreadyAdded = true
+					break
+				}
+			}
+			if alreadyAdded {
+				continue
+			}
+			
+			obj, err := config.FS.GetObject(context.Background(), oldBucket, object.Key, minio.GetObjectOptions{})
+			if err != nil {
+				debug.Log("Failed to get object %s: %v", object.Key, err)
+				continue
+			}
+			
+			fileWriter, err := zipWriter.Create(fileName)
+			if err != nil {
+				obj.Close()
+				debug.Log("Failed to create file %s in ZIP: %v", fileName, err)
+				continue
+			}
+			
+			if _, err := io.Copy(fileWriter, obj); err != nil {
+				debug.Log("Failed to copy file %s to ZIP: %v", fileName, err)
+			}
+			obj.Close()
+			filesAdded = true
 		}
 	}
 
