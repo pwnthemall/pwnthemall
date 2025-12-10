@@ -57,9 +57,9 @@
     "create_challenge": "Créer un Challenge"
   },
   "challenge_create": {
-    "title": "Créer un Nouveau Challenge",
+    "title": "Créer un nouveau challenge",
     "description": "Créez un nouveau challenge standard ou géolocalisation à la volée. Vous pouvez ajouter des images de couverture et des pièces jointes après la création.",
-    "type": "Type de Challenge",
+    "type": "Type de challenge",
     "flags": "Flags",
     "name": "Nom",
     "author": "Auteur",
@@ -87,7 +87,7 @@
     "hint_content_placeholder": "Contenu de l'indice",
     "hint_cost": "Coût (points)",
     "creating": "Création...",
-    "create_button": "Créer le Challenge"
+    "create_button": "Créer le challenge"
   },
   "challenge_form": {
     "tab_general": "Général",

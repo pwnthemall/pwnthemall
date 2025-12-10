@@ -57,9 +57,9 @@
     "create_challenge": "Create Challenge"
   },
   "challenge_create": {
-    "title": "Create New Challenge",
+    "title": "Create new challenge",
     "description": "Create a new standard or geo challenge on the fly. You can add cover images and attachments after creation.",
-    "type": "Challenge Type",
+    "type": "Challenge type",
     "flags": "Flags",
     "name": "Name",
     "author": "Author",
@@ -69,9 +69,9 @@
     "points": "Points",
     "hidden": "Hidden",
     "hidden_desc": "Hidden challenges are not visible to players",
-    "geo_config": "GeoInt Configuration",
-    "target_lat": "Target Latitude",
-    "target_lng": "Target Longitude",
+    "geo_config": "GeoInt configuration",
+    "target_lat": "Target latitude",
+    "target_lng": "Target longitude",
     "radius_km": "Radius (km)",
     "geo_help": "Players must submit coordinates within the radius to solve this challenge.",
     "new_category": "+ Create new category",
@@ -87,7 +87,7 @@
     "hint_content_placeholder": "Hint content",
     "hint_cost": "Cost (points)",
     "creating": "Creating...",
-    "create_button": "Create Challenge"
+    "create_button": "Create challenge"
   },
   "challenge_form": {
     "tab_general": "General",
