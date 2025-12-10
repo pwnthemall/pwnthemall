@@ -351,7 +351,6 @@ const (
 	errChallengeCreationFailed = "challenge_creation_failed"
 )
 
-// validateAndProcessFiles processes uploaded files into a zip buffer
 func validateAndProcessFiles(form *multipart.Form, zipWriter *zip.Writer) (bool, error) {
 	hasFiles := false
 
@@ -390,7 +389,6 @@ func validateAndProcessFiles(form *multipart.Form, zipWriter *zip.Writer) (bool,
 	return hasFiles, nil
 }
 
-// parseAndValidateMeta parses and validates the metadata JSON into a Challenge model
 func parseAndValidateMeta(metaStr string) (*models.Challenge, error) {
 	if metaStr == "" {
 		return nil, fmt.Errorf(errMissingMeta)
@@ -414,7 +412,153 @@ func parseAndValidateMeta(metaStr string) (*models.Challenge, error) {
 	return &challenge, nil
 }
 
-// uploadFilesToMinIO uploads the zip buffer to MinIO storage
+// createChallengeZipFromDB exports challenge as ZIP (chall.yml + files, flags excluded)
+func createChallengeZipFromDB(challengeID uint) ([]byte, error) {
+	var buf bytes.Buffer
+	zipWriter := zip.NewWriter(&buf)
+
+	// Fetch challenge with all associations
+	var challenge models.Challenge
+	if err := config.DB.
+		Preload("ChallengeCategory").
+		Preload("ChallengeDifficulty").
+		Preload("ChallengeType").
+		Preload("Hints").
+		Preload("DecayFormula").
+		First(&challenge, challengeID).Error; err != nil {
+		zipWriter.Close()
+		return nil, fmt.Errorf("failed to fetch challenge: %w", err)
+	}
+
+	// Create chall.yml file (without flags for security)
+	challYml, err := zipWriter.Create("chall.yml")
+	if err != nil {
+		zipWriter.Close()
+		return nil, fmt.Errorf("failed to create chall.yml: %w", err)
+	}
+
+	// Build YAML content
+	yamlContent := fmt.Sprintf("name: %s\n", challenge.Name)
+	yamlContent += fmt.Sprintf("description: |\n  %s\n", strings.ReplaceAll(challenge.Description, "\n", "\n  "))
+
+	if challenge.ChallengeCategory != nil {
+		yamlContent += fmt.Sprintf("category: %s\n", challenge.ChallengeCategory.Name)
+	}
+	if challenge.ChallengeDifficulty != nil {
+		yamlContent += fmt.Sprintf("difficulty: %s\n", challenge.ChallengeDifficulty.Name)
+	}
+	if challenge.ChallengeType != nil {
+		yamlContent += fmt.Sprintf("type: %s\n", challenge.ChallengeType.Name)
+	}
+	if challenge.DecayFormula != nil {
+		yamlContent += fmt.Sprintf("decay: \"%s\"\n", challenge.DecayFormula.Name)
+	}
+
+	yamlContent += fmt.Sprintf("author: %s\n", challenge.Author)
+	yamlContent += "flags: [\"REDACTED\"]\n" // Don't include actual flags
+	yamlContent += fmt.Sprintf("hidden: %t\n", challenge.Hidden)
+	yamlContent += fmt.Sprintf("points: %d\n", challenge.Points)
+
+	if challenge.MaxAttempts > 0 {
+		yamlContent += fmt.Sprintf("attempts: %d\n", challenge.MaxAttempts)
+	}
+
+	if len(challenge.Ports) > 0 {
+		yamlContent += "ports: ["
+		for i, port := range challenge.Ports {
+			if i > 0 {
+				yamlContent += ", "
+			}
+			yamlContent += fmt.Sprintf("%d", port)
+		}
+		yamlContent += "]\n"
+	}
+
+	if challenge.CoverImg != "" {
+		yamlContent += fmt.Sprintf("cover_img: %s\n", challenge.CoverImg)
+	}
+
+	if len(challenge.ConnectionInfo) > 0 {
+		yamlContent += "connection_info: ["
+		for i, info := range challenge.ConnectionInfo {
+			if i > 0 {
+				yamlContent += ", "
+			}
+			yamlContent += fmt.Sprintf("\"%s\"", info)
+		}
+		yamlContent += "]\n"
+	}
+
+	if _, err := challYml.Write([]byte(yamlContent)); err != nil {
+		zipWriter.Close()
+		return nil, fmt.Errorf("failed to write chall.yml: %w", err)
+	}
+
+	// Copy all challenge files from MinIO
+	bucketName := "challenges"
+	for _, fileName := range challenge.Files {
+		objectPath := fmt.Sprintf("%s/%s", challenge.Slug, fileName)
+		obj, err := config.FS.GetObject(context.Background(), bucketName, objectPath, minio.GetObjectOptions{})
+		if err != nil {
+			debug.Log("Skipping file %s (not found in MinIO): %v", fileName, err)
+			continue
+		}
+
+		fileWriter, err := zipWriter.Create(fileName)
+		if err != nil {
+			obj.Close()
+			debug.Log("Failed to create file %s in ZIP: %v", fileName, err)
+			continue
+		}
+
+		if _, err := io.Copy(fileWriter, obj); err != nil {
+			debug.Log("Failed to copy file %s to ZIP: %v", fileName, err)
+		}
+		obj.Close()
+	}
+
+	// Copy cover image if it exists (excluding processed versions)
+	if challenge.CoverImg != "" {
+		// Try to get the original cover image (not the processed _resized.webp version)
+		originalCover := challenge.CoverImg
+		if strings.Contains(originalCover, "_resized.webp") {
+			// Try common extensions for the original
+			for _, ext := range []string{".jpg", ".jpeg", ".png", ".webp", ".gif"} {
+				baseName := strings.TrimSuffix(challenge.Slug, "/") + ext
+				coverPath := fmt.Sprintf("%s/%s", challenge.Slug, baseName)
+				obj, err := config.FS.GetObject(context.Background(), bucketName, coverPath, minio.GetObjectOptions{})
+				if err == nil {
+					fileWriter, err := zipWriter.Create(baseName)
+					if err == nil {
+						io.Copy(fileWriter, obj)
+						obj.Close()
+						break
+					}
+					obj.Close()
+				}
+			}
+		} else {
+			// Use the cover image as-is
+			coverPath := fmt.Sprintf("%s/%s", challenge.Slug, challenge.CoverImg)
+			obj, err := config.FS.GetObject(context.Background(), bucketName, coverPath, minio.GetObjectOptions{})
+			if err == nil {
+				fileWriter, err := zipWriter.Create(challenge.CoverImg)
+				if err == nil {
+					io.Copy(fileWriter, obj)
+				}
+				obj.Close()
+			}
+		}
+	}
+
+	// Finalize ZIP
+	if err := zipWriter.Close(); err != nil {
+		return nil, fmt.Errorf("failed to close zip writer: %w", err)
+	}
+
+	return buf.Bytes(), nil
+}
+
 func uploadFilesToMinIO(challengeSlug string, zipBytes []byte) error {
 	zipFilename := fmt.Sprintf("%s.zip", challengeSlug)
 	objectName := fmt.Sprintf("challenges/%s", zipFilename)

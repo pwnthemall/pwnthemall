@@ -21,10 +21,80 @@ import (
 )
 
 const (
-	queryChallengeIDAdmin    = "challenge_id = ?"
-	errChallengeNotFoundMsg  = "Challenge not found"
-	queryNameEquals          = "name = ?"
+	queryChallengeIDAdmin   = "challenge_id = ?"
+	errChallengeNotFoundMsg = "Challenge not found"
+	queryNameEquals         = "name = ?"
 )
+
+// ExportChallenge downloads the challenge ZIP (files, cover, scripts) from MinIO
+// If the export doesn't exist, it will be generated on-the-fly
+func ExportChallenge(c *gin.Context) {
+	var challenge models.Challenge
+	id := c.Param("id")
+
+	if err := config.DB.First(&challenge, id).Error; err != nil {
+		utils.NotFoundError(c, errChallengeNotFoundMsg)
+		return
+	}
+
+	objectName := fmt.Sprintf("challenges/%s.zip", challenge.Slug)
+	obj, err := config.FS.GetObject(context.Background(), bucketChallengeFiles, objectName, minio.GetObjectOptions{})
+
+	// If object doesn't exist, generate it on-the-fly
+	if err != nil || obj == nil {
+		debug.Log("Challenge export not found, generating on-the-fly for %s", challenge.Slug)
+
+		// Generate ZIP
+		zipBytes, err := createChallengeZipFromDB(challenge.ID)
+		if err != nil {
+			debug.Log("Failed to generate challenge export: %v", err)
+			utils.InternalServerError(c, "Failed to generate challenge export")
+			return
+		}
+
+		// Upload to MinIO for future use
+		if err := uploadFilesToMinIO(challenge.Slug, zipBytes); err != nil {
+			debug.Log("Failed to cache challenge export: %v", err)
+		}
+
+		// Stream directly to client
+		c.Header("Content-Type", "application/zip")
+		c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.zip\"", challenge.Slug))
+		c.Data(200, "application/zip", zipBytes)
+		return
+	}
+	defer obj.Close()
+
+	if _, err := obj.Stat(); err != nil {
+		debug.Log("Challenge export stat failed %s, regenerating: %v", objectName, err)
+
+		// Generate ZIP on-the-fly
+		zipBytes, err := createChallengeZipFromDB(challenge.ID)
+		if err != nil {
+			debug.Log("Failed to generate challenge export: %v", err)
+			utils.NotFoundError(c, "Challenge export not found")
+			return
+		}
+
+		// Upload to MinIO for future use
+		if err := uploadFilesToMinIO(challenge.Slug, zipBytes); err != nil {
+			debug.Log("Failed to cache challenge export: %v", err)
+		}
+
+		// Stream directly to client
+		c.Header("Content-Type", "application/zip")
+		c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.zip\"", challenge.Slug))
+		c.Data(200, "application/zip", zipBytes)
+		return
+	}
+
+	c.Header("Content-Type", "application/zip")
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.zip\"", challenge.Slug))
+
+	if _, err := io.Copy(c.Writer, obj); err != nil {
+		debug.Log("Failed to stream challenge export %s: %v", objectName, err)
+	}
+}
 
 // CreateChallengeAdmin creates a new challenge for admins
 // Supports standard and geo challenge types for "on the fly" creation during competitions
@@ -35,7 +105,7 @@ func CreateChallengeAdmin(c *gin.Context) {
 	var coverFile *multipart.FileHeader
 	var coverPositionX, coverPositionY float64 = 50, 50
 	var coverZoom float64 = 100
-	
+
 	if strings.Contains(contentType, "multipart/form-data") {
 		// Parse multipart form
 		if err := c.Request.ParseMultipartForm(10 << 20); err != nil { // 10MB max
@@ -59,7 +129,7 @@ func CreateChallengeAdmin(c *gin.Context) {
 		file, err := c.FormFile("cover")
 		if err == nil {
 			coverFile = file
-			
+
 			// Get cover position and zoom
 			if posX := c.PostForm("coverPositionX"); posX != "" {
 				if val, err := strconv.ParseFloat(posX, 64); err == nil {
@@ -247,14 +317,14 @@ func CreateChallengeAdmin(c *gin.Context) {
 	// Process cover image if provided
 	if coverFile != nil {
 		debug.Log("Processing cover image for challenge %d: %s", challenge.ID, coverFile.Filename)
-		
+
 		// Open the uploaded file
 		file, err := coverFile.Open()
 		if err != nil {
 			debug.Log("Failed to open cover file: %v", err)
 		} else {
 			defer file.Close()
-			
+
 			// Read file data
 			fileData, err := io.ReadAll(file)
 			if err != nil {
@@ -263,7 +333,7 @@ func CreateChallengeAdmin(c *gin.Context) {
 				// Store original in MinIO
 				bucketName := "challenges"
 				originalPath := fmt.Sprintf("%s/%s", challenge.Slug, coverFile.Filename)
-				
+
 				// Detect content type from filename
 				contentType := "image/jpeg"
 				filename := strings.ToLower(coverFile.Filename)
@@ -274,7 +344,7 @@ func CreateChallengeAdmin(c *gin.Context) {
 				} else if strings.HasSuffix(filename, ".webp") {
 					contentType = "image/webp"
 				}
-				
+
 				_, err = config.FS.PutObject(
 					context.Background(),
 					bucketName,
@@ -285,7 +355,7 @@ func CreateChallengeAdmin(c *gin.Context) {
 						ContentType: contentType,
 					},
 				)
-				
+
 				if err != nil {
 					debug.Log("Failed to store cover image: %v", err)
 				} else {
@@ -301,6 +371,17 @@ func CreateChallengeAdmin(c *gin.Context) {
 					}
 				}
 			}
+		}
+	}
+
+	// Create and upload challenge ZIP to MinIO for export functionality
+	if zipBytes, err := createChallengeZipFromDB(challenge.ID); err != nil {
+		debug.Log("Failed to create challenge ZIP for export: %v", err)
+	} else {
+		if err := uploadFilesToMinIO(challenge.Slug, zipBytes); err != nil {
+			debug.Log("Failed to upload challenge ZIP to MinIO: %v", err)
+		} else {
+			debug.Log("Successfully created and uploaded challenge ZIP for export")
 		}
 	}
 
@@ -326,13 +407,13 @@ func updateChallengeFields(challenge *models.Challenge, req *dto.ChallengeAdminU
 	if req.EnableFirstBlood != nil {
 		challenge.EnableFirstBlood = *req.EnableFirstBlood
 	}
-	
+
 	if req.FirstBloodBonuses != nil && len(*req.FirstBloodBonuses) > 0 {
 		challenge.FirstBloodBonuses = *req.FirstBloodBonuses
 	} else if req.FirstBloodBonuses != nil {
 		challenge.FirstBloodBonuses = []int64{}
 	}
-	
+
 	if req.FirstBloodBadges != nil && len(*req.FirstBloodBadges) > 0 {
 		challenge.FirstBloodBadges = *req.FirstBloodBadges
 	} else if req.FirstBloodBadges != nil {
@@ -357,10 +438,10 @@ func processHintsFromRequest(challengeID uint, hints *[]models.Hint) {
 	if hints == nil {
 		return
 	}
-	
+
 	for _, hintReq := range *hints {
 		debug.Log("Processing hint: ID=%d, Title=%s, Content=%s, Cost=%d", hintReq.ID, hintReq.Title, hintReq.Content, hintReq.Cost)
-		
+
 		if hintReq.ID > 0 {
 			// Update existing hint
 			var hint models.Hint
@@ -405,38 +486,38 @@ func cleanupFirstBloodIfDisabled(req *dto.ChallengeAdminUpdateRequest, challenge
 func UpdateChallengeAdmin(c *gin.Context) {
 	var challenge models.Challenge
 	id := c.Param("id")
-	
+
 	if err := config.DB.First(&challenge, id).Error; err != nil {
 		utils.NotFoundError(c, errChallengeNotFoundMsg)
 		return
 	}
-	
+
 	var req dto.ChallengeAdminUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.BadRequestError(c, err.Error())
 		return
 	}
-	
+
 	// Update challenge fields
 	updateChallengeFields(&challenge, &req)
-	
+
 	if err := config.DB.Save(&challenge).Error; err != nil {
 		utils.InternalServerError(c, "Failed to update challenge")
 		return
 	}
-	
+
 	// Broadcast update
 	broadcastChallengeUpdate()
-	
+
 	// Recalculate points
 	recalculateChallengePoints(challenge.ID)
-	
+
 	// Cleanup first blood if disabled
 	cleanupFirstBloodIfDisabled(&req, &challenge)
-	
+
 	// Process hints
 	processHintsFromRequest(challenge.ID, req.Hints)
-	
+
 	// Reload challenge with associations
 	if err := config.DB.Preload("DecayFormula").Preload("Hints").Preload("FirstBlood").First(&challenge, challenge.ID).Error; err != nil {
 		debug.Log("Failed to reload challenge: %v", err)
@@ -446,7 +527,18 @@ func UpdateChallengeAdmin(c *gin.Context) {
 			debug.Log("Hint %d: ID=%d, Title=%s, Content=%s", i, hint.ID, hint.Title, hint.Content)
 		}
 	}
-	
+
+	// Create and upload updated challenge ZIP to MinIO for export functionality
+	if zipBytes, err := createChallengeZipFromDB(challenge.ID); err != nil {
+		debug.Log("Failed to create challenge ZIP for export: %v", err)
+	} else {
+		if err := uploadFilesToMinIO(challenge.Slug, zipBytes); err != nil {
+			debug.Log("Failed to upload challenge ZIP to MinIO: %v", err)
+		} else {
+			debug.Log("Successfully created and uploaded updated challenge ZIP for export")
+		}
+	}
+
 	utils.OKResponse(c, challenge)
 }
 
@@ -496,6 +588,17 @@ func UpdateChallengeGeneralAdmin(c *gin.Context) {
 			"action": "challenge_update",
 		}); err == nil {
 			utils.UpdatesHub.SendToAll(payload)
+		}
+	}
+
+	// Create and upload updated challenge ZIP to MinIO for export functionality
+	if zipBytes, err := createChallengeZipFromDB(challenge.ID); err != nil {
+		debug.Log("Failed to create challenge ZIP for export: %v", err)
+	} else {
+		if err := uploadFilesToMinIO(challenge.Slug, zipBytes); err != nil {
+			debug.Log("Failed to upload challenge ZIP to MinIO: %v", err)
+		} else {
+			debug.Log("Successfully created and uploaded updated challenge ZIP for export")
 		}
 	}
 

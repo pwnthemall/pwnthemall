@@ -87,7 +87,9 @@
     "hint_content_placeholder": "Hint content",
     "hint_cost": "Cost (points)",
     "creating": "Creating...",
-    "create_button": "Create challenge"
+    "create_button": "Create Challenge",
+    "export_warning": "Important: Export your challenges",
+    "export_warning_description": "Unless you export your challenge after creation, it will not carry over to another CTF instance and will be lost when the project is deleted. Use the export button in the challenges list to back up your work."
   },
   "challenge_form": {
     "tab_general": "General",

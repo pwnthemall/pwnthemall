@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
-import { Plus, Trash2, MapPin, Flag } from "lucide-react"
+import { Plus, Trash2, MapPin, Flag, AlertTriangle } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import axios from "@/lib/axios"
 import { toast } from "sonner"
 import GeoPicker from "@/components/pwn/GeoPicker"
@@ -288,6 +289,18 @@ export default function ChallengeCreateDialog({
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto px-6 space-y-6 scrollbar-thin scrollbar-track-background scrollbar-thumb-border">
+          {/* Export Warning Banner */}
+          <Alert className="border-yellow-500/50 bg-yellow-500/10">
+            <AlertTriangle className="h-4 w-4 text-yellow-500 !top-1/2 !-translate-y-1/2" />
+            <AlertTitle className="text-yellow-500">
+              {t("challenge_create.export_warning") || "Important: Export your challenges"}
+            </AlertTitle>
+            <AlertDescription className="text-muted-foreground">
+              {t("challenge_create.export_warning_description") ||
+                "Unless you export your challenge after creation, it will not carry over to another CTF instance and will be lost when the project is deleted. Use the export button in the challenges list to back up your work."}
+            </AlertDescription>
+          </Alert>
+
           {/* Basic Information */}
           <div className="p-6 space-y-4 border rounded-lg">
             <div className="grid grid-cols-2 gap-4">

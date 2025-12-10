@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Edit, Plus, Search, ArrowUpDown } from "lucide-react"
+import { Edit, Plus, Search, ArrowUpDown, Download } from "lucide-react"
 import ChallengeAdminForm from "./ChallengeAdminForm"
 import ChallengeCreateDialog from "./ChallengeCreateDialog"
 import {
@@ -417,15 +417,28 @@ export default function ChallengesContent({ challenges, onRefresh }: ChallengesC
                           <div className="h-[22px]">&nbsp;</div>
                         )}
                       </td>
-                      <td className="w-[100px] px-3 py-2 align-middle">
+                      <td className="w-[140px] px-3 py-2 align-middle">
                         {challenge.id >= 0 ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEdit(challenge)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEdit(challenge)}
+                              title={t('admin_challenges.edit')}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              asChild
+                              variant="ghost"
+                              size="sm"
+                              title={t('admin_challenges.export') || 'Export'}
+                            >
+                              <a href={`/api/admin/challenges/${challenge.id}/export`}>
+                                <Download className="h-4 w-4" />
+                              </a>
+                            </Button>
+                          </div>
                         ) : (
                           <div className="h-[32px]">&nbsp;</div>
                         )}

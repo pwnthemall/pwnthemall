@@ -87,7 +87,9 @@
     "hint_content_placeholder": "Contenu de l'indice",
     "hint_cost": "Coût (points)",
     "creating": "Création...",
-    "create_button": "Créer le challenge"
+    "create_button": "Créer le Challenge",
+    "export_warning": "Important : Exportez vos challenges",
+    "export_warning_description": "À moins d'exporter votre challenge après sa création, il ne sera pas transféré vers une autre instance CTF et sera perdu lorsque le projet sera supprimé. Utilisez le bouton d'exportation dans la liste des challenges pour sauvegarder votre travail."
   },
   "challenge_form": {
     "tab_general": "Général",
