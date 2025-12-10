@@ -7,11 +7,17 @@ import (
 )
 
 func RegisterUserRoutes(router *gin.Engine) {
+	// Public routes (no auth required, only policy check)
+	publicUsers := router.Group("/users")
+	{
+		publicUsers.GET("/leaderboard", middleware.CheckPolicy("/users/leaderboard", "read"), controllers.GetIndividualLeaderboard)
+		publicUsers.GET("/timeline", middleware.CheckPolicy("/users/timeline", "read"), controllers.GetIndividualTimeline)
+	}
+
+	// Authenticated routes
 	users := router.Group("/users", middleware.AuthRequired(false))
 	{
 		users.GET("", middleware.CheckPolicy("/users", "read"), controllers.GetUsers)
-		users.GET("/leaderboard", middleware.CheckPolicy("/users/leaderboard", "read"), controllers.GetIndividualLeaderboard)
-		users.GET("/timeline", middleware.CheckPolicy("/users/timeline", "read"), controllers.GetIndividualTimeline)
 		users.GET("/search/ip", middleware.DemoRestriction, middleware.CheckPolicy("/users", "read"), controllers.GetUserByIP)
 		users.GET("/:id", middleware.CheckPolicy("/users/:id", "read"), controllers.GetUser)
 		users.POST("", middleware.CheckPolicy("/users", "write"), controllers.CreateUser)

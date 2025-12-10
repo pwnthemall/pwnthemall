@@ -6,7 +6,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Trophy, Medal, Award, Users, User, Search, ChevronLeft, ChevronRight, TrendingUp } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Trophy, Medal, Award, Users, User, Search, ChevronLeft, ChevronRight, TrendingUp, ExternalLink, ChevronDown } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useUser } from '@/context/UserContext';
 import { IndividualLeaderboardEntry, TeamLeaderboardEntry } from '@/models/Leaderboard';
@@ -238,11 +244,29 @@ export default function ScoreboardContent() {
   return (
     <div className="bg-muted min-h-screen">
       <div className="container mx-auto p-6 space-y-6">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold">{t('scoreboard.scoreboard') || 'Scoreboard'}</h1>
-          <p className="text-muted-foreground">
-            {t('scoreboard.scoreboard_description') || 'View rankings for individuals and teams'}
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div>
+            <h1 className="text-3xl font-bold">{t('scoreboard.scoreboard') || 'Scoreboard'}</h1>
+            <p className="text-muted-foreground">
+              {t('scoreboard.scoreboard_description') || 'View rankings for individuals and teams'}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <ExternalLink className="h-4 w-4" />
+                  Live View
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => window.open('/live/classic', '_blank')}>
+                  Live View
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         {/* Timeline Chart - CTFd/TryHackMe Style */}
