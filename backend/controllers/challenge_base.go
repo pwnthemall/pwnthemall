@@ -186,6 +186,12 @@ func GetChallenges(c *gin.Context) {
 		return
 	}
 
+	// Get team-specific data for hint purchases
+	var purchasedHintIds []uint
+	if user.Team != nil {
+		purchasedHintIds = getPurchasedHintIds(user.Team.ID)
+	}
+
 	filtered := make([]models.Challenge, 0, len(challenges))
 	decayService := utils.NewDecay()
 
@@ -194,6 +200,27 @@ func GetChallenges(c *gin.Context) {
 			continue
 		}
 		challenges[i].CurrentPoints = decayService.CalculateCurrentPoints(&challenges[i])
+
+		// Process hints to hide content for unpurchased hints
+		hintsWithPurchased := processHintsWithPurchaseStatus(challenges[i].Hints, purchasedHintIds, user.Role)
+
+		// Convert back to models.Hint but keep content hidden
+		processedHints := make([]models.Hint, 0, len(hintsWithPurchased))
+		for _, hwp := range hintsWithPurchased {
+			hint := models.Hint{
+				ID:          hwp.Hint.ID,
+				ChallengeID: hwp.Hint.ChallengeID,
+				Title:       hwp.Hint.Title,
+				Cost:        hwp.Hint.Cost,
+				IsActive:    hwp.Hint.IsActive,
+			}
+			if hwp.Purchased {
+				hint.Content = hwp.Hint.Content
+			}
+			processedHints = append(processedHints, hint)
+		}
+		challenges[i].Hints = processedHints
+
 		filtered = append(filtered, challenges[i])
 	}
 
