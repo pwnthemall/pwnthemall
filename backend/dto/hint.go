@@ -28,3 +28,17 @@ type Hint struct {
 	Cost        int    `json:"cost"`
 	IsActive    bool   `json:"isActive"`
 }
+
+// HintPurchaseEvent represents a hint purchase WebSocket event
+type HintPurchaseEvent struct {
+	Event       string `json:"event"`
+	TeamID      uint   `json:"teamId"`
+	ChallengeID uint   `json:"challengeId"`
+	HintID      uint   `json:"hintId"`
+	UserID      uint   `json:"userId"`
+	Username    string `json:"username"`
+	HintTitle   string `json:"hintTitle"`
+	HintContent string `json:"hintContent"`
+	Cost        int    `json:"cost"`
+	Timestamp   int64  `json:"timestamp"`
+}
