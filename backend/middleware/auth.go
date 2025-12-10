@@ -121,15 +121,16 @@ func SessionAuthRequired(needTeam bool) gin.HandlerFunc {
 
 func CheckPolicy(obj string, act string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		claims, errMsg := utils.GetClaimsFromCookie(c)
-		if claims == nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": errMsg})
-			return
-		}
+		claims, _ := utils.GetClaimsFromCookie(c)
 
-		sub := fmt.Sprint(claims.Role)
-		if sub == "" {
+		var sub string
+		if claims == nil {
 			sub = "anonymous"
+		} else {
+			sub = fmt.Sprint(claims.Role)
+			if sub == "" {
+				sub = "anonymous"
+			}
 		}
 
 		// Vérification Casbin

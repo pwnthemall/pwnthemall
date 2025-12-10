@@ -81,6 +81,50 @@ function MyApp({ Component, pageProps, sidebarDefaultOpen }: MyAppProps) {
     return <Component {...pageProps} />
   }
 
+  // Render without sidebar for live scoreboard pages
+  if (router.pathname.startsWith('/live')) {
+    return (
+      <LanguageProvider>
+        <AuthProvider>
+          <UserProvider>
+            <SiteConfigProvider>
+              <NotificationProvider>
+                <ThemeProvider
+                  attribute="class"
+                  defaultTheme={systemTheme}
+                  enableSystem={false}
+                  value={{
+                    light: "light",
+                    dark: "dark",
+                    latte: "theme-latte",
+                    frappe: "theme-frappe",
+                    macchiato: "theme-macchiato",
+                    mocha: "theme-mocha",
+                    slate: "theme-slate",
+                    rose: "theme-rose",
+                    emerald: "theme-emerald",
+                    cyan: "theme-cyan",
+                    violet: "theme-violet",
+                    orange: "theme-orange",
+                    cyberpunk: "theme-cyberpunk",
+                  }}
+                >
+                  <Component {...pageProps} />
+                  <Toaster
+                    richColors
+                    position="top-right"
+                    closeButton
+                    expand
+                  />
+                </ThemeProvider>
+              </NotificationProvider>
+            </SiteConfigProvider>
+          </UserProvider>
+        </AuthProvider>
+      </LanguageProvider>
+    )
+  }
+
   return (
     <LanguageProvider>
       <AuthProvider>
