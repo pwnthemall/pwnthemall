@@ -478,201 +478,32 @@ func createChallengeZipFromDB(challengeID uint) ([]byte, error) {
 		return nil, fmt.Errorf("failed to create chall.yml: %w", err)
 	}
 
-	// Build YAML content
-	yamlContent := fmt.Sprintf("name: %s\n", challenge.Name)
-	yamlContent += fmt.Sprintf("description: |\n  %s\n", strings.ReplaceAll(challenge.Description, "\n", "\n  "))
-
-	if challenge.ChallengeCategory != nil {
-		yamlContent += fmt.Sprintf("category: %s\n", challenge.ChallengeCategory.Name)
-	}
-	if challenge.ChallengeDifficulty != nil {
-		yamlContent += fmt.Sprintf("difficulty: %s\n", challenge.ChallengeDifficulty.Name)
-	}
-	if challenge.ChallengeType != nil {
-		yamlContent += fmt.Sprintf("type: %s\n", challenge.ChallengeType.Name)
-	}
-	if challenge.DecayFormula != nil {
-		yamlContent += fmt.Sprintf("decay: \"%s\"\n", challenge.DecayFormula.Name)
-	}
-
-	yamlContent += fmt.Sprintf("author: %s\n", challenge.Author)
-	yamlContent += "flags: [\"REDACTED\"]\n" // Don't include actual flags
-	yamlContent += fmt.Sprintf("hidden: %t\n", challenge.Hidden)
-	yamlContent += fmt.Sprintf("points: %d\n", challenge.Points)
-
-	if challenge.MaxAttempts > 0 {
-		yamlContent += fmt.Sprintf("attempts: %d\n", challenge.MaxAttempts)
-	}
-
-	if len(challenge.Ports) > 0 {
-		yamlContent += "ports: ["
-		for i, port := range challenge.Ports {
-			if i > 0 {
-				yamlContent += ", "
-			}
-			yamlContent += fmt.Sprintf("%d", port)
-		}
-		yamlContent += "]\n"
-	}
-
-	if challenge.CoverImg != "" {
-		yamlContent += fmt.Sprintf("cover_img: %s\n", challenge.CoverImg)
-	}
-
-	if len(challenge.ConnectionInfo) > 0 {
-		yamlContent += "connection_info: ["
-		for i, info := range challenge.ConnectionInfo {
-			if i > 0 {
-				yamlContent += ", "
-			}
-			yamlContent += fmt.Sprintf("\"%s\"", info)
-		}
-		yamlContent += "]\n"
-	}
-
+	// Generate YAML content
+	yamlContent := utils.GenerateChallengeYAML(challenge)
 	if _, err := challYml.Write([]byte(yamlContent)); err != nil {
 		zipWriter.Close()
 		return nil, fmt.Errorf("failed to write chall.yml: %w", err)
 	}
 
 	// Try to get files from the challenge ZIP in MinIO (new system)
-	bucketName := bucketChallengeFiles
-	zipPath := fmt.Sprintf("challenges/%s.zip", challenge.Slug)
-	filesAdded := false
-	
-	zipObj, err := config.FS.GetObject(context.Background(), bucketName, zipPath, minio.GetObjectOptions{})
+	filesAdded := 0
+	zipData, err := utils.GetChallengeZipFromMinIO(bucketChallengeFiles, challenge.Slug)
 	if err == nil {
-		defer zipObj.Close()
-		
-		// Read the ZIP into memory
-		zipData, err := io.ReadAll(zipObj)
-		if err == nil {
-			// Open the ZIP archive
-			zipReader, err := zip.NewReader(bytes.NewReader(zipData), int64(len(zipData)))
-			if err == nil {
-				// Copy all files from the original ZIP to the export ZIP
-				for _, f := range zipReader.File {
-					// Skip chall.yml if it exists (we create our own)
-					if f.Name == "chall.yml" {
-						continue
-					}
-					
-					rc, err := f.Open()
-					if err != nil {
-						debug.Log("Failed to open file %s from ZIP: %v", f.Name, err)
-						continue
-					}
-					
-					w, err := zipWriter.Create(f.Name)
-					if err != nil {
-						rc.Close()
-						debug.Log("Failed to create file %s in export ZIP: %v", f.Name, err)
-						continue
-					}
-					
-					if _, err := io.Copy(w, rc); err != nil {
-						debug.Log("Failed to copy file %s to export ZIP: %v", f.Name, err)
-					}
-					rc.Close()
-					filesAdded = true
-				}
-			} else {
-				debug.Log("Failed to open challenge ZIP: %v", err)
-			}
+		// Extract and copy files from ZIP
+		count, err := utils.CopyZipFilesToWriter(zipData, zipWriter)
+		if err != nil {
+			debug.Log("Failed to copy files from ZIP: %v", err)
 		} else {
-			debug.Log("Failed to read challenge ZIP: %v", err)
+			filesAdded = count
 		}
 	} else {
-		debug.Log("Challenge ZIP not found in MinIO at %s: %v", zipPath, err)
+		debug.Log("Challenge ZIP not found: %v", err)
 	}
 
-	// Fallback: Try to copy individual files from old system (challenges bucket, {slug}/{filename})
-	if !filesAdded {
+	// Fallback: Try to copy individual files from old system
+	if filesAdded == 0 {
 		debug.Log("Trying to get files from old system for challenge %s", challenge.Slug)
-		oldBucket := "challenges"
-		
-		// Try to copy files listed in challenge.Files
-		for _, fileName := range challenge.Files {
-			objectPath := fmt.Sprintf("%s/%s", challenge.Slug, fileName)
-			obj, err := config.FS.GetObject(context.Background(), oldBucket, objectPath, minio.GetObjectOptions{})
-			if err != nil {
-				debug.Log("File %s not found in old system: %v", fileName, err)
-				continue
-			}
-
-			fileWriter, err := zipWriter.Create(fileName)
-			if err != nil {
-				obj.Close()
-				debug.Log("Failed to create file %s in ZIP: %v", fileName, err)
-				continue
-			}
-
-			if _, err := io.Copy(fileWriter, obj); err != nil {
-				debug.Log("Failed to copy file %s to ZIP: %v", fileName, err)
-			}
-			obj.Close()
-			filesAdded = true
-		}
-		
-		// Also try to list all files under the slug directory
-		objectCh := config.FS.ListObjects(context.Background(), oldBucket, minio.ListObjectsOptions{
-			Prefix:    challenge.Slug + "/",
-			Recursive: true,
-		})
-		
-		for object := range objectCh {
-			if object.Err != nil {
-				debug.Log("Error listing objects: %v", object.Err)
-				continue
-			}
-			
-			// Get relative filename (remove slug prefix)
-			fileName := strings.TrimPrefix(object.Key, challenge.Slug+"/")
-			if fileName == "" {
-				continue
-			}
-			
-			// Skip chall.yml (we create our own)
-			if fileName == "chall.yml" {
-				continue
-			}
-			
-			// Skip resized cover images (only include original)
-			if strings.Contains(fileName, "_resized.webp") {
-				continue
-			}
-			
-			// Skip if already added from challenge.Files
-			alreadyAdded := false
-			for _, f := range challenge.Files {
-				if f == fileName {
-					alreadyAdded = true
-					break
-				}
-			}
-			if alreadyAdded {
-				continue
-			}
-			
-			obj, err := config.FS.GetObject(context.Background(), oldBucket, object.Key, minio.GetObjectOptions{})
-			if err != nil {
-				debug.Log("Failed to get object %s: %v", object.Key, err)
-				continue
-			}
-			
-			fileWriter, err := zipWriter.Create(fileName)
-			if err != nil {
-				obj.Close()
-				debug.Log("Failed to create file %s in ZIP: %v", fileName, err)
-				continue
-			}
-			
-			if _, err := io.Copy(fileWriter, obj); err != nil {
-				debug.Log("Failed to copy file %s to ZIP: %v", fileName, err)
-			}
-			obj.Close()
-			filesAdded = true
-		}
+		filesAdded = utils.CopyIndividualFilesFromMinIO("challenges", challenge.Slug, challenge.Files, zipWriter)
 	}
 
 	// Finalize ZIP
