@@ -44,6 +44,5 @@ func RegisterChallengeRoutes(router *gin.Engine) {
 		adminChallenges.PUT("/:id", middleware.AuthRequired(false), middleware.CheckPolicy("/admin/challenges/:id", "write"), controllers.UpdateChallengeAdmin)
 		adminChallenges.PUT("/:id/general", middleware.AuthRequired(false), middleware.CheckPolicy("/admin/challenges/:id", "write"), controllers.UpdateChallengeGeneralAdmin)
 		adminChallenges.DELETE("/hints/:hintId", middleware.AuthRequired(false), middleware.CheckPolicy("/admin/challenges/hints/:hintId", "write"), controllers.DeleteHint)
-		adminChallenges.POST("/hints/activate-scheduled", middleware.AuthRequired(false), middleware.CheckPolicy("/admin/challenges/hints/activate-scheduled", "write"), controllers.CheckAndActivateHints)
 	}
 }

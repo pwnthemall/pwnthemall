@@ -498,7 +498,6 @@ func UpdateChallengeAdmin(c *gin.Context) {
 		return
 	}
 
-	// Update challenge fields
 	updateChallengeFields(&challenge, &req)
 
 	if err := config.DB.Save(&challenge).Error; err != nil {
@@ -506,16 +505,12 @@ func UpdateChallengeAdmin(c *gin.Context) {
 		return
 	}
 
-	// Broadcast update
 	broadcastChallengeUpdate()
 
-	// Recalculate points
 	recalculateChallengePoints(challenge.ID)
 
-	// Cleanup first blood if disabled
 	cleanupFirstBloodIfDisabled(&req, &challenge)
 
-	// Process hints
 	processHintsFromRequest(challenge.ID, req.Hints)
 
 	// Reload challenge with associations
@@ -528,7 +523,7 @@ func UpdateChallengeAdmin(c *gin.Context) {
 		}
 	}
 
-	// Create and upload updated challenge ZIP to MinIO for export functionality
+	// Create and upload updated challenge ZIP to MinIO for export
 	if zipBytes, err := createChallengeZipFromDB(challenge.ID); err != nil {
 		debug.Log("Failed to create challenge ZIP for export: %v", err)
 	} else {
@@ -721,37 +716,4 @@ func recalculateChallengePoints(challengeID uint) {
 			}
 		}
 	}
-}
-
-// CheckAndActivateHints endpoint to manually activate ALL hints for admin
-func CheckAndActivateHints(c *gin.Context) {
-	var hints []models.Hint
-	if err := config.DB.Find(&hints).Error; err != nil {
-		debug.Log("Failed to fetch all hints: %v", err)
-		utils.InternalServerError(c, "Failed to fetch hints")
-		return
-	}
-
-	activatedCount := 0
-	totalHints := len(hints)
-
-	for _, hint := range hints {
-		if !hint.IsActive {
-			hint.IsActive = true
-			if err := config.DB.Save(&hint).Error; err != nil {
-				debug.Log("Failed to activate hint %d: %v", hint.ID, err)
-			} else {
-				debug.Log("Manually activated hint %d (%s) for challenge %d", hint.ID, hint.Title, hint.ChallengeID)
-				activatedCount++
-			}
-		}
-	}
-
-	debug.Log("Manual activation completed: activated %d hints out of %d total hints", activatedCount, totalHints)
-	utils.OKResponse(c, gin.H{
-		"message":         "All hints activation completed",
-		"activated_count": activatedCount,
-		"total_hints":     totalHints,
-		"already_active":  totalHints - activatedCount,
-	})
 }
