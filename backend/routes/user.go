@@ -12,12 +12,12 @@ func RegisterUserRoutes(router *gin.Engine) {
 	{
 		publicUsers.GET("/leaderboard", middleware.CheckPolicy("/users/leaderboard", "read"), controllers.GetIndividualLeaderboard)
 		publicUsers.GET("/timeline", middleware.CheckPolicy("/users/timeline", "read"), controllers.GetIndividualTimeline)
-		publicUsers.GET("/profile/:username", middleware.CheckPolicy("/users/profile", "read"), controllers.GetPublicUserProfile)
 	}
 
 	// Authenticated routes
 	users := router.Group("/users", middleware.AuthRequired(false))
 	{
+		users.GET("/profile/:username", middleware.CheckPolicy("/users/profile", "read"), controllers.GetPublicUserProfile)
 		users.GET("", middleware.CheckPolicy("/users", "read"), controllers.GetUsers)
 		users.GET("/search/ip", middleware.DemoRestriction, middleware.CheckPolicy("/users", "read"), controllers.GetUserByIP)
 		users.GET("/:id", middleware.CheckPolicy("/users/:id", "read"), controllers.GetUser)
