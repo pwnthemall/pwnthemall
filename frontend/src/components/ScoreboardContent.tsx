@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from '@/lib/axios';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -580,7 +581,12 @@ export default function ScoreboardContent() {
                               </div>
                             </TableCell>
                             <TableCell className="font-medium">
-                              {entry.username}
+                              <Link 
+                                href={`/users/${encodeURIComponent(entry.username)}`}
+                                className="hover:text-primary hover:underline transition-colors"
+                              >
+                                {entry.username}
+                              </Link>
                               {entry.id === user?.id && (
                                 <Badge variant="outline" className="ml-2">
                                   {t('scoreboard.you') || 'You'}

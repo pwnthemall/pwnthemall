@@ -8,7 +8,8 @@
     "delete_account": "Delete Account",
     "delete_account_confirm": "Are you sure you want to delete your account? This action cannot be undone.",
     "member_since": "Member Since",
-    "security_settings": "Security Settings"
+    "security_settings": "Security Settings",
+    "view_public_profile": "View Public Profile"
   },
   "admin": {
     "admin": "Admin",
@@ -370,6 +371,7 @@
   },
   "email": {
     "email": "Email",
+    "email_cannot_be_changed": "Email cannot be changed",
     "email_exists": "Email already exists.",
     "email_length": "Email must be at most 254 characters.",
     "email_too_long": "Email too long (max 254 characters)",
@@ -519,6 +521,25 @@
     "solve_activity": "Solved challenges over time",
     "solve_activity_description": "Track how teams progress through time",
     "solve_activity_description_individual": "Track how top players progress through challenges"
+  },
+  "public_profile": {
+    "back_to_scoreboard": "Back to Scoreboard",
+    "challenges_solved": "Challenges Solved",
+    "challenges_by_category": "Challenges by Category",
+    "error_loading_profile": "Error loading profile",
+    "member_since": "Member Since",
+    "no_solves_yet": "No solves yet",
+    "no_submissions_yet": "No submissions yet",
+    "points": "Points",
+    "recent_solves": "Recent Solves",
+    "score_progression": "Score Progression",
+    "submission_breakdown": "Submission Breakdown",
+    "submissions": "Submissions",
+    "success_rate": "Success Rate",
+    "total_points": "Total Points",
+    "user_not_found": "User not found",
+    "correct": "Correct",
+    "wrong": "Wrong"
   },
   "team": {
     "create_team": "Create a team",

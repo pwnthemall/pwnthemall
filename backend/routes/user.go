@@ -12,6 +12,7 @@ func RegisterUserRoutes(router *gin.Engine) {
 	{
 		publicUsers.GET("/leaderboard", middleware.CheckPolicy("/users/leaderboard", "read"), controllers.GetIndividualLeaderboard)
 		publicUsers.GET("/timeline", middleware.CheckPolicy("/users/timeline", "read"), controllers.GetIndividualTimeline)
+		publicUsers.GET("/profile/:username", middleware.CheckPolicy("/users/profile", "read"), controllers.GetPublicUserProfile)
 	}
 
 	// Authenticated routes
