@@ -175,7 +175,7 @@ func GetChallenges(c *gin.Context) {
 	}
 
 	var challenges []models.Challenge
-	result := config.DB.Preload("DecayFormula").Where("hidden = false").Find(&challenges)
+	result := config.DB.Preload("DecayFormula").Preload("Hints").Where("hidden = false").Find(&challenges)
 	if result.Error != nil {
 		utils.InternalServerError(c, result.Error.Error())
 		return
@@ -186,18 +186,31 @@ func GetChallenges(c *gin.Context) {
 		return
 	}
 
-	filtered := make([]models.Challenge, 0, len(challenges))
-	decayService := utils.NewDecay()
+	// Get team-specific data
+	var solvedChallengeIds []uint
+	var purchasedHintIds []uint
+	var failedAttemptsMap map[uint]int64
 
-	for i := range challenges {
-		if !CheckChallengeDependancies(c, challenges[i]) {
-			continue
-		}
-		challenges[i].CurrentPoints = decayService.CalculateCurrentPoints(&challenges[i])
-		filtered = append(filtered, challenges[i])
+	if user.Team != nil {
+		solvedChallengeIds = getSolvedChallengeIds(user.Team.ID)
+		purchasedHintIds = getPurchasedHintIds(user.Team.ID)
+		failedAttemptsMap = getTeamFailedAttempts(user.Team.ID, challenges)
+	} else {
+		failedAttemptsMap = make(map[uint]int64)
 	}
 
-	utils.OKResponse(c, filtered)
+	var challengesWithSolved []dto.ChallengeWithSolved
+	decayService := utils.NewDecay()
+
+	for _, challenge := range challenges {
+		if !CheckChallengeDependancies(c, challenge) {
+			continue
+		}
+		item := buildChallengeWithSolved(challenge, solvedChallengeIds, purchasedHintIds, failedAttemptsMap, user.Role, decayService)
+		challengesWithSolved = append(challengesWithSolved, item)
+	}
+
+	utils.OKResponse(c, challengesWithSolved)
 }
 
 // GetChallenge returns a single challenge by ID
@@ -205,7 +218,7 @@ func GetChallenge(c *gin.Context) {
 	var challenge models.Challenge
 	id := c.Param("id")
 
-	result := config.DB.Preload("DecayFormula").First(&challenge, id)
+	result := config.DB.Preload("DecayFormula").Preload("Hints").First(&challenge, id)
 	if result.Error != nil {
 		utils.NotFoundError(c, "challenge_not_found")
 		return
@@ -216,10 +229,38 @@ func GetChallenge(c *gin.Context) {
 		return
 	}
 
-	decayService := utils.NewDecay()
-	challenge.CurrentPoints = decayService.CalculateCurrentPoints(&challenge)
+	// Get user info
+	userI, _ := c.Get("user")
+	user, ok := userI.(*models.User)
+	if !ok {
+		utils.InternalServerError(c, "user_wrong_type")
+		return
+	}
 
-	utils.OKResponse(c, challenge)
+	if user.Role == "admin" {
+		decayService := utils.NewDecay()
+		challenge.CurrentPoints = decayService.CalculateCurrentPoints(&challenge)
+		utils.OKResponse(c, challenge)
+		return
+	}
+
+	// Get team-specific data
+	var solvedChallengeIds []uint
+	var purchasedHintIds []uint
+	var failedAttemptsMap map[uint]int64
+
+	if user.Team != nil {
+		solvedChallengeIds = getSolvedChallengeIds(user.Team.ID)
+		purchasedHintIds = getPurchasedHintIds(user.Team.ID)
+		failedAttemptsMap = getTeamFailedAttempts(user.Team.ID, []models.Challenge{challenge})
+	} else {
+		failedAttemptsMap = make(map[uint]int64)
+	}
+
+	decayService := utils.NewDecay()
+	item := buildChallengeWithSolved(challenge, solvedChallengeIds, purchasedHintIds, failedAttemptsMap, user.Role, decayService)
+
+	utils.OKResponse(c, item)
 }
 
 // GetChallengesByCategoryName returns all challenges in a category with solved status
@@ -351,7 +392,6 @@ const (
 	errChallengeCreationFailed = "challenge_creation_failed"
 )
 
-// validateAndProcessFiles processes uploaded files into a zip buffer
 func validateAndProcessFiles(form *multipart.Form, zipWriter *zip.Writer) (bool, error) {
 	hasFiles := false
 
@@ -390,7 +430,6 @@ func validateAndProcessFiles(form *multipart.Form, zipWriter *zip.Writer) (bool,
 	return hasFiles, nil
 }
 
-// parseAndValidateMeta parses and validates the metadata JSON into a Challenge model
 func parseAndValidateMeta(metaStr string) (*models.Challenge, error) {
 	if metaStr == "" {
 		return nil, fmt.Errorf(errMissingMeta)
@@ -414,7 +453,67 @@ func parseAndValidateMeta(metaStr string) (*models.Challenge, error) {
 	return &challenge, nil
 }
 
-// uploadFilesToMinIO uploads the zip buffer to MinIO storage
+// createChallengeZipFromDB exports challenge as ZIP (chall.yml + files, flags excluded)
+func createChallengeZipFromDB(challengeID uint) ([]byte, error) {
+	var buf bytes.Buffer
+	zipWriter := zip.NewWriter(&buf)
+
+	// Fetch challenge with all associations
+	var challenge models.Challenge
+	if err := config.DB.
+		Preload("ChallengeCategory").
+		Preload("ChallengeDifficulty").
+		Preload("ChallengeType").
+		Preload("Hints").
+		Preload("DecayFormula").
+		First(&challenge, challengeID).Error; err != nil {
+		zipWriter.Close()
+		return nil, fmt.Errorf("failed to fetch challenge: %w", err)
+	}
+
+	// Create chall.yml file (without flags for security)
+	challYml, err := zipWriter.Create("chall.yml")
+	if err != nil {
+		zipWriter.Close()
+		return nil, fmt.Errorf("failed to create chall.yml: %w", err)
+	}
+
+	// Generate YAML content
+	yamlContent := utils.GenerateChallengeYAML(challenge)
+	if _, err := challYml.Write([]byte(yamlContent)); err != nil {
+		zipWriter.Close()
+		return nil, fmt.Errorf("failed to write chall.yml: %w", err)
+	}
+
+	// Try to get files from the challenge ZIP in MinIO (new system)
+	filesAdded := 0
+	zipData, err := utils.GetChallengeZipFromMinIO(bucketChallengeFiles, challenge.Slug)
+	if err == nil {
+		// Extract and copy files from ZIP
+		count, err := utils.CopyZipFilesToWriter(zipData, zipWriter)
+		if err != nil {
+			debug.Log("Failed to copy files from ZIP: %v", err)
+		} else {
+			filesAdded = count
+		}
+	} else {
+		debug.Log("Challenge ZIP not found: %v", err)
+	}
+
+	// Fallback: Try to copy individual files from old system
+	if filesAdded == 0 {
+		debug.Log("Trying to get files from old system for challenge %s", challenge.Slug)
+		filesAdded = utils.CopyIndividualFilesFromMinIO("challenges", challenge.Slug, challenge.Files, zipWriter)
+	}
+
+	// Finalize ZIP
+	if err := zipWriter.Close(); err != nil {
+		return nil, fmt.Errorf("failed to close zip writer: %w", err)
+	}
+
+	return buf.Bytes(), nil
+}
+
 func uploadFilesToMinIO(challengeSlug string, zipBytes []byte) error {
 	zipFilename := fmt.Sprintf("%s.zip", challengeSlug)
 	objectName := fmt.Sprintf("challenges/%s", zipFilename)
