@@ -186,45 +186,31 @@ func GetChallenges(c *gin.Context) {
 		return
 	}
 
-	// Get team-specific data for hint purchases
+	// Get team-specific data
+	var solvedChallengeIds []uint
 	var purchasedHintIds []uint
+	var failedAttemptsMap map[uint]int64
+
 	if user.Team != nil {
+		solvedChallengeIds = getSolvedChallengeIds(user.Team.ID)
 		purchasedHintIds = getPurchasedHintIds(user.Team.ID)
+		failedAttemptsMap = getTeamFailedAttempts(user.Team.ID, challenges)
+	} else {
+		failedAttemptsMap = make(map[uint]int64)
 	}
 
-	filtered := make([]models.Challenge, 0, len(challenges))
+	var challengesWithSolved []dto.ChallengeWithSolved
 	decayService := utils.NewDecay()
 
-	for i := range challenges {
-		if !CheckChallengeDependancies(c, challenges[i]) {
+	for _, challenge := range challenges {
+		if !CheckChallengeDependancies(c, challenge) {
 			continue
 		}
-		challenges[i].CurrentPoints = decayService.CalculateCurrentPoints(&challenges[i])
-
-		// Process hints to hide content for unpurchased hints
-		hintsWithPurchased := processHintsWithPurchaseStatus(challenges[i].Hints, purchasedHintIds, user.Role)
-
-		// Convert back to models.Hint but keep content hidden
-		processedHints := make([]models.Hint, 0, len(hintsWithPurchased))
-		for _, hwp := range hintsWithPurchased {
-			hint := models.Hint{
-				ID:          hwp.Hint.ID,
-				ChallengeID: hwp.Hint.ChallengeID,
-				Title:       hwp.Hint.Title,
-				Cost:        hwp.Hint.Cost,
-				IsActive:    hwp.Hint.IsActive,
-			}
-			if hwp.Purchased {
-				hint.Content = hwp.Hint.Content
-			}
-			processedHints = append(processedHints, hint)
-		}
-		challenges[i].Hints = processedHints
-
-		filtered = append(filtered, challenges[i])
+		item := buildChallengeWithSolved(challenge, solvedChallengeIds, purchasedHintIds, failedAttemptsMap, user.Role, decayService)
+		challengesWithSolved = append(challengesWithSolved, item)
 	}
 
-	utils.OKResponse(c, filtered)
+	utils.OKResponse(c, challengesWithSolved)
 }
 
 // GetChallenge returns a single challenge by ID
@@ -243,10 +229,38 @@ func GetChallenge(c *gin.Context) {
 		return
 	}
 
-	decayService := utils.NewDecay()
-	challenge.CurrentPoints = decayService.CalculateCurrentPoints(&challenge)
+	// Get user info
+	userI, _ := c.Get("user")
+	user, ok := userI.(*models.User)
+	if !ok {
+		utils.InternalServerError(c, "user_wrong_type")
+		return
+	}
 
-	utils.OKResponse(c, challenge)
+	if user.Role == "admin" {
+		decayService := utils.NewDecay()
+		challenge.CurrentPoints = decayService.CalculateCurrentPoints(&challenge)
+		utils.OKResponse(c, challenge)
+		return
+	}
+
+	// Get team-specific data
+	var solvedChallengeIds []uint
+	var purchasedHintIds []uint
+	var failedAttemptsMap map[uint]int64
+
+	if user.Team != nil {
+		solvedChallengeIds = getSolvedChallengeIds(user.Team.ID)
+		purchasedHintIds = getPurchasedHintIds(user.Team.ID)
+		failedAttemptsMap = getTeamFailedAttempts(user.Team.ID, []models.Challenge{challenge})
+	} else {
+		failedAttemptsMap = make(map[uint]int64)
+	}
+
+	decayService := utils.NewDecay()
+	item := buildChallengeWithSolved(challenge, solvedChallengeIds, purchasedHintIds, failedAttemptsMap, user.Role, decayService)
+
+	utils.OKResponse(c, item)
 }
 
 // GetChallengesByCategoryName returns all challenges in a category with solved status
