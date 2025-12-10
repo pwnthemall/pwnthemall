@@ -21,13 +21,13 @@
     "submissions": "Submissions"
   },
   "admin_challenges": {
-    "challenge_management": "Challenge Management",
-    "all_challenges": "All Challenges",
+    "challenge_management": "Challenge management",
+    "all_challenges": "All challenges",
     "manage_challenge_configurations": "Manage challenge configurations",
     "search_challenges_placeholder": "Search challenges by name, category, or type...",
-    "all_categories": "All Categories",
-    "all_difficulties": "All Difficulties",
-    "all_status": "All Status",
+    "all_categories": "All categories",
+    "all_difficulties": "All difficulties",
+    "all_status": "All status",
     "visible": "Visible",
     "hidden": "Hidden",
     "sort_by": "Sort by",
@@ -54,7 +54,7 @@
     "page_x_of_y": "Page {current} of {total}",
     "edit_challenge_configuration": "Edit challenge configuration",
     "configure_challenge_description": "Configure points, decay formula, first blood bonus, and hints for this challenge",
-    "create_challenge": "Create Challenge"
+    "create_challenge": "Create challenge"
   },
   "challenge_create": {
     "title": "Create new challenge",

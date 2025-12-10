@@ -21,8 +21,8 @@
     "submissions": "Tentatives de flag"
   },
   "admin_challenges": {
-    "challenge_management": "Gestion des Challenges",
-    "all_challenges": "Tous les Challenges",
+    "challenge_management": "Gestion des challenges",
+    "all_challenges": "Tous les challenges",
     "manage_challenge_configurations": "Gérer les configurations des challenges",
     "search_challenges_placeholder": "Rechercher par nom, catégorie ou type...",
     "all_categories": "Toutes les catégories",
@@ -54,7 +54,7 @@
     "page_x_of_y": "Page {current} sur {total}",
     "edit_challenge_configuration": "Configuration du challenge",
     "configure_challenge_description": "Configurer les points, la formule de decay, le bonus first blood et les indices",
-    "create_challenge": "Créer un Challenge"
+    "create_challenge": "Créer un challenge"
   },
   "challenge_create": {
     "title": "Créer un nouveau challenge",
@@ -87,7 +87,7 @@
     "hint_content_placeholder": "Contenu de l'indice",
     "hint_cost": "Coût (points)",
     "creating": "Création...",
-    "create_button": "Créer le Challenge",
+    "create_button": "Créer le challenge",
     "export_warning": "Important : Exportez vos challenges",
     "export_warning_description": "À moins d'exporter votre challenge après sa création, il ne sera pas transféré vers une autre instance CTF et sera perdu lorsque le projet sera supprimé. Utilisez le bouton d'exportation dans la liste des challenges pour sauvegarder votre travail."
   },
