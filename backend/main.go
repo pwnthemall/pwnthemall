@@ -97,6 +97,14 @@ func main() {
 	// Start hint activation scheduler
 	utils.StartHintScheduler()
 
+	var gReleaseMode string
+	if os.Getenv("PTA_DEBUG_ENABLED") == "true" {
+		gReleaseMode = gin.DebugMode
+	} else {
+		gReleaseMode = gin.ReleaseMode
+	}
+	gin.SetMode(gReleaseMode)
+
 	router := gin.Default()
 
 	sessionSecret := os.Getenv("SESSION_SECRET")
