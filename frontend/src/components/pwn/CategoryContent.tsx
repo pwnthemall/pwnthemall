@@ -69,7 +69,7 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
     if (!challenges || challenges.length === 0 || statusFetched) return;
     
     const fetchAllInstanceStatuses = async () => {
-      const dockerChallenges = challenges.filter(challenge => isDockerChallenge(challenge));
+      const dockerChallenges = challenges.filter(challenge => isInstanceChallenge(challenge));
       
       for (const challenge of dockerChallenges) {
         try {
@@ -405,10 +405,13 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
     }
   };
 
-  const isDockerChallenge = (challenge: Challenge) => {
-    if ((challenge.challengeType?.name?.toLowerCase() === 'docker') || (challenge.challengeType?.name?.toLowerCase() === 'compose')) {
-      return true
-    }
+  const isInstanceChallenge = (challenge: Challenge) => {
+    const instFlag = challenge.challengeType?.instance
+    if (typeof instFlag === 'boolean') return instFlag
+
+    // fallback to legacy name-based (static) detection
+    const name = challenge.challengeType?.name?.toLowerCase() || ''
+    return name === 'docker' || name === 'compose'
   };
 
   const getLocalInstanceStatus = (challengeId: number) => {
@@ -523,7 +526,7 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
                   >
                     {challenge.challengeDifficulty?.name || 'Unknown Difficulty'}
                   </Badge>
-                  {isDockerChallenge(challenge) && (
+                  {isInstanceChallenge(challenge) && (
                     <Badge 
                       variant="secondary" 
                       className={`text-xs ${
@@ -571,7 +574,7 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
             <div className="flex-1 flex flex-col min-h-0">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col">
                 <TabsList className={`grid w-full mb-4 flex-shrink-0 bg-card border rounded-lg p-1 relative z-[1200] ${
-                  selectedChallenge && isDockerChallenge(selectedChallenge) 
+                  selectedChallenge && isInstanceChallenge(selectedChallenge) 
                     ? (selectedChallenge.hints && selectedChallenge.hints.length > 0 ? 'grid-cols-4' : 'grid-cols-3')
                     : (selectedChallenge?.hints && selectedChallenge.hints.length > 0 ? 'grid-cols-3' : 'grid-cols-2')
                 }`}>
@@ -580,7 +583,7 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
                     <TabsTrigger value="hints">{t('hints') || 'Hints'}</TabsTrigger>
                   )}
                   <TabsTrigger value="solves">{t('solves')}</TabsTrigger>
-                  {selectedChallenge && isDockerChallenge(selectedChallenge) && (
+                  {selectedChallenge && isInstanceChallenge(selectedChallenge) && (
                     <TabsTrigger value="instance">{t('docker_instance')}</TabsTrigger>
                   )}
                 </TabsList>
@@ -981,7 +984,7 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
                         </div>
                       </TabsContent>
 
-                      {selectedChallenge && isDockerChallenge(selectedChallenge) && (
+                      {selectedChallenge && isInstanceChallenge(selectedChallenge) && (
                         <TabsContent value="instance" className="absolute inset-0 overflow-y-auto mt-0 pt-2 pr-2 z-[1100]">
                           <div className="min-h-full">
                             <div className="space-y-4">

@@ -15,10 +15,10 @@ type Challenge struct {
 	ChallengeDifficulty   *ChallengeDifficulty `gorm:"foreignKey:ChallengeDifficultyID" json:"challengeDifficulty,omitempty"`
 	ChallengeCategoryID   uint                 `json:"categoryId"`
 	ChallengeCategory     *ChallengeCategory   `gorm:"foreignKey:ChallengeCategoryID" json:"challengeCategory,omitempty"`
-	ChallengeTypeID       uint                 `json:"typeId"`
-	ChallengeType         *ChallengeType       `gorm:"foreignKey:ChallengeTypeID" json:"challengeType,omitempty"`
-	CreatedAt             time.Time            `json:"createdAt"`
-	UpdatedAt             time.Time            `json:"updatedAt"`
+	ChallengeTypeID       uint                 `json:"challenge_type_id"`
+	ChallengeType         *ChallengeType       `gorm:"foreignKey:ChallengeTypeID" json:"challengeType"`
+	CreatedAt             time.Time            `json:"created_at"`
+	UpdatedAt             time.Time            `json:"updated_at"`
 	Author                string               `json:"author"`
 	Hidden                bool                 `json:"hidden"`
 	Flags                 []Flag               `gorm:"foreignKey:ChallengeID;constraint:OnDelete:CASCADE;" json:"-"`

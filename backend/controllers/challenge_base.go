@@ -73,10 +73,7 @@ func getTeamFailedAttempts(teamID uint, challenges []models.Challenge) map[uint]
 // processHintsWithPurchaseStatus filters hints and adds purchase status
 func processHintsWithPurchaseStatus(hints []models.Hint, purchasedHintIds []uint, userRole string) []dto.HintWithPurchased {
 	var hintsWithPurchased []dto.HintWithPurchased
-	debug.Log("processHintsWithPurchaseStatus (hints): %v", hints)
 	for _, hint := range hints {
-		debug.Log("Hint ID %d: IsActive=%t, User Role=%s", hint.ID, hint.IsActive, userRole)
-
 		if !hint.IsActive && userRole != "admin" {
 			debug.Log("Skipping inactive hint ID %d for non-admin user", hint.ID)
 			continue
@@ -374,7 +371,6 @@ func GetChallengesByCategoryName(c *gin.Context) {
 		item := buildChallengeWithSolved(challenge, solvedChallengeIds, purchasedHintIds, failedAttemptsMap, user.Role, decayService)
 		challengesWithSolved = append(challengesWithSolved, item)
 	}
-	debug.Log("challengesWithSolved: %v", challengesWithSolved)
 	utils.OKResponse(c, challengesWithSolved)
 }
 

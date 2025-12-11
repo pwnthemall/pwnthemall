@@ -18,7 +18,7 @@ interface UseChallengeInstancesResult {
   handleStartInstance: (challengeId: number) => Promise<void>;
   handleStopInstance: (challengeId: number, currentUserId?: number, isAdmin?: boolean, onError?: (message: string) => void) => Promise<void>;
   getLocalInstanceStatus: (challengeId: number) => InstanceStatus;
-  isDockerChallenge: (challenge: Challenge) => boolean;
+  isInstanceChallenge: (challenge: Challenge) => boolean;
 }
 
 export function useChallengeInstances(
@@ -33,7 +33,7 @@ export function useChallengeInstances(
 
   const { startInstance, stopInstance, getInstanceStatus: fetchInstanceStatus } = useInstances();
 
-  const isDockerChallenge = (challenge: Challenge) => {
+  const isInstanceChallenge = (challenge: Challenge) => {
     const typeName = challenge.challengeType?.name?.toLowerCase();
     return typeName === 'docker' || typeName === 'compose';
   };
@@ -54,7 +54,7 @@ export function useChallengeInstances(
     if (!challenges || challenges.length === 0 || statusFetched) return;
 
     const fetchAllInstanceStatuses = async () => {
-      const dockerChallenges = challenges.filter(isDockerChallenge);
+      const dockerChallenges = challenges.filter(isInstanceChallenge);
 
       for (const challenge of dockerChallenges) {
         try {
@@ -201,6 +201,6 @@ export function useChallengeInstances(
     handleStartInstance,
     handleStopInstance,
     getLocalInstanceStatus,
-    isDockerChallenge
+    isInstanceChallenge
   };
 }
