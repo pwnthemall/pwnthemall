@@ -60,6 +60,7 @@ services:
       PTA_DEBUG_ENABLED: ${PTA_DEBUG_ENABLED}
       PTA_PLUGIN_MAGIC_VALUE: ${PTA_PLUGIN_MAGIC_VALUE}
       PTA_PLUGINS_ENABLED: ${PTA_PLUGINS_ENABLED}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     volumes:
       - ./backend:/app
       - ./shared/docker-worker:/home/app/.ssh/docker-worker
@@ -135,6 +136,7 @@ services:
     privileged: true
     volumes:
       - ./shared/libvirt-worker.pub:/home/libvirt-user/.ssh/authorized_keys
+      - ./libvirt-worker/storage:/var/lib/libvirt/images
       # - libvirt-data:/var/lib/libvirt
     devices:
       - /dev/kvm:/dev/kvm

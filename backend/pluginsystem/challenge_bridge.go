@@ -3,11 +3,14 @@ package pluginsystem
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pwnthemall/pwnthemall/backend/config"
 	"github.com/pwnthemall/pwnthemall/backend/models"
 	"github.com/pwnthemall/pwnthemall/backend/shared"
+	"github.com/pwnthemall/pwnthemall/backend/utils"
+	"gopkg.in/yaml.v2"
 )
 
 // PluginChallengeHandler adapte un handler de plugin pour le registry du backend
@@ -26,6 +29,33 @@ func (h *PluginChallengeHandler) Stop(c *gin.Context, challenge shared.Challenge
 
 func (h *PluginChallengeHandler) GetStatus(c *gin.Context, challenge shared.Challenge) error {
 	return h.executeAction("status", c, challenge)
+}
+
+// convertToStringKeys converts YAML-parsed structures (which may contain map[interface{}]interface{})
+// into map[string]interface{} / []interface{} recursively so json.Marshal works.
+func convertToStringKeys(i interface{}) interface{} {
+	switch v := i.(type) {
+	case map[interface{}]interface{}:
+		m := make(map[string]interface{}, len(v))
+		for k, val := range v {
+			m[fmt.Sprintf("%v", k)] = convertToStringKeys(val)
+		}
+		return m
+	case map[string]interface{}:
+		m := make(map[string]interface{}, len(v))
+		for k, val := range v {
+			m[k] = convertToStringKeys(val)
+		}
+		return m
+	case []interface{}:
+		arr := make([]interface{}, len(v))
+		for idx, el := range v {
+			arr[idx] = convertToStringKeys(el)
+		}
+		return arr
+	default:
+		return v
+	}
 }
 
 func (h *PluginChallengeHandler) executeAction(action string, c *gin.Context, challenge shared.Challenge) error {
@@ -50,11 +80,40 @@ func (h *PluginChallengeHandler) executeAction(action string, c *gin.Context, ch
 		"slug":           challenge.GetSlug(),
 		"challenge_type": challenge.GetType(),
 		"action":         action,
-		"instance":      containerName,
+		"instance":       containerName,
 	}
 
-	body, _ := json.Marshal(challengeData)
+	slug := challenge.GetSlug()
+	if slug != "" {
+		tryKeys := []string{
+			fmt.Sprintf("%s/chall.yml", slug),
+		}
+		for _, key := range tryKeys {
+			if b, err := utils.RetrieveFileContentFromMinio(key); err == nil && len(b) > 0 {
+				var raw interface{}
+				if err := yaml.Unmarshal(b, &raw); err == nil {
+					// convert nested maps to string-keyed maps so json.Marshal works later
+					conv := convertToStringKeys(raw)
+					if fd, ok := conv.(map[string]interface{}); ok {
+						challengeData["yaml"] = fd
+						log.Printf("Attached YAML from MinIO for slug=%s key=%s", slug, key)
+						break
+					} else {
+						log.Printf("parsed YAML is not a map for %s (type=%T)", key, conv)
+					}
+				} else {
+					log.Printf("failed to parse YAML from MinIO for %s: %v", key, err)
+				}
+			} else {
+				log.Printf("could not retrieve %s from MinIO: %v", key, err)
+			}
+		}
+	}
 
+	body, err := json.Marshal(challengeData)
+	if err != nil {
+		log.Printf("failed to marshal challengeData for sending: %v", err)
+	}
 	requestData := shared.RequestData{
 		Method:  "POST",
 		Path:    fmt.Sprintf("/internal/challenge/%s", action),

@@ -121,8 +121,13 @@ func main() {
 	})
 	router.Use(sessions.Sessions("pwnthemall", store))
 	router.SetTrustedProxies([]string{"172.70.1.0/24"})
+	allowedOrigin := os.Getenv("NEXT_PUBLIC_API_URL")
+	if allowedOrigin == "" {
+		debug.Log("Warning: NEXT_PUBLIC_API_URL is not set, CORS will allow all origins")
+		allowedOrigin = "*"
+	}
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"https://pwnthemall.local", "https://demo.pwnthemall.com"},
+		AllowOrigins:     []string{allowedOrigin},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type"},
 		ExposeHeaders:    []string{"Content-Length"},
