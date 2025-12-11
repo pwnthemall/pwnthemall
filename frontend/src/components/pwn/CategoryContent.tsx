@@ -406,9 +406,12 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
   };
 
   const isInstanceChallenge = (challenge: Challenge) => {
-    if ((challenge.challengeType?.name?.toLowerCase() === 'docker') || (challenge.challengeType?.name?.toLowerCase() === 'compose')) {
-      return true
-    }
+    const instFlag = challenge.challengeType?.instance
+    if (typeof instFlag === 'boolean') return instFlag
+
+    // fallback to legacy name-based (static) detection
+    const name = challenge.challengeType?.name?.toLowerCase() || ''
+    return name === 'docker' || name === 'compose'
   };
 
   const getLocalInstanceStatus = (challengeId: number) => {

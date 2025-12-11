@@ -67,11 +67,11 @@ func (h *PluginChallengeHandler) executeAction(action string, c *gin.Context, ch
 		teamID = *user.TeamID
 	}
 
-	var containerName string
+	var instanceName string
 	if action == "status" {
 		var instance models.Instance
 		if err := config.DB.Where("team_id = ? AND challenge_id = ?", teamID, challenge.GetID()).First(&instance).Error; err == nil {
-			containerName = instance.Name
+			instanceName = instance.Name
 		}
 	}
 
@@ -80,7 +80,7 @@ func (h *PluginChallengeHandler) executeAction(action string, c *gin.Context, ch
 		"slug":           challenge.GetSlug(),
 		"challenge_type": challenge.GetType(),
 		"action":         action,
-		"instance":       containerName,
+		"instance":       instanceName,
 	}
 
 	slug := challenge.GetSlug()
@@ -124,7 +124,7 @@ func (h *PluginChallengeHandler) executeAction(action string, c *gin.Context, ch
 
 	requestData.Query["team_id"] = []string{fmt.Sprintf("%d", teamID)}
 	requestData.Query["user_id"] = []string{fmt.Sprintf("%d", userID)}
-	requestData.Query["container"] = []string{containerName}
+	requestData.Query["instance"] = []string{instanceName}
 
 	if rpcPlugin, ok := h.plugin.(*shared.PluginRPC); ok {
 		handlerName := fmt.Sprintf("ChallengeInstance%s", action)

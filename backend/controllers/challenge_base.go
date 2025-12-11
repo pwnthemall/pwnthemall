@@ -371,7 +371,6 @@ func GetChallengesByCategoryName(c *gin.Context) {
 		item := buildChallengeWithSolved(challenge, solvedChallengeIds, purchasedHintIds, failedAttemptsMap, user.Role, decayService)
 		challengesWithSolved = append(challengesWithSolved, item)
 	}
-	debug.Log("challengesWithSolved: %v", challengesWithSolved)
 	utils.OKResponse(c, challengesWithSolved)
 }
 

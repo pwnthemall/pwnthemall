@@ -6,6 +6,7 @@ description: |
 type: libvirt
 flags: ["flag"]
 difficulty: easy
+connection_info: ["Réseau: 10.15.1.0/24"] 
 hidden: false
 points: 200
 networks:
