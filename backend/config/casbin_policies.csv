@@ -4,7 +4,6 @@ p, anonymous, /teams/leaderboard, read
 p, anonymous, /teams/timeline, read
 p, anonymous, /users/leaderboard, read
 p, anonymous, /users/timeline, read
-p, anonymous, /users/profile, read
 p, member, /logout, *
 p, member, /pwn, *
 p, member, /challenges, read
