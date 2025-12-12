@@ -1,8 +1,12 @@
 package controllers
 
 import (
+	"encoding/json"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/pwnthemall/pwnthemall/backend/config"
+	"github.com/pwnthemall/pwnthemall/backend/dto"
 	"github.com/pwnthemall/pwnthemall/backend/models"
 	"github.com/pwnthemall/pwnthemall/backend/utils"
 )
@@ -116,9 +120,36 @@ func PurchaseHint(c *gin.Context) {
 		return
 	}
 
+	// Broadcast hint purchase to team members via WebSocket
+	broadcastHintPurchase(user, hint)
+
 	utils.OKResponse(c, gin.H{
 		"message": "hint_purchased",
 		"hint":    hint,
 		"cost":    hint.Cost,
 	})
+}
+
+// broadcastHintPurchase sends WebSocket notification for hint purchase
+func broadcastHintPurchase(user *models.User, hint models.Hint) {
+	if utils.WebSocketHub == nil {
+		return
+	}
+
+	event := dto.HintPurchaseEvent{
+		Event:       EventHintPurchase,
+		TeamID:      *user.TeamID,
+		ChallengeID: hint.ChallengeID,
+		HintID:      hint.ID,
+		UserID:      user.ID,
+		Username:    user.Username,
+		HintTitle:   hint.Title,
+		HintContent: hint.Content,
+		Cost:        hint.Cost,
+		Timestamp:   time.Now().UTC().Unix(),
+	}
+
+	if payload, err := json.Marshal(event); err == nil {
+		utils.WebSocketHub.SendToTeam(*user.TeamID, payload)
+	}
 }

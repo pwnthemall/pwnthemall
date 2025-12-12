@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"github.com/pwnthemall/pwnthemall/backend/debug"
 	"fmt"
-	
+
+	"github.com/pwnthemall/pwnthemall/backend/debug"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pwnthemall/pwnthemall/backend/config"
@@ -25,7 +25,7 @@ func validateJoinTeamInput(password string) error {
 // findAndValidateTeam finds a team by ID or name and validates the password
 func findAndValidateTeam(tx *gorm.DB, teamID *uint, name, password string) (*models.Team, error) {
 	var team models.Team
-	
+
 	if teamID != nil {
 		if err := tx.First(&team, *teamID).Error; err != nil {
 			return nil, fmt.Errorf("team_not_found")
@@ -37,11 +37,11 @@ func findAndValidateTeam(tx *gorm.DB, teamID *uint, name, password string) (*mod
 	} else {
 		return nil, fmt.Errorf("team_id_or_name_required")
 	}
-	
+
 	if err := bcrypt.CompareHashAndPassword([]byte(team.Password), []byte(password)); err != nil {
 		return nil, fmt.Errorf("invalid_password")
 	}
-	
+
 	return &team, nil
 }
 
@@ -51,21 +51,21 @@ func processJoinTeamTransaction(tx *gorm.DB, userID interface{}, teamID *uint, n
 	if err := tx.First(&user, userID).Error; err != nil {
 		return fmt.Errorf("user_not_found")
 	}
-	
+
 	if user.TeamID != nil {
 		return fmt.Errorf("user_already_in_team")
 	}
-	
+
 	team, err := findAndValidateTeam(tx, teamID, name, password)
 	if err != nil {
 		return err
 	}
-	
+
 	user.TeamID = &team.ID
 	if err := tx.Save(&user).Error; err != nil {
 		return fmt.Errorf("team_join_failed")
 	}
-	
+
 	return nil
 }
 
@@ -97,29 +97,29 @@ func JoinTeam(c *gin.Context) {
 		utils.BadRequestError(c, "invalid_input")
 		return
 	}
-	
+
 	// Validate password
 	if err := validateJoinTeamInput(input.Password); err != nil {
 		utils.BadRequestError(c, err.Error())
 		return
 	}
-	
+
 	userID, exists := c.Get("user_id")
 	if !exists {
 		utils.UnauthorizedError(c, "unauthorized")
 		return
 	}
-	
+
 	// Process join transaction
 	err := config.DB.Transaction(func(tx *gorm.DB) error {
 		return processJoinTeamTransaction(tx, userID, input.TeamID, input.Name, input.Password)
 	})
-	
+
 	if err != nil {
 		handleJoinTeamError(c, err)
 		return
 	}
-	
+
 	// Load team for response
 	var team models.Team
 	if input.TeamID != nil {

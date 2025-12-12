@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import axios from "@/lib/axios"
@@ -396,16 +396,10 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
           <TabsTrigger value="hints">{t('challenge_form.tab_hints')}</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="general" className="min-h-[700px] max-h-[700px] flex flex-col">
-          <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+        <TabsContent value="general" className="flex flex-col h-[600px]">
+          <div className="flex-1 overflow-y-auto space-y-4 pr-2 scrollbar-thin scrollbar-track-background scrollbar-thumb-border">
             <Card>
-            <CardHeader>
-              <CardTitle>{t('challenge_form.general_info')}</CardTitle>
-              <CardDescription>
-                {t('challenge_form.general_info_desc')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 pt-6">
               <div>
                 <Label htmlFor="name">{t('challenge_form.challenge_name')}</Label>
                 <Input
@@ -484,26 +478,20 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
                 />
               </div>
 
-              <div className="pt-4">
-                <Button onClick={handleGeneralSubmit} disabled={generalLoading} className="w-full">
-                  {generalLoading ? t('challenge_form.saving') : t('challenge_form.save_general')}
-                </Button>
-              </div>
             </CardContent>
           </Card>
           </div>
+          <div className="pt-4 border-t">
+            <Button onClick={handleGeneralSubmit} disabled={generalLoading} className="w-full">
+              {generalLoading ? t('challenge_form.saving') : t('challenge_form.save_general')}
+            </Button>
+          </div>
         </TabsContent>
 
-        <TabsContent value="cover" className="min-h-[700px] max-h-[700px] flex flex-col">
-          <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+        <TabsContent value="cover" className="flex flex-col h-[600px]">
+          <div className="flex-1 overflow-y-auto space-y-4 pr-2 scrollbar-thin scrollbar-track-background scrollbar-thumb-border">
             <Card>
-            <CardHeader>
-              <CardTitle>{t('challenge_form.cover_position')}</CardTitle>
-              <CardDescription>
-                {t('challenge_form.cover_position_desc')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               {challenge.coverImg ? (
                 <div className="space-y-4">
                   {/* Side-by-side layout: Focal point selector + Live preview */}
@@ -571,7 +559,8 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
                             className="w-full h-full object-cover"
                             style={{ 
                               objectPosition: `${coverPosition.x}% ${coverPosition.y}%`,
-                              transform: `scale(${coverZoom / 100})`
+                              transform: `scale(${coverZoom / 100})`,
+                              transformOrigin: `${coverPosition.x}% ${coverPosition.y}%`
                             }}
                           />
                         </div>
@@ -633,16 +622,10 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
           </div>
         </TabsContent>
 
-        <TabsContent value="points" className="min-h-[700px] max-h-[700px] flex flex-col">
-          <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+        <TabsContent value="points" className="flex flex-col h-[600px]">
+          <div className="flex-1 overflow-y-auto space-y-4 pr-2 scrollbar-thin scrollbar-track-background scrollbar-thumb-border">
             <Card>
-            <CardHeader>
-              <CardTitle>{t('challenge_form.points_config')}</CardTitle>
-              <CardDescription>
-                {t('challenge_form.points_config_desc')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 pt-6">
               <div>
                 <Label htmlFor="points">{t('challenge_form.base_points')}</Label>
                 <Input
@@ -679,7 +662,7 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
           </Card>
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className="flex justify-end space-x-2 pt-4 border-t">
             <Button variant="outline" onClick={onClose}>
               {t('challenge_form.cancel')}
             </Button>
@@ -689,8 +672,8 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
           </div>
         </TabsContent>
 
-        <TabsContent value="firstblood" className="min-h-[700px] max-h-[700px] flex flex-col">
-          <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+        <TabsContent value="firstblood" className="flex flex-col h-[600px]">
+          <div className="flex-1 overflow-y-auto space-y-4 pr-2 scrollbar-thin scrollbar-track-background scrollbar-thumb-border">
             <div className="flex items-center justify-between mb-4">
             <Label htmlFor="enableFirstBlood">{t('challenge_form.enable_firstblood')}</Label>
             <Switch
@@ -708,7 +691,7 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
           )}
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className="flex justify-end space-x-2 pt-4 border-t">
             <Button variant="outline" onClick={onClose}>
               {t('challenge_form.cancel')}
             </Button>
@@ -718,45 +701,12 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
           </div>
         </TabsContent>
 
-        <TabsContent value="hints" className="min-h-[700px] max-h-[700px] flex flex-col">
-          <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+
+        <TabsContent value="hints" className="flex flex-col h-[600px]">
+          <div className="flex-1 overflow-y-auto space-y-4 pr-2 scrollbar-thin scrollbar-track-background scrollbar-thumb-border">
             <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>{t('challenge_form.hints_title')}</CardTitle>
-                  <CardDescription>
-                    {t('challenge_form.hints_desc')}
-                  </CardDescription>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={async () => {
-                    try {
-                      await axios.post('/api/admin/challenges/hints/activate-scheduled')
-                      toast.success(t('challenge_form.hints_activated'))
-                      // Refresh the challenge data to show updated hint statuses
-                      const response = await axios.get(`/api/admin/challenges/${challenge.id}`)
-                      const updatedChallenge = response.data.challenge
-                      if (updatedChallenge.hints) {
-                        setFormData(prev => ({
-                          ...prev,
-                          hints: updatedChallenge.hints
-                        }))
-                      }
-                    } catch (error) {
-                      console.error('Error activating scheduled hints:', error);
-                      toast.error(t('challenge_form.hints_activate_error'))
-                    }
-                  }}
-                >
-                  {t('challenge_form.activate_hints')}
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-4">
+              <CardContent className="pt-6">
+                <div className="space-y-4">
                 <div>
                   <Label htmlFor="hintTitle">{t('challenge_form.hint_title')}</Label>
                   <Input
@@ -1000,7 +950,7 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
           </Card>
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className="flex justify-end space-x-2 pt-4 border-t">
             <Button variant="outline" onClick={onClose}>
               {t('challenge_form.cancel')}
             </Button>

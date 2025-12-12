@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSiteConfig } from "@/context/SiteConfigContext";
 import { CTFStatus } from "@/hooks/use-ctf-status";
@@ -115,6 +115,54 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
 
     fetchAllInstanceStatuses();
   }, [challenges.length, statusFetched]); // Only run once when challenges load
+
+  // Real-time: listen to hint purchases over WebSocket
+  useEffect(() => {
+    debugLog('[WebSocket] Registering hint-purchase event listener');
+    
+    const handler = (e: any) => {
+      const data = e?.detail;
+      if (!data || data.event !== 'hint_purchase') {
+        return;
+      }
+
+      debugLog('[WebSocket] Received hint_purchase event:', data);
+
+      // Update selected challenge - use functional update to get current state
+      setSelectedChallenge(prev => {
+        if (!prev || prev.id !== data.challengeId) {
+          return prev;
+        }
+        
+        debugLog('[WebSocket] Updating hints for challenge', prev.id);
+        
+        const updatedHints = prev.hints?.map(h => 
+          h.id === data.hintId 
+            ? { ...h, purchased: true, content: data.hintContent }
+            : h
+        ) || [];
+        
+        return { ...prev, hints: updatedHints };
+      });
+
+      // Show toast notification to inform team member
+      if (data.username) {
+        toast.info(`${data.username} a acheté l'indice "${data.hintTitle}"`);
+      }
+
+      // Refresh team score
+      refreshTeamScore();
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('hint-purchase', handler as EventListener);
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('hint-purchase', handler as EventListener);
+      }
+    };
+  }, [refreshTeamScore]);
 
   // Real-time: listen to instance updates over WebSocket
   useEffect(() => {
@@ -760,13 +808,12 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
                                                 const result = await purchaseHint(hint.id);
                                                 if (result.success && selectedChallenge) {
                                                   // Mettre à jour l'état local immédiatement pour un feedback instantané
-                                                  // For admin test mode, also update the hint content from response
                                                   const updatedHints = selectedChallenge.hints?.map(h => 
                                                     h.id === hint.id ? { 
                                                       ...h, 
                                                       purchased: true,
-                                                      // If hint content returned (admin test mode), use it
-                                                      ...(result.hint?.content ? { content: result.hint.content } : {})
+                                                      // Always update content from response if available
+                                                      content: result.hint?.content || h.content
                                                     } : h
                                                   ) || [];
                                                   
@@ -775,25 +822,8 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
                                                     hints: updatedHints
                                                   });
                                                   
-                                                  // Skip server refresh for admin test mode (purchase not recorded)
-                                                  if (teamScore?.testMode) {
-                                                    return;
-                                                  }
-                                                  
-                                                  // Ensuite, recharger les données du serveur en arrière-plan
-                                                  try {
-                                                    const response = await axios.get(`/api/challenges/category/${selectedChallenge.challengeCategory?.name || cat}`);
-                                                    const updatedChallenges = response.data;
-                                                    const updatedChallenge = updatedChallenges.find((c: any) => c.id === selectedChallenge.id);
-                                                    
-                                                    if (updatedChallenge) {
-                                                      // Mettre à jour avec les données du serveur
-                                                      setSelectedChallenge(updatedChallenge);
-                                                    }
-                                                  } catch (error) {
-                                                    console.error('Failed to refresh challenge data:', error);
-                                                    // La mise à jour locale est déjà faite, donc pas de problème
-                                                  }
+                                                  // WebSocket will handle real-time updates for team members
+                                                  // No need to refresh from server as local state is already updated
                                                 }
                                               } catch (error) {
                                                 console.error('Error purchasing hint:', error);
