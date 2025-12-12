@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from '@/lib/axios';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -12,12 +13,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Trophy, Medal, Award, Users, User, Search, ChevronLeft, ChevronRight, TrendingUp, ExternalLink, ChevronDown } from 'lucide-react';
+import { Trophy, Medal, Award, Users, User, Search, ChevronLeft, ChevronRight, TrendingUp, ExternalLink, ChevronDown, Settings, Zap, ZapOff, RefreshCw } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useUser } from '@/context/UserContext';
 import { IndividualLeaderboardEntry, TeamLeaderboardEntry } from '@/models/Leaderboard';
 import { cn } from '@/lib/utils';
-import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line, LineChart } from 'recharts';
 
 export default function ScoreboardContent() {
   const { t } = useLanguage();
@@ -34,6 +35,10 @@ export default function ScoreboardContent() {
   const [chartLoading, setChartLoading] = useState(true);
   const [hiddenEntities, setHiddenEntities] = useState<Set<string>>(new Set());
   const [hoveredEntity, setHoveredEntity] = useState<string | null>(null);
+  const [showControls, setShowControls] = useState(false);
+  const [animationsEnabled, setAnimationsEnabled] = useState(true);
+  const [autoSwitch, setAutoSwitch] = useState(false);
+  const [autoSwitchInterval, setAutoSwitchInterval] = useState(10);
   const itemsPerPage = 25;
 
   // Toggle entity visibility in chart
@@ -48,6 +53,15 @@ export default function ScoreboardContent() {
       return newSet;
     });
   };
+
+  // Auto-switch between modes
+  useEffect(() => {
+    if (!autoSwitch) return;
+    const interval = setInterval(() => {
+      setActiveTab(prev => prev === 'team' ? 'individual' : 'team');
+    }, autoSwitchInterval * 1000);
+    return () => clearInterval(interval);
+  }, [autoSwitch, autoSwitchInterval]);
 
   // Reset hidden entities when tab changes
   useEffect(() => {
@@ -270,7 +284,110 @@ export default function ScoreboardContent() {
         </div>
 
         {/* Timeline Chart - CTFd/TryHackMe Style */}
-        <Card>
+        <Card className="relative">
+          {/* Controls */}
+          <div className="absolute top-4 right-4 z-10">
+            <button
+              onClick={() => setShowControls(!showControls)}
+              className={`p-2 rounded-lg transition-all ${
+                showControls 
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'bg-muted/50 text-muted-foreground hover:bg-muted'
+              }`}
+              title="Controls"
+            >
+              <Settings className="h-4 w-4" />
+            </button>
+            
+            {showControls && (
+              <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-lg p-3 shadow-lg min-w-[200px]">
+                <div className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Controls</div>
+                  
+                  {/* Mode Toggle */}
+                  <div className="mb-3">
+                    <div className="text-xs text-muted-foreground mb-1">Scoreboard Mode</div>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => setActiveTab('individual')}
+                        className={`flex-1 px-2 py-1 rounded text-xs font-medium transition-all ${
+                          activeTab === 'individual'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                        }`}
+                      >
+                        <User className="inline h-3 w-3 mr-1" />
+                        Individual
+                      </button>
+                      <button
+                        onClick={() => setActiveTab('team')}
+                        className={`flex-1 px-2 py-1 rounded text-xs font-medium transition-all ${
+                          activeTab === 'team'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                        }`}
+                      >
+                        <Users className="inline h-3 w-3 mr-1" />
+                        Teams
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {/* Animation Toggle */}
+                  <div className="mb-3">
+                    <div className="text-xs text-muted-foreground mb-1">Graph Transitions</div>
+                    <button
+                      onClick={() => setAnimationsEnabled(!animationsEnabled)}
+                      className={`w-full px-2 py-1 rounded text-xs font-medium transition-all flex items-center justify-center gap-1 ${
+                        animationsEnabled
+                          ? 'bg-green-500/20 text-green-500 border border-green-500/30'
+                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      }`}
+                    >
+                      {animationsEnabled ? (
+                        <>
+                          <Zap className="h-3 w-3" />
+                          Smooth (Enabled)
+                        </>
+                      ) : (
+                        <>
+                          <ZapOff className="h-3 w-3" />
+                          Instant (Disabled)
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  
+                  {/* Auto-Switch Toggle */}
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1">Auto-Switch Mode</div>
+                    <button
+                      onClick={() => setAutoSwitch(!autoSwitch)}
+                      className={`w-full px-2 py-1 rounded text-xs font-medium transition-all flex items-center justify-center gap-1 ${
+                        autoSwitch
+                          ? 'bg-blue-500/20 text-blue-500 border border-blue-500/30'
+                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      }`}
+                    >
+                      <RefreshCw className={`h-3 w-3 ${autoSwitch ? 'animate-spin' : ''}`} style={{ animationDuration: '3s' }} />
+                      {autoSwitch ? 'Auto-Switch ON' : 'Auto-Switch OFF'}
+                    </button>
+                    {autoSwitch && (
+                      <div className="mt-2">
+                        <div className="text-xs text-muted-foreground mb-1">Interval (seconds)</div>
+                        <input
+                          type="number"
+                          min="5"
+                          max="120"
+                          value={autoSwitchInterval}
+                          onChange={(e) => setAutoSwitchInterval(Math.max(5, Math.min(120, parseInt(e.target.value) || 10)))}
+                          className="w-full px-2 py-1 rounded text-xs bg-muted border border-border text-foreground"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5" />
@@ -295,19 +412,10 @@ export default function ScoreboardContent() {
             ) : (
               <>
                 <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={timelineData.timeline.map(point => ({
+                  <LineChart data={timelineData.timeline.map(point => ({
                     time: point.time,
                     ...point.scores
                   }))}>
-                    <defs>
-                      {/* Handle both teams (for team view) and users (for individual view) */}
-                      {(timelineData.teams || timelineData.users || []).map((entity: any, index: number) => (
-                        <linearGradient key={entity.id} id={`colorEntity${index}`} x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={entity.color} stopOpacity={0.8}/>
-                          <stop offset="95%" stopColor={entity.color} stopOpacity={0}/>
-                        </linearGradient>
-                      ))}
-                    </defs>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                     <XAxis 
                       dataKey="time" 
@@ -326,7 +434,7 @@ export default function ScoreboardContent() {
                         borderRadius: '0.5rem'
                       }}
                     />
-                    {/* Render areas for either teams or users - only show non-hidden entities */}
+                    {/* Render lines for either teams or users - only show non-hidden entities */}
                     {(timelineData.teams || timelineData.users || [])
                       .filter((entity: any) => {
                         const entityName = entity.name || entity.username;
@@ -337,21 +445,36 @@ export default function ScoreboardContent() {
                         // Otherwise respect the hidden state
                         return !hiddenEntities.has(entityName);
                       })
-                      .map((entity: any, index: number) => (
-                        <Area 
-                          key={entity.id}
-                          type="monotone" 
-                          dataKey={entity.name || entity.username}
-                          stroke={entity.color}
-                          fillOpacity={1}
-                          fill={`url(#colorEntity${index})`}
-                          name={entity.name || entity.username}
-                        />
-                      ))}
-                  </AreaChart>
+                      .map((entity: any) => {
+                        const entityName = entity.name || entity.username;
+                        return (
+                          <Line
+                            key={entity.id}
+                            type="monotone"
+                            dataKey={entityName}
+                            stroke={entity.color}
+                            strokeWidth={2}
+                            isAnimationActive={animationsEnabled}
+                            animationDuration={animationsEnabled ? 300 : 0}
+                            dot={(props: any) => {
+                              const { cx, cy, payload, index } = props;
+                              if (index === 0) return <circle cx={cx} cy={cy} r={4} fill={entity.color} />;
+                              const prevPoint = timelineData.timeline[index - 1];
+                              const currentScore = payload[entityName];
+                              const prevScore = prevPoint?.scores?.[entityName] || 0;
+                              if (currentScore > prevScore) {
+                                return <circle cx={cx} cy={cy} r={4} fill={entity.color} />;
+                              }
+                              return <></>;
+                            }}
+                            activeDot={{ r: 6 }}
+                          />
+                        );
+                      })}
+                  </LineChart>
                 </ResponsiveContainer>
-                {/* Custom clickable legend */}
-                <div className="flex flex-wrap justify-center gap-3 mt-4">
+                {/* Custom clickable legend - simple style matching live/classic */}
+                <div className="flex flex-wrap justify-center gap-2 mt-4">
                   {(timelineData.teams || timelineData.users || []).map((entity: any) => {
                     const entityName = entity.name || entity.username;
                     const isHidden = hiddenEntities.has(entityName);
@@ -363,22 +486,18 @@ export default function ScoreboardContent() {
                         onMouseEnter={() => setHoveredEntity(entityName)}
                         onMouseLeave={() => setHoveredEntity(null)}
                         className={cn(
-                          "flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all",
-                          "border hover:scale-105",
-                          isHovered
-                            ? "ring-2 ring-offset-2 ring-offset-background scale-110"
-                            : "",
-                          isHidden 
-                            ? "opacity-40 bg-muted text-muted-foreground border-muted-foreground/30 line-through" 
-                            : "bg-background border-border"
+                          "flex items-center gap-1.5 transition-all",
+                          isHidden && "opacity-40 line-through",
+                          isHovered && "scale-110"
                         )}
-                        style={isHovered ? { ['--tw-ring-color' as any]: entity.color } : {}}
                       >
-                        <span 
-                          className="w-3 h-3 rounded-full" 
+                        <div 
+                          className="w-2.5 h-2.5 rounded-full flex-shrink-0" 
                           style={{ backgroundColor: isHidden ? '#888' : entity.color }}
                         />
-                        {entityName}
+                        <span className="text-xs font-medium truncate">
+                          {entityName}
+                        </span>
                       </button>
                     );
                   })}
@@ -462,7 +581,12 @@ export default function ScoreboardContent() {
                               </div>
                             </TableCell>
                             <TableCell className="font-medium">
-                              {entry.username}
+                              <Link 
+                                href={`/users/${encodeURIComponent(entry.username)}`}
+                                className="hover:text-primary hover:underline transition-colors"
+                              >
+                                {entry.username}
+                              </Link>
                               {entry.id === user?.id && (
                                 <Badge variant="outline" className="ml-2">
                                   {t('scoreboard.you') || 'You'}

@@ -438,62 +438,64 @@ func SeedDemoData(teamCount int, timeRangeHours int) error {
 		return fmt.Errorf("failed to fetch challenges: %w", err)
 	}
 
-	// Check for existing demo data
-	var existingDemoTeams int64
-	if err := DB.Model(&models.Team{}).Where(queryNameLike, queryDemoTeamPattern).Count(&existingDemoTeams).Error; err != nil {
-		return fmt.Errorf("failed to check existing demo teams: %w", err)
-	}
-	if existingDemoTeams > 0 {
-		debug.Log("Found %d existing demo teams - skipping creation (use clean-demo first)\n", existingDemoTeams)
-		return nil
-	}
-
 	// Calculate time range
 	now := time.Now()
 	startTime := now.Add(-time.Duration(timeRangeHours) * time.Hour)
 	timeRange := now.Sub(startTime)
 
-	// Create teams and users
-	var createdTeams []models.Team
-	demoPassword := "demo123"
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(demoPassword), bcrypt.DefaultCost)
-	if err != nil {
-		return fmt.Errorf("failed to hash demo password: %w", err)
+	// Check for existing demo data
+	var existingDemoTeams []models.Team
+	if err := DB.Where(queryNameLike, queryDemoTeamPattern).Find(&existingDemoTeams).Error; err != nil {
+		return fmt.Errorf("failed to check existing demo teams: %w", err)
 	}
 
-	for i := 1; i <= teamCount; i++ {
-		// Create user first
-		user := models.User{
-			Username: fmt.Sprintf("demo-user-%d", i),
-			Email:    fmt.Sprintf("demo%d@demo.local", i),
-			Password: string(hashedPassword),
-			Role:     "member",
-		}
-		if err := DB.Create(&user).Error; err != nil {
-			debug.Log("Failed to create demo user %d: %v\n", i, err)
-			continue
+	var createdTeams []models.Team
+
+	if len(existingDemoTeams) > 0 {
+		debug.Log("Found %d existing demo teams - using existing teams\n", len(existingDemoTeams))
+		createdTeams = existingDemoTeams
+	} else {
+		// Create teams and users
+		demoPassword := "demo123"
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(demoPassword), bcrypt.DefaultCost)
+		if err != nil {
+			return fmt.Errorf("failed to hash demo password: %w", err)
 		}
 
-		// Create team
-		team := models.Team{
-			Name:      fmt.Sprintf("Demo Team %d", i),
-			Password:  string(hashedPassword),
-			CreatorID: user.ID,
-		}
-		if err := DB.Create(&team).Error; err != nil {
-			debug.Log("Failed to create demo team %d: %v\n", i, err)
-			continue
-		}
+		for i := 1; i <= teamCount; i++ {
+			// Create user first
+			user := models.User{
+				Username: fmt.Sprintf("demo-user-%d", i),
+				Email:    fmt.Sprintf("demo%d@demo.local", i),
+				Password: string(hashedPassword),
+				Role:     "member",
+			}
+			if err := DB.Create(&user).Error; err != nil {
+				debug.Log("Failed to create demo user %d: %v\n", i, err)
+				continue
+			}
 
-		// Assign user to team
-		user.TeamID = &team.ID
-		if err := DB.Save(&user).Error; err != nil {
-			debug.Log("Failed to assign user to team %d: %v\n", i, err)
-			continue
-		}
+			// Create team
+			team := models.Team{
+				Name:      fmt.Sprintf("Demo Team %d", i),
+				Password:  string(hashedPassword),
+				CreatorID: user.ID,
+			}
+			if err := DB.Create(&team).Error; err != nil {
+				debug.Log("Failed to create demo team %d: %v\n", i, err)
+				continue
+			}
 
-		createdTeams = append(createdTeams, team)
-		debug.Log("Created Demo Team %d with user demo-user-%d\n", i, i)
+			// Assign user to team
+			user.TeamID = &team.ID
+			if err := DB.Save(&user).Error; err != nil {
+				debug.Log("Failed to assign user to team %d: %v\n", i, err)
+				continue
+			}
+
+			createdTeams = append(createdTeams, team)
+			debug.Log("Created Demo Team %d with user demo-user-%d\n", i, i)
+		}
 	}
 
 	// Create solves with spread timestamps
@@ -501,8 +503,12 @@ func SeedDemoData(teamCount int, timeRangeHours int) error {
 	challengeFirstBlood := make(map[uint]int) // Track first blood position per challenge
 
 	for _, team := range createdTeams {
-		// Each team solves 1-5 random challenges
-		solvesCount := 1 + (int(team.ID) % 5) // Deterministic but varied: 1-5 solves
+		// Each team solves 20-90% of challenges (varied based on team ID)
+		solvePercentage := 20 + (int(team.ID) % 71) // 20-90%
+		solvesCount := (len(challenges) * solvePercentage) / 100
+		if solvesCount < 1 {
+			solvesCount = 1
+		}
 
 		// Get team's user
 		var user models.User

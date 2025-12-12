@@ -478,6 +478,7 @@ func GetChallengeSolves(c *gin.Context) {
 	var solves []models.Solve
 	result = config.DB.
 		Preload("Team").
+		Preload("User").
 		Where("challenge_id = ?", challenge.ID).
 		Order("created_at ASC").
 		Find(&solves)
@@ -494,23 +495,20 @@ func GetChallengeSolves(c *gin.Context) {
 	var solvesWithUsers []dto.SolveWithUser
 
 	for _, solve := range solves {
-		// Find the submission that led to this solve
-		var submission models.Submission
-		submissionResult := config.DB.
-			Preload("User").
-			Where("challenge_id = ? AND user_id IN (SELECT id FROM users WHERE team_id = ?) AND created_at <= ?",
-				challenge.ID, solve.TeamID, solve.CreatedAt).
-			Order("created_at DESC").
-			First(&submission)
-
 		solveWithUser := dto.SolveWithUser{
 			Solve:         solve,
 			CurrentPoints: currentPoints, // Add current decayed points
 		}
 
-		if submissionResult.Error == nil && submission.User != nil {
-			solveWithUser.UserID = submission.UserID
-			solveWithUser.Username = submission.User.Username
+		// Use the data from the solve record itself
+		if solve.UserID != 0 {
+			solveWithUser.UserID = solve.UserID
+			// Use SolvedBy if available, otherwise try to get username from User relation
+			if solve.SolvedBy != "" {
+				solveWithUser.Username = solve.SolvedBy
+			} else if solve.User != nil {
+				solveWithUser.Username = solve.User.Username
+			}
 		}
 
 		// Check if this solve has a FirstBlood entry

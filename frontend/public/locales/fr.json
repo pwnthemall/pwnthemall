@@ -8,7 +8,8 @@
     "delete_account": "Supprimer le compte",
     "delete_account_confirm": "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action ne peut pas être annulée.",
     "member_since": "Membre depuis",
-    "security_settings": "Paramètres de sécurité"
+    "security_settings": "Paramètres de sécurité",
+    "view_public_profile": "Voir le profil public"
   },
   "admin": {
     "admin": "Administrateur",
@@ -370,6 +371,7 @@
   },
   "email": {
     "email": "Email",
+    "email_cannot_be_changed": "L'email ne peut pas être modifié",
     "email_exists": "Cette adresse email existe déjà",
     "email_length": "L'adresse email doit contenir au plus 254 caractères",
     "email_too_long": "Email trop long (254 caractères max)",
@@ -519,6 +521,25 @@
     "solve_activity": "Résolution au fil du temps",
     "solve_activity_description": "Suivez la progression des équipes",
     "solve_activity_description_individual": "Suivez la progression des meilleurs joueurs"
+  },
+  "public_profile": {
+    "back_to_scoreboard": "Retour au classement",
+    "challenges_solved": "Challenges résolus",
+    "challenges_by_category": "Challenges par catégorie",
+    "error_loading_profile": "Erreur lors du chargement du profil",
+    "member_since": "Membre depuis",
+    "no_solves_yet": "Aucune résolution",
+    "no_submissions_yet": "Aucune soumission",
+    "points": "Points",
+    "recent_solves": "Résolutions récentes",
+    "score_progression": "Progression du score",
+    "submission_breakdown": "Répartition des soumissions",
+    "submissions": "Soumissions",
+    "success_rate": "Taux de réussite",
+    "total_points": "Points totaux",
+    "user_not_found": "Utilisateur introuvable",
+    "correct": "Correct",
+    "wrong": "Incorrect"
   },
   "team": {
     "create_team": "Créer une équipe",

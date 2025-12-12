@@ -12,6 +12,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { TeamManagementSection } from "@/components/TeamManagementSection";
 import { toast } from "sonner";
 import Link from "next/link";
+import { ExternalLink } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -256,13 +257,9 @@ export default function ProductionProfileCard() {
   // Theme selector
   const themes = [
     { value: "light", label: "Light", previewLeft: "#ffffff", previewRight: "#f1f5f9" },
-    { value: "latte", label: "Latte", previewLeft: "#e6e9ef", previewRight: "#bcc0cc" },
     { value: "cyberpunk", label: "Cyberpunk", previewLeft: "#1a1a2e", previewRight: "#e91e63" },
-    { value: "rose", label: "Rose", previewLeft: "#fffafc", previewRight: "#fee4f1" },
     { value: "emerald", label: "Emerald", previewLeft: "#eefbf5", previewRight: "#d5f5e7" },
     { value: "violet", label: "Violet", previewLeft: "#faf5ff", previewRight: "#f0e1fe" },
-    { value: "cyan", label: "Cyan", previewLeft: "#f4ffff", previewRight: "#dfffff" },
-    { value: "orange", label: "Orange", previewLeft: "#fffaf5", previewRight: "#ffefe1" },
     { value: "dark", label: "Dark", previewLeft: "#010916", previewRight: "#1c2a3a" },
     { value: "macchiato", label: "Macchiato", previewLeft: "#222738", previewRight: "#353a4e" },
     { value: "mocha", label: "Mocha", previewLeft: "#1e1f2e", previewRight: "#313343" },
@@ -328,7 +325,7 @@ export default function ProductionProfileCard() {
 
                 {/* User Info */}
                 <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-3">
+                  <div className="flex items-center gap-3 mb-3 flex-wrap">
                     <h1 className="text-3xl font-bold text-foreground">
                       {user.username}
                     </h1>
@@ -337,6 +334,12 @@ export default function ProductionProfileCard() {
                         {t('ranking')} #{user.ranking}
                       </Badge>
                     )}
+                    <Link href={`/users/${encodeURIComponent(user.username)}`}>
+                      <Button variant="outline" size="sm" className="gap-1.5">
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        {t('view_public_profile')}
+                      </Button>
+                    </Link>
                   </div>
                   
                   {/* User Description or Role */}
@@ -410,104 +413,108 @@ export default function ProductionProfileCard() {
           </div>
           <CardContent className="p-6">
             {activeTab === "Account" && (
-              <div className="space-y-6 max-w-md">
-                {/* Account Settings Section */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">{t('account_settings')}</h3>
-                  <form className="space-y-4" onSubmit={handleUpdate}>
-                <div>
-                  <label className="block text-sm font-medium mb-1" htmlFor="username">{t('username')}</label>
-                  <Input
-                    id="username"
-                    name="username"
-                    value={newUsername}
-                    onChange={handleInputChange}
-                    required
-                    disabled={loading}
-                    maxLength={32}
-                  />
-                  {usernameError && <span className="text-red-500 text-xs">{t('username_too_long')}</span>}
-                </div>
-                <Button
-                  type="button"
-                  className="w-full"
-                  disabled={loading || newUsername === username || !newUsername}
-                  onClick={() => setConfirmUsername(true)}
-                >
-                  {t('update_username')}
-                </Button>
-                
-                <AlertDialog open={confirmUsername} onOpenChange={setConfirmUsername}>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>{t('change_username')}</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        {t('change_username_confirm', { username: newUsername })}
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleUpdate} className="bg-primary text-primary-foreground hover:bg-primary/90">
-                        {t('confirm')}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-                  </form>
-                </div>
-                
-                <Separator className="my-6" />
-                
-                {/* Security Settings Section */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">{t('security_settings')}</h3>
-                  <form className="space-y-4" onSubmit={handlePasswordChange}>
-                <div>
-                  <label className="block text-sm font-medium mb-1" htmlFor="current">{t('current_password')}</label>
-                  <Input id="current" name="current" type="password" value={currentPassword} onChange={handleCurrentPasswordChange} required autoComplete="current-password" disabled={pwLoading} />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1" htmlFor="new">{t('new_password')}</label>
-                  <Input id="new" name="new" type="password" value={newPassword} onChange={handleNewPasswordChange} required autoComplete="new-password" disabled={pwLoading} maxLength={72} />
-                  {pwValidationError && <span className="text-red-500 text-xs">{pwValidationError}</span>}
-                  {pwTooLongError && <span className="text-red-500 text-xs">{pwTooLongError}</span>}
-                </div>
-                <Button
-                  type="button"
-                  className="w-full"
-                  disabled={pwLoading || !currentPassword || !newPassword || newPassword.length < 8}
-                  onClick={() => setConfirmPassword(true)}
-                >
-                  {t('change_password')}
-                </Button>
-                
-                <AlertDialog open={confirmPassword} onOpenChange={setConfirmPassword}>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>{t('change_password')}</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        {t('change_password_confirm')}
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-                      <AlertDialogAction onClick={handlePasswordChange} className="bg-primary text-primary-foreground hover:bg-primary/90">
-                        {t('confirm')}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </form>
+              <div className="space-y-8 w-full">
+                {/* Account & Security Side by Side */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Account Settings - Left */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">{t('account_settings')}</h3>
+                    <form className="space-y-4" onSubmit={handleUpdate}>
+                      <div>
+                        <label className="block text-sm font-medium mb-1" htmlFor="username">{t('username')}</label>
+                        <Input
+                          id="username"
+                          name="username"
+                          value={newUsername}
+                          onChange={handleInputChange}
+                          required
+                          disabled={loading}
+                          maxLength={32}
+                        />
+                        {usernameError && <span className="text-red-500 text-xs">{t('username_too_long')}</span>}
+                      </div>
+                      {/* Spacer to align with Security Settings which has 2 input fields */}
+                      <div className="hidden md:block">
+                        <div className="h-[62px]"></div>
+                      </div>
+                      <Button
+                        type="button"
+                        className="w-full"
+                        disabled={loading || newUsername === username || !newUsername}
+                        onClick={() => setConfirmUsername(true)}
+                      >
+                        {t('update_username')}
+                      </Button>
+                      
+                      <AlertDialog open={confirmUsername} onOpenChange={setConfirmUsername}>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>{t('change_username')}</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              {t('change_username_confirm', { username: newUsername })}
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleUpdate} className="bg-primary text-primary-foreground hover:bg-primary/90">
+                              {t('confirm')}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </form>
+                  </div>
+                  
+                  {/* Security Settings - Right */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">{t('security_settings')}</h3>
+                    <form className="space-y-4" onSubmit={handlePasswordChange}>
+                      <div>
+                        <label className="block text-sm font-medium mb-1" htmlFor="current">{t('current_password')}</label>
+                        <Input id="current" name="current" type="password" value={currentPassword} onChange={handleCurrentPasswordChange} required autoComplete="current-password" disabled={pwLoading} />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1" htmlFor="new">{t('new_password')}</label>
+                        <Input id="new" name="new" type="password" value={newPassword} onChange={handleNewPasswordChange} required autoComplete="new-password" disabled={pwLoading} maxLength={72} />
+                        {pwValidationError && <span className="text-red-500 text-xs">{pwValidationError}</span>}
+                        {pwTooLongError && <span className="text-red-500 text-xs">{pwTooLongError}</span>}
+                      </div>
+                      <Button
+                        type="button"
+                        className="w-full"
+                        disabled={pwLoading || !currentPassword || !newPassword || newPassword.length < 8}
+                        onClick={() => setConfirmPassword(true)}
+                      >
+                        {t('change_password')}
+                      </Button>
+                      
+                      <AlertDialog open={confirmPassword} onOpenChange={setConfirmPassword}>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>{t('change_password')}</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              {t('change_password_confirm')}
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                            <AlertDialogAction onClick={handlePasswordChange} className="bg-primary text-primary-foreground hover:bg-primary/90">
+                              {t('confirm')}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </form>
+                  </div>
                 </div>
 
-                <Separator className="my-6" />
-                
-                {/* Danger Zone */}
-                <div>
+                {/* Danger Zone - Centered */}
+                <Separator className="my-8" />
+                <div className="flex flex-col items-center max-w-md mx-auto">
                   <h3 className="text-lg font-semibold mb-4 text-destructive">{t('danger_zone')}</h3>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button type="button" variant="destructive" className="w-full" disabled={loading}>
+                      <Button type="button" variant="destructive" className="w-full max-w-xs" disabled={loading}>
                         {t('delete_account')}
                       </Button>
                     </AlertDialogTrigger>
