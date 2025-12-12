@@ -1,5 +1,34 @@
 # 🚀 Changelog
 
+## [0.3.2](https://github.com/pwnthemall/pwnthemall/compare/v0.3.1...v0.3.2) (2025-12-08)
+
+
+### 🐛 Bug fixes
+
+* **backend:** Main.go wrong function call ([e969308](https://github.com/pwnthemall/pwnthemall/commit/e96930814dcb12ee15584bc8cd14f9014a8fd6e1))
+* **frontend-challenge:** Fixed pagination showing 'page {1} of {2}' and editing challenge was picking a default value instead of the actual challenge cat/diff ([0a367f6](https://github.com/pwnthemall/pwnthemall/commit/0a367f6359ffdff9c0ab27d56f04c1f7d33b011b))
+
+## [0.3.1](https://github.com/pwnthemall/pwnthemall/compare/v0.3.0...v0.3.1) (2025-12-08)
+
+
+### 🐛 Bug fixes
+
+* **api/challenge-category:** Prevent leak of hints when loading chall… ([ef6cf0c](https://github.com/pwnthemall/pwnthemall/commit/ef6cf0c3757b60472a0a8d477ffcc511204b3989))
+* **api/challenge-category:** Prevent leak of hints when loading challenge categories ([7bdc9eb](https://github.com/pwnthemall/pwnthemall/commit/7bdc9eb23e7961383fa9f64ab3b220fad3f3d6a4))
+* **auth:** Blacklist JWT tokens on logout to prevent session reuse ([ed9261c](https://github.com/pwnthemall/pwnthemall/commit/ed9261c04ed50b08bbbef5981f520c5f5addffb6))
+* **docker-handler:** Wrong property name on http response ([1935fa0](https://github.com/pwnthemall/pwnthemall/commit/1935fa062f61a5e8e864cc9c9fcf2580eb0ff951))
+* **frontend-challenge:** Fixed pagination showing 'page {1} of {2}' and editing challenge was picking a default value instead of the actual challenge cat/diff ([e60d76e](https://github.com/pwnthemall/pwnthemall/commit/e60d76eab413e4cf189ded35c9d33bbc1948c049))
+* **frontend:** Wrong property name in challenge models ([1fdedb7](https://github.com/pwnthemall/pwnthemall/commit/1fdedb72928b7f26d95c450161c8762bffd4a5f8))
+* **misc:** Security fix + potential fix for race condition + instance tab on challenge now shows 'stopping' instead of nothing ([20b3461](https://github.com/pwnthemall/pwnthemall/commit/20b34615490625983fb564dfa2a61da60343ea10))
+* **misc:** Security fix + potential fix for race condition + instance… ([f952886](https://github.com/pwnthemall/pwnthemall/commit/f9528865f30e2dacee1248b1534692e1569d8d1b))
+* **security:** Add rate limiting to login endpoint ([0328b2b](https://github.com/pwnthemall/pwnthemall/commit/0328b2bffe471428bc1422a155d422bb417c81db))
+* **security:** Added security headers ([18c69f0](https://github.com/pwnthemall/pwnthemall/commit/18c69f0612dfc253c9524abc84854e4773262840))
+* **security:** Block unicode spoofing in usernames ([a6f37a3](https://github.com/pwnthemall/pwnthemall/commit/a6f37a3cfd662a521434fbf3284a90b1b4efb617))
+* **security:** Csp ([d17b661](https://github.com/pwnthemall/pwnthemall/commit/d17b661a25bac0c8d831c802401002ddd1313d72))
+* **security:** Remove server headers from responses ([63ba933](https://github.com/pwnthemall/pwnthemall/commit/63ba9334d0831dc415f74e7922d296aa2df25260))
+* **security:** Sanitize SQL errors ([55026aa](https://github.com/pwnthemall/pwnthemall/commit/55026aa139140101377923471afea295fc28b9e0))
+* **test:** Fixed test not working after a change in the  /start endpoint response ([c48ee5b](https://github.com/pwnthemall/pwnthemall/commit/c48ee5b18e09a41a57f026fbcf9536a328cc0808))
+
 ## [0.3.0](https://github.com/pwnthemall/pwnthemall/compare/v0.2.0...v0.3.0) (2025-12-07)
 
 
