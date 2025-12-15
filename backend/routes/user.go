@@ -17,6 +17,7 @@ func RegisterUserRoutes(router *gin.Engine) {
 	// Authenticated routes
 	users := router.Group("/users", middleware.AuthRequired(false))
 	{
+		users.GET("/:username/profile", middleware.CheckPolicy("/users/:username/profile", "read"), controllers.GetPublicUserProfile)
 		users.GET("", middleware.CheckPolicy("/users", "read"), controllers.GetUsers)
 		users.GET("/search/ip", middleware.DemoRestriction, middleware.CheckPolicy("/users", "read"), controllers.GetUserByIP)
 		users.GET("/:id", middleware.CheckPolicy("/users/:id", "read"), controllers.GetUser)

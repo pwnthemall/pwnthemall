@@ -8,6 +8,7 @@ import ConnectionInfo from "@/components/ConnectionInfo";
 import axios from "@/lib/axios";
 import { toast } from "sonner";
 import Head from "next/head";
+import Link from "next/link";
 import {
   Card,
   CardTitle,
@@ -923,16 +924,13 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
                                     <div>
                                       <span className="font-semibold text-foreground">{solve.team?.name || 'Unknown Team'}</span>
                                       <div className="text-xs text-muted-foreground mt-1">
-                                        {solve.username ? (
+                                        {solve.username && (
                                           <>
-                                            {t('solved_by')} <span className="font-medium text-foreground/80">{solve.username}</span>
-                                          </>
-                                        ) : (
-                                          <>
-                                            {t('solved_by')} {solve.team?.name || 'Unknown Team'}
+                                            {t('solved_by')} <Link href={`/users/${encodeURIComponent(solve.username)}`} className="font-medium text-foreground/80 hover:text-primary hover:underline transition-colors">{solve.username}</Link>
+                                            {' '}
                                           </>
                                         )}
-                                        {' '}{t('on')} {formatDate(solve.createdAt)}
+                                        {t('on')} {formatDate(solve.createdAt)}
                                       </div>
                                     </div>
                                   </div>
