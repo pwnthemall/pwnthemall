@@ -1,0 +1,15 @@
+meta {
+  name: profile
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{URL}}/api/users/:username/profile
+  body: none
+  auth: inherit
+}
+
+params:path {
+  username: admin
+}

@@ -122,6 +122,10 @@ func buildChallengeWithSolved(challenge models.Challenge, solvedChallengeIds []u
 	// Compute current points with decay
 	challenge.CurrentPoints = decayService.CalculateCurrentPoints(&challenge)
 
+	// Count solves for this challenge
+	var solveCount int64
+	config.DB.Model(&models.Solve{}).Where("challenge_id = ?", challenge.ID).Count(&solveCount)
+
 	// Process hints
 	hintsWithPurchased := processHintsWithPurchaseStatus(challenge.Hints, purchasedHintIds, userRole)
 	item := dto.ChallengeWithSolved{
@@ -130,6 +134,7 @@ func buildChallengeWithSolved(challenge models.Challenge, solvedChallengeIds []u
 	}
 	copier.Copy(&item, &challenge)
 	item.Hints = hintsWithPurchased
+	item.SolveCount = int(solveCount)
 	// Add geo spec if applicable
 	addGeoSpecIfNeeded(challenge, &item)
 
@@ -172,14 +177,16 @@ func GetChallenges(c *gin.Context) {
 	}
 
 	var challenges []models.Challenge
-	result := config.DB.Preload("DecayFormula").Preload("Hints").Where("hidden = false").Find(&challenges)
+	result := config.DB.
+		Preload("ChallengeDifficulty").
+		Preload("ChallengeCategory").
+		Preload("ChallengeType").
+		Preload("DecayFormula").
+		Preload("Hints").
+		Where("hidden = false").
+		Find(&challenges)
 	if result.Error != nil {
 		utils.InternalServerError(c, result.Error.Error())
-		return
-	}
-
-	if user.Role == "admin" {
-		utils.OKResponse(c, challenges)
 		return
 	}
 
@@ -188,7 +195,7 @@ func GetChallenges(c *gin.Context) {
 	var purchasedHintIds []uint
 	var failedAttemptsMap map[uint]int64
 
-	if user.Team != nil {
+	if user.Role != "admin" && user.Team != nil {
 		solvedChallengeIds = getSolvedChallengeIds(user.Team.ID)
 		purchasedHintIds = getPurchasedHintIds(user.Team.ID)
 		failedAttemptsMap = getTeamFailedAttempts(user.Team.ID, challenges)
@@ -200,7 +207,8 @@ func GetChallenges(c *gin.Context) {
 	decayService := utils.NewDecay()
 
 	for _, challenge := range challenges {
-		if !CheckChallengeDependancies(c, challenge) {
+		// Admins see all challenges, skip dependency check
+		if user.Role != "admin" && !CheckChallengeDependancies(c, challenge) {
 			continue
 		}
 		item := buildChallengeWithSolved(challenge, solvedChallengeIds, purchasedHintIds, failedAttemptsMap, user.Role, decayService)
@@ -215,7 +223,13 @@ func GetChallenge(c *gin.Context) {
 	var challenge models.Challenge
 	id := c.Param("id")
 
-	result := config.DB.Preload("DecayFormula").Preload("Hints").First(&challenge, id)
+	result := config.DB.
+		Preload("ChallengeDifficulty").
+		Preload("ChallengeCategory").
+		Preload("ChallengeType").
+		Preload("DecayFormula").
+		Preload("Hints").
+		First(&challenge, id)
 	if result.Error != nil {
 		utils.NotFoundError(c, "challenge_not_found")
 		return
