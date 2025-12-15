@@ -177,7 +177,7 @@ function plugins_build() {
     if docker build \
         -f "$PLUGINS_DIR/Dockerfile" \
         -t "$PLUGINS_IMAGE" \
-        ./backend; then
+        ./; then
         echo "[✓] Docker image built successfully"
     else
         echo "[✗] Failed to build Docker image"

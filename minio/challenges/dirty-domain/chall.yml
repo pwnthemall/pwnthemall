@@ -1,0 +1,39 @@
+name: "Dirty Domain"
+author: "pwnthemall-staff"
+category: active-directory
+description: |
+    Test complete domain challenge
+type: libvirt
+flags: ["flag"]
+difficulty: easy
+connection_info: ["Réseau: 10.15.1.0/24"] 
+hidden: false
+points: 200
+networks:
+  - name: dirty-domain-net
+    cidr: 10.50.1.0/24
+    gateway: 10.50.1.1
+    nat: true
+    dhcp:
+      start: 10.50.1.100
+      end: 10.50.1.200
+      hosts:
+        - mac: "52:54:00:aa:bb:01"
+          name: dc
+          ip: 10.50.1.10
+machines:
+  - name: dirty-ub24
+    image: dirty-ub24.qcow2
+    cpus: 2
+    memory: 2048
+    interfaces:
+      - network: dirty-domain-net
+        mac: "52:54:00:aa:bb:01"
+        ip: 10.50.1.10
+  - name: dirty-win7
+    image: dirty-win7.qcow2
+    cpus: 2
+    memory: 2048
+    interfaces:
+      - network: dirty-domain-net
+        dhcp: true
