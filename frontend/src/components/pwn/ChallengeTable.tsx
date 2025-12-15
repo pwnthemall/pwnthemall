@@ -18,6 +18,8 @@ interface ChallengeTableProps {
   sortOrder: 'asc' | 'desc';
   onSort: (column: 'category' | 'name' | 'difficulty' | 'points' | 'solves' | 'status') => void;
   onChallengeSelect: (challenge: Challenge) => void;
+  instanceStatus?: Record<number, 'running' | 'stopped' | 'building' | 'expired' | 'stopping'>;
+  isInstanceChallenge?: (challenge: Challenge) => boolean;
   t: (key: string) => string;
 }
 
@@ -28,6 +30,8 @@ const ChallengeTable = ({
   sortOrder,
   onSort,
   onChallengeSelect,
+  instanceStatus = {},
+  isInstanceChallenge = () => false,
   t,
 }: ChallengeTableProps) => {
   const getPoints = (challenge: Challenge) => {
@@ -133,6 +137,16 @@ const ChallengeTable = ({
                         <Badge variant="secondary">{t("locked") !== "locked" ? t("locked") : "Locked"}</Badge>
                       ) : solved ? (
                         <Badge>{t("solved") !== "solved" ? t("solved") : "Solved"}</Badge>
+                      ) : isInstanceChallenge(challenge) && instanceStatus[challenge.id] ? (
+                        instanceStatus[challenge.id] === 'running' ? (
+                          <Badge className="bg-green-600 hover:bg-green-700">{t("instance_actions.running") !== "instance_actions.running" ? t("instance_actions.running") : "Running"}</Badge>
+                        ) : instanceStatus[challenge.id] === 'building' ? (
+                          <Badge className="bg-orange-600 hover:bg-orange-700">{t("instance_actions.building") !== "instance_actions.building" ? t("instance_actions.building") : "Building..."}</Badge>
+                        ) : instanceStatus[challenge.id] === 'stopping' ? (
+                          <Badge className="bg-orange-600 hover:bg-orange-700">{t("instance_actions.stopping") !== "instance_actions.stopping" ? t("instance_actions.stopping") : "Stopping..."}</Badge>
+                        ) : (
+                          <Badge variant="outline">{t("open") !== "open" ? t("open") : "Open"}</Badge>
+                        )
                       ) : (
                         <Badge variant="outline">{t("open") !== "open" ? t("open") : "Open"}</Badge>
                       )}

@@ -423,7 +423,11 @@
     "starting": "Starting...",
     "stop_instance": "Stop Instance",
     "stopped": "Stopped",
-    "stopping": "Stopping..."
+    "stopping": "Stopping...",
+    "building": "Building...",
+    "expired": "Expired",
+    "instance_started_by_user": "Instance started by {username}",
+    "a_teammate": "a teammate"
   },
   "messages": {
     "error": "Error",

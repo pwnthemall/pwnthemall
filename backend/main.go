@@ -14,6 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pwnthemall/pwnthemall/backend/config"
 	"github.com/pwnthemall/pwnthemall/backend/debug"
+	_ "github.com/pwnthemall/pwnthemall/backend/handlers" // Import to trigger init() functions
 	"github.com/pwnthemall/pwnthemall/backend/pluginsystem"
 	"github.com/pwnthemall/pwnthemall/backend/routes"
 	"github.com/pwnthemall/pwnthemall/backend/utils"

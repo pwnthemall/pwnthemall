@@ -149,6 +149,52 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
     fetchAllInstanceStatuses();
   }, [challenges.length, statusFetched]); // Only run once when challenges load
 
+  // Listen to WebSocket instance updates via window events
+  useEffect(() => {
+    const handleInstanceUpdate = (e: any) => {
+      const data = e?.detail || e?.data;
+      if (!data || data.event !== 'instance_update') return;
+
+      const challengeId = Number(data.challengeId);
+      if (!challengeId) return;
+
+      // Map status
+      let newStatus: 'running' | 'stopped' | 'building' | 'expired' | 'stopping' = 'stopped';
+      if (data.status === 'running') newStatus = 'running';
+      else if (data.status === 'stopped') newStatus = 'stopped';
+      else if (data.status === 'building') newStatus = 'building';
+      
+      debugLog('[CategoryContent] Instance update received:', { challengeId, status: data.status, newStatus });
+      setInstanceStatus(prev => ({ ...prev, [challengeId]: newStatus }));
+      
+      // Update connection info
+      if (newStatus === 'running' && data.connectionInfo) {
+        const connInfo = Array.isArray(data.connectionInfo) ? data.connectionInfo : [];
+        setConnectionInfo(prev => ({ ...prev, [challengeId]: connInfo }));
+      } else if (newStatus === 'stopped' || newStatus === 'building') {
+        setConnectionInfo(prev => ({ ...prev, [challengeId]: [] }));
+      }
+
+      // Update instance owner info
+      if (data.userId && data.username) {
+        setInstanceOwner(prev => ({
+          ...prev,
+          [challengeId]: { userId: Number(data.userId), username: data.username }
+        }));
+      }
+
+      // If team solved, refresh challenges
+      if (onChallengeUpdate && data.status === 'stopped') {
+        debugLog('[CategoryContent] Instance stopped, refreshing challenges');
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('instance-update', handleInstanceUpdate as EventListener);
+      return () => window.removeEventListener('instance-update', handleInstanceUpdate as EventListener);
+    }
+  }, [onChallengeUpdate]);
+
   useChallengeWebSocket({
     socket: null, // Using window events instead of socket.io in this codebase
     selectedChallengeId: selectedChallenge?.id || null,
@@ -172,24 +218,7 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
       // Refresh team score
       refreshTeamScore();
     },
-    onInstanceUpdate: (data) => {
-      const challengeId = data.challengeId;
-      
-      // Map status
-      let newStatus: 'running' | 'stopped' | 'building' | 'expired' | 'stopping' = 'stopped';
-      if (data.status === 'running') newStatus = 'running';
-      else if (data.status === 'building') newStatus = 'building';
-      
-      setInstanceStatus(prev => ({ ...prev, [challengeId]: newStatus }));
-      
-      // Update connection info
-      if (newStatus === 'running' && data.connectionInfo) {
-        const connInfo = Array.isArray(data.connectionInfo) ? data.connectionInfo : [];
-        setConnectionInfo(prev => ({ ...prev, [challengeId]: connInfo }));
-      } else if (newStatus === 'stopped' || newStatus === 'building') {
-        setConnectionInfo(prev => ({ ...prev, [challengeId]: [] }));
-      }
-    },
+    onInstanceUpdate: () => {}, // Handled by window event listener above
   });
 
 
@@ -252,6 +281,8 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
               sortOrder={sortOrder}
               onSort={handleSort}
               onChallengeSelect={handleChallengeSelect}
+              instanceStatus={instanceStatus}
+              isInstanceChallenge={isInstanceChallenge}
               t={t}
             />
           </section>
