@@ -104,7 +104,7 @@ const ChallengeTable = ({
                     className={`cursor-pointer transition-colors ${
                       locked ? "opacity-60 cursor-not-allowed" : "hover:bg-accent"
                     } ${
-                      solved ? "bg-green-50 dark:bg-green-950/20" : ""
+                      solved ? "bg-black/20" : ""
                     }`}
                   >
                     <TableCell className="whitespace-nowrap">
