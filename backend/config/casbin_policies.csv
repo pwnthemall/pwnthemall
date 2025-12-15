@@ -26,7 +26,7 @@ p, member, /teams/timeline, read
 p, member, /teams/score, read
 p, member, /users/leaderboard, read
 p, member, /users/timeline, read
-p, member, /users/:username/profile, read
+p, member, /users/:id/profile, read
 p, member, /teams, write
 p, member, /teams/join, write
 p, member, /teams/leave, write

@@ -17,7 +17,6 @@ func RegisterUserRoutes(router *gin.Engine) {
 	// Authenticated routes
 	users := router.Group("/users", middleware.AuthRequired(false))
 	{
-		users.GET("/:username/profile", middleware.CheckPolicy("/users/:username/profile", "read"), controllers.GetPublicUserProfile)
 		users.GET("", middleware.CheckPolicy("/users", "read"), controllers.GetUsers)
 		users.GET("/search/ip", middleware.DemoRestriction, middleware.CheckPolicy("/users", "read"), controllers.GetUserByIP)
 		users.GET("/:id", middleware.CheckPolicy("/users/:id", "read"), controllers.GetUser)
@@ -25,5 +24,6 @@ func RegisterUserRoutes(router *gin.Engine) {
 		users.PUT("/:id", middleware.CheckPolicy("/users/:id", "write"), controllers.UpdateUser)
 		users.DELETE("/:id", middleware.CheckPolicy("/users/:id", "write"), controllers.DeleteUser)
 		users.POST("/:id/ban", middleware.CheckPolicy("/users/:id/ban", "write"), controllers.BanOrUnbanUser)
+		users.GET("/:id/profile", middleware.CheckPolicy("/users/:id/profile", "read"), controllers.GetPublicUserProfile)
 	}
 }

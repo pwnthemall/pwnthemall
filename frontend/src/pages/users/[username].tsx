@@ -94,7 +94,7 @@ export default function PublicUserProfile() {
     setError(null);
 
     axios
-      .get(`/api/users/profile/${encodeURIComponent(username)}`)
+      .get(`/api/users/${encodeURIComponent(username)}/profile`)
       .then((res) => {
         setProfile(res.data);
       })

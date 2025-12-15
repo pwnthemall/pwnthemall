@@ -29,7 +29,7 @@ type individualSolve struct {
 
 // GetPublicUserProfile returns public profile data for a user by username
 func GetPublicUserProfile(c *gin.Context) {
-	username := c.Param("username")
+	username := c.Param("id")
 	if username == "" {
 		utils.BadRequestError(c, "username_required")
 		return
