@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/pwnthemall/pwnthemall/backend/config"
+	"github.com/pwnthemall/pwnthemall/backend/dto"
 	"github.com/pwnthemall/pwnthemall/backend/models"
 	"github.com/pwnthemall/pwnthemall/backend/utils"
 )
@@ -19,57 +20,6 @@ const (
 	dateFormatYMD               = "2006-01-02"
 	dateFormatISO               = "2006-01-02T15:04:05"
 )
-
-// PublicProfileResponse represents the public profile data
-type PublicProfileResponse struct {
-	ID                uint                    `json:"id"`
-	Username          string                  `json:"username"`
-	MemberSince       time.Time               `json:"memberSince"`
-	TeamID            *uint                   `json:"teamId,omitempty"`
-	TeamName          string                  `json:"teamName,omitempty"`
-	TotalPoints       int                     `json:"totalPoints"`
-	ChallengesSolved  int                     `json:"challengesSolved"`
-	TotalChallenges   int                     `json:"totalChallenges"`
-	Ranking           int                     `json:"ranking"`
-	SubmissionStats   SubmissionStatsResponse `json:"submissionStats"`
-	CategoryBreakdown []CategoryBreakdown     `json:"categoryBreakdown"`
-	RecentSolves      []RecentSolve           `json:"recentSolves"`
-	SolveTimeline     []SolveTimelinePoint    `json:"solveTimeline"`
-}
-
-// SubmissionStatsResponse holds submission statistics
-type SubmissionStatsResponse struct {
-	TotalSubmissions   int     `json:"totalSubmissions"`
-	CorrectSubmissions int     `json:"correctSubmissions"`
-	WrongSubmissions   int     `json:"wrongSubmissions"`
-	SuccessRate        float64 `json:"successRate"`
-}
-
-// CategoryBreakdown shows challenges solved per category
-type CategoryBreakdown struct {
-	CategoryID   uint   `json:"categoryId"`
-	CategoryName string `json:"categoryName"`
-	SolvedCount  int    `json:"solvedCount"`
-	TotalCount   int    `json:"totalCount"`
-	Color        string `json:"color"`
-}
-
-// RecentSolve represents a recently solved challenge
-type RecentSolve struct {
-	ChallengeID   uint   `json:"challengeId"`
-	ChallengeName string `json:"challengeName"`
-	CategoryName  string `json:"categoryName"`
-	Points        int    `json:"points"`
-	SolvedAgo     string `json:"solvedAgo"`
-	SolvedAt      time.Time `json:"solvedAt"`
-}
-
-// SolveTimelinePoint represents a point in the solve timeline
-type SolveTimelinePoint struct {
-	Date       string `json:"date"`
-	Points     int    `json:"points"`
-	Cumulative int    `json:"cumulative"`
-}
 
 // individualSolve is used internally for timeline calculations
 type individualSolve struct {
@@ -132,7 +82,7 @@ func GetPublicUserProfile(c *gin.Context) {
 	// Get solve timeline for chart
 	solveTimeline := getSolveTimeline(user.ID)
 
-	response := PublicProfileResponse{
+	response := dto.PublicProfileResponse{
 		ID:                user.ID,
 		Username:          user.Username,
 		MemberSince:       user.CreatedAt,
@@ -174,7 +124,7 @@ func calculateUserRanking(userID uint) int {
 }
 
 // getSubmissionStats returns submission statistics for a user
-func getSubmissionStats(userID uint) SubmissionStatsResponse {
+func getSubmissionStats(userID uint) dto.SubmissionStatsResponse {
 	var totalSubmissions int64
 	var correctSubmissions int64
 
@@ -197,7 +147,7 @@ func getSubmissionStats(userID uint) SubmissionStatsResponse {
 		successRate = math.Round((float64(correctSubmissions)/float64(totalSubmissions)*100)*10) / 10
 	}
 
-	return SubmissionStatsResponse{
+	return dto.SubmissionStatsResponse{
 		TotalSubmissions:   int(totalSubmissions),
 		CorrectSubmissions: int(correctSubmissions),
 		WrongSubmissions:   int(wrongSubmissions),
@@ -206,7 +156,7 @@ func getSubmissionStats(userID uint) SubmissionStatsResponse {
 }
 
 // getCategoryBreakdown returns solved challenges grouped by category
-func getCategoryBreakdown(userID uint) []CategoryBreakdown {
+func getCategoryBreakdown(userID uint) []dto.CategoryBreakdown {
 	// Colors for categories
 	colors := []string{
 		"#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6",
@@ -245,9 +195,9 @@ func getCategoryBreakdown(userID uint) []CategoryBreakdown {
 		totalMap[t.CategoryID] = t.Total
 	}
 
-	breakdown := make([]CategoryBreakdown, len(results))
+	breakdown := make([]dto.CategoryBreakdown, len(results))
 	for i, r := range results {
-		breakdown[i] = CategoryBreakdown{
+		breakdown[i] = dto.CategoryBreakdown{
 			CategoryID:   r.CategoryID,
 			CategoryName: r.CategoryName,
 			SolvedCount:  r.SolvedCount,
@@ -260,7 +210,7 @@ func getCategoryBreakdown(userID uint) []CategoryBreakdown {
 }
 
 // getRecentSolves returns the most recent solved challenges
-func getRecentSolves(userID uint, limit int) []RecentSolve {
+func getRecentSolves(userID uint, limit int) []dto.RecentSolve {
 	type solveResult struct {
 		ChallengeID   uint
 		ChallengeName string
@@ -279,10 +229,10 @@ func getRecentSolves(userID uint, limit int) []RecentSolve {
 		Limit(limit).
 		Scan(&results)
 
-	recentSolves := make([]RecentSolve, len(results))
+	recentSolves := make([]dto.RecentSolve, len(results))
 	now := time.Now()
 	for i, r := range results {
-		recentSolves[i] = RecentSolve{
+		recentSolves[i] = dto.RecentSolve{
 			ChallengeID:   r.ChallengeID,
 			ChallengeName: r.ChallengeName,
 			CategoryName:  r.CategoryName,
@@ -299,7 +249,7 @@ func getRecentSolves(userID uint, limit int) []RecentSolve {
 // Dynamically chooses granularity based on solve distribution:
 // - If solves span multiple days: group by date
 // - If all solves are within same day: show individual solve timestamps
-func getSolveTimeline(userID uint) []SolveTimelinePoint {
+func getSolveTimeline(userID uint) []dto.SolveTimelinePoint {
 	var solves []individualSolve
 	config.DB.Model(&models.Solve{}).
 		Select("created_at, points").
@@ -308,7 +258,7 @@ func getSolveTimeline(userID uint) []SolveTimelinePoint {
 		Scan(&solves)
 
 	if len(solves) == 0 {
-		return []SolveTimelinePoint{}
+		return []dto.SolveTimelinePoint{}
 	}
 
 	// Check if all solves are within the same day
@@ -326,9 +276,9 @@ func getSolveTimeline(userID uint) []SolveTimelinePoint {
 }
 
 // buildTimelineFromTimestamps creates a timeline with individual solve timestamps
-func buildTimelineFromTimestamps(solves []individualSolve) []SolveTimelinePoint {
+func buildTimelineFromTimestamps(solves []individualSolve) []dto.SolveTimelinePoint {
 	if len(solves) == 0 {
-		return []SolveTimelinePoint{}
+		return []dto.SolveTimelinePoint{}
 	}
 
 	// Check if all solves have the exact same timestamp
@@ -341,7 +291,7 @@ func buildTimelineFromTimestamps(solves []individualSolve) []SolveTimelinePoint 
 		}
 	}
 
-	timeline := make([]SolveTimelinePoint, 0, len(solves)+2)
+	timeline := make([]dto.SolveTimelinePoint, 0, len(solves)+2)
 
 	if allSameTime {
 		// All solves at exact same timestamp - space them out artificially
@@ -350,7 +300,7 @@ func buildTimelineFromTimestamps(solves []individualSolve) []SolveTimelinePoint 
 		interval := time.Hour / time.Duration(len(solves)+1)
 
 		// Add starting point
-		timeline = append(timeline, SolveTimelinePoint{
+		timeline = append(timeline, dto.SolveTimelinePoint{
 			Date:       startTime.Format(dateFormatISO),
 			Points:     0,
 			Cumulative: 0,
@@ -361,7 +311,7 @@ func buildTimelineFromTimestamps(solves []individualSolve) []SolveTimelinePoint 
 		for i, s := range solves {
 			cumulative += s.Points
 			syntheticTime := startTime.Add(interval * time.Duration(i+1))
-			timeline = append(timeline, SolveTimelinePoint{
+			timeline = append(timeline, dto.SolveTimelinePoint{
 				Date:       syntheticTime.Format(dateFormatISO),
 				Points:     s.Points,
 				Cumulative: cumulative,
@@ -372,7 +322,7 @@ func buildTimelineFromTimestamps(solves []individualSolve) []SolveTimelinePoint 
 		startTime := firstTime.Add(-1 * time.Minute)
 
 		// Add starting point
-		timeline = append(timeline, SolveTimelinePoint{
+		timeline = append(timeline, dto.SolveTimelinePoint{
 			Date:       startTime.Format(dateFormatISO),
 			Points:     0,
 			Cumulative: 0,
@@ -382,7 +332,7 @@ func buildTimelineFromTimestamps(solves []individualSolve) []SolveTimelinePoint 
 		cumulative := 0
 		for _, s := range solves {
 			cumulative += s.Points
-			timeline = append(timeline, SolveTimelinePoint{
+			timeline = append(timeline, dto.SolveTimelinePoint{
 				Date:       s.CreatedAt.Format(dateFormatISO),
 				Points:     s.Points,
 				Cumulative: cumulative,
@@ -394,7 +344,7 @@ func buildTimelineFromTimestamps(solves []individualSolve) []SolveTimelinePoint 
 }
 
 // buildTimelineFromDates creates a timeline grouped by date
-func buildTimelineFromDates(userID uint, solves []individualSolve) []SolveTimelinePoint {
+func buildTimelineFromDates(userID uint, solves []individualSolve) []dto.SolveTimelinePoint {
 	type solvePoint struct {
 		Date   string
 		Points int
@@ -409,17 +359,17 @@ func buildTimelineFromDates(userID uint, solves []individualSolve) []SolveTimeli
 		Scan(&results)
 
 	if len(results) == 0 {
-		return []SolveTimelinePoint{}
+		return []dto.SolveTimelinePoint{}
 	}
 
 	// Add a starting point at 0 (day before first solve)
 	firstDate, _ := time.Parse(dateFormatYMD, results[0].Date)
 	startDate := firstDate.AddDate(0, 0, -1)
 
-	timeline := make([]SolveTimelinePoint, 0, len(results)+1)
+	timeline := make([]dto.SolveTimelinePoint, 0, len(results)+1)
 
 	// Add starting point
-	timeline = append(timeline, SolveTimelinePoint{
+	timeline = append(timeline, dto.SolveTimelinePoint{
 		Date:       startDate.Format(dateFormatYMD),
 		Points:     0,
 		Cumulative: 0,
@@ -429,7 +379,7 @@ func buildTimelineFromDates(userID uint, solves []individualSolve) []SolveTimeli
 	cumulative := 0
 	for _, r := range results {
 		cumulative += r.Points
-		timeline = append(timeline, SolveTimelinePoint{
+		timeline = append(timeline, dto.SolveTimelinePoint{
 			Date:       r.Date,
 			Points:     r.Points,
 			Cumulative: cumulative,
