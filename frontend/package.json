@@ -4,10 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm run generate-theme-manifest && next build",
+    "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "generate-theme-manifest": "node scripts/generate-theme-manifest.js"
+    "lint": "next lint"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

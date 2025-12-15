@@ -124,28 +124,9 @@ func IsCTFStarted() bool {
 	return status == CTFActive || status == CTFEnded || status == CTFNoTiming
 }
 
-// EnsureSiteTheme creates SITE_THEME config if it doesn't exist
-func EnsureSiteTheme() {
-	var themeConfig models.Config
-	if err := DB.Where("key = ?", "SITE_THEME").First(&themeConfig).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			// Create missing SITE_THEME config
-			themeConfig = models.Config{
-				Key:    "SITE_THEME",
-				Value:  getEnvWithDefault("PTA_SITE_THEME", "default"),
-				Public: true,
-			}
-			if createErr := DB.Create(&themeConfig).Error; createErr != nil {
-				debug.Log("Failed to create SITE_THEME config: %v", createErr)
-			}
-		}
-	}
-}
-
 func seedConfig() {
 	config := []models.Config{
 		{Key: "SITE_NAME", Value: os.Getenv("PTA_SITE_NAME"), Public: true},
-		{Key: "SITE_THEME", Value: getEnvWithDefault("PTA_SITE_THEME", "default"), Public: true},
 		{Key: "REGISTRATION_ENABLED", Value: getEnvWithDefault("PTA_REGISTRATION_ENABLED", "false"), Public: true},
 		{Key: "CTF_START_TIME", Value: getEnvWithDefault("PTA_CTF_START_TIME", ""), Public: true},
 		{Key: "CTF_END_TIME", Value: getEnvWithDefault("PTA_CTF_END_TIME", ""), Public: true},

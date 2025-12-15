@@ -17,7 +17,6 @@ import type { User } from "@/models/User";
 import { useChallengeFilters } from "@/hooks/useChallengeFilters";
 import { useChallengeWebSocket } from "@/hooks/useChallengeWebSocket";
 import { useChallengeActions } from "@/hooks/useChallengeActions";
-import { useTheme, useThemeId } from "@/hooks/useTheme";
 
 const ChallengeDetailModal = lazy(() => import('./ChallengeDetailModal'));
 import ChallengeTable from './ChallengeTable';
@@ -36,14 +35,9 @@ interface CategoryContentProps {
 
 const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, ctfLoading, initialCategory, loading: externalLoading }: CategoryContentProps) => {
   const { t } = useLanguage();
-  const { getSiteName, siteConfig } = useSiteConfig();
+  const { getSiteName } = useSiteConfig();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [instanceDetails, setInstanceDetails] = useState<{[key: number]: any}>({});
-  
-  // Theme system integration - get site theme from config
-  const siteTheme = siteConfig?.SITE_THEME || 'default';
-  const themeId = useThemeId(siteTheme);
-  const { theme, loading: themeLoading } = useTheme(themeId);
   
   // Instance management hooks
   const { loading: instanceLoading, startInstance, stopInstance, killInstance, getInstanceStatus: fetchInstanceStatus } = useInstances();

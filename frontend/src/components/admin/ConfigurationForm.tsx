@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DateTimePicker } from "@/components/ui/date-picker";
 import { useLanguage } from "@/context/LanguageContext";
 import { ConfigFormData } from "@/models/Config";
-import { ThemeSelectorField } from "./ThemeSelectorField";
 
 interface ConfigurationFormProps {
   isEdit?: boolean;
@@ -85,13 +84,7 @@ export default function ConfigurationForm({
 
       <div className="space-y-2">
         <Label htmlFor="value">{t("value")}</Label>
-        {formData.key === "SITE_THEME" ? (
-          <ThemeSelectorField
-            value={formData.value}
-            onChange={(value) => handleInputChange("value", value)}
-            error={errors.value}
-          />
-        ) : formData.key === "REGISTRATION_ENABLED" ? (
+        {formData.key === "REGISTRATION_ENABLED" ? (
           <Select
             value={formData.value}
             onValueChange={(value) => handleInputChange("value", value)}
