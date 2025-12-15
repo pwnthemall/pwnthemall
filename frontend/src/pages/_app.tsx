@@ -77,6 +77,8 @@ function MyApp({ Component, pageProps, sidebarDefaultOpen }: MyAppProps) {
     }
   }, [windowWidth, router])
 
+  // Theme naming convention: these values are applied as CSS class names to <html>
+  // CSS selectors in globals.css must match exactly (e.g., theme "cyberpunk" requires CSS class ".cyberpunk")
   const themes = [
     'light',
     'dark',
