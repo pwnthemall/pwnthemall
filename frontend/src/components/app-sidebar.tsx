@@ -119,7 +119,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             { title: t('challenge_order_management'), url: "/admin/challenge-order" },
             { title: t('configuration'), url: "/admin/configuration" },
             { title: 'Notifications', url: "/admin/notifications" },
-            { title: 'Theme Builder', url: "/admin/theme-builder" },
           ],
           isActive:
             router.pathname === "/admin/dashboard" ||
@@ -130,8 +129,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             router.pathname === "/admin/challenges" ||
             router.pathname === "/admin/challenge-order" ||
             router.pathname === "/admin/configuration" ||
-            router.pathname === "/admin/notifications" ||
-            router.pathname === "/admin/theme-builder",
+            router.pathname === "/admin/notifications",
         });
       }
     } else {

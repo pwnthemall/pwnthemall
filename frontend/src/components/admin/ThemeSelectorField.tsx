@@ -112,11 +112,6 @@ export function ThemeSelectorField({ value, onChange, error }: ThemeSelectorFiel
         </div>
       )}
       {error && <p className="text-sm text-red-500">{error}</p>}
-      <Alert>
-        <AlertDescription className="text-xs">
-          {t("theme_help") || "This theme will be applied site-wide. Changes will take effect after page reload."}
-        </AlertDescription>
-      </Alert>
     </div>
   );
 }

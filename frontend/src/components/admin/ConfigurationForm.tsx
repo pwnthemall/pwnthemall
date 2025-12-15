@@ -67,74 +67,19 @@ export default function ConfigurationForm({
     }
   };
 
-  // Predefined config keys for easy selection
-  const PREDEFINED_KEYS = [
-    { value: "SITE_THEME", label: "Site Theme", description: "Choose the visual theme for your CTF platform" },
-    { value: "SITE_NAME", label: "Site Name", description: "Name of your CTF platform" },
-    { value: "REGISTRATION_ENABLED", label: "Registration Enabled", description: "Allow new user registrations" },
-    { value: "CTF_START_TIME", label: "CTF Start Time", description: "When the competition starts" },
-    { value: "CTF_END_TIME", label: "CTF End Time", description: "When the competition ends" },
-    { value: "CUSTOM", label: "Custom Key", description: "Enter a custom configuration key" },
-  ];
-
   return (
     <form onSubmit={handleSubmit} className="space-y-4 mt-4">
       <div className="space-y-2">
         <Label htmlFor="key">{t("key")}</Label>
-        {isEdit ? (
-          <Input
-            id="key"
-            type="text"
-            value={formData.key}
-            disabled={true}
-            className="bg-muted"
-          />
-        ) : (
-          <>
-            <Select
-              value={PREDEFINED_KEYS.find(k => k.value === formData.key) ? formData.key : "CUSTOM"}
-              onValueChange={(value) => {
-                if (value === "CUSTOM") {
-                  handleInputChange("key", "");
-                } else {
-                  handleInputChange("key", value);
-                  // Auto-set defaults for certain keys
-                  if (value === "SITE_THEME" && !formData.value) {
-                    handleInputChange("value", "default");
-                    handleInputChange("public", true);
-                  } else if (value === "REGISTRATION_ENABLED" && !formData.value) {
-                    handleInputChange("value", "true");
-                    handleInputChange("public", true);
-                  }
-                }
-              }}
-            >
-              <SelectTrigger className={errors.key ? "border-red-500" : ""}>
-                <SelectValue placeholder={t("select_config_key") || "Select a configuration key"} />
-              </SelectTrigger>
-              <SelectContent>
-                {PREDEFINED_KEYS.map((key) => (
-                  <SelectItem key={key.value} value={key.value}>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{key.label}</span>
-                      <span className="text-xs text-muted-foreground">{key.description}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {(!PREDEFINED_KEYS.find(k => k.value === formData.key) && formData.key !== "") && (
-              <Input
-                id="custom-key"
-                type="text"
-                value={formData.key}
-                onChange={(e) => handleInputChange("key", e.target.value)}
-                className={errors.key ? "border-red-500" : ""}
-                placeholder={t("enter_custom_key") || "Enter custom key"}
-              />
-            )}
-          </>
-        )}
+        <Input
+          id="key"
+          type="text"
+          value={formData.key}
+          onChange={(e) => handleInputChange("key", e.target.value)}
+          disabled={isEdit}
+          className={errors.key ? "border-red-500" : ""}
+          placeholder={t("enter_key") || "Enter configuration key"}
+        />
         {errors.key && <p className="text-sm text-red-500">{errors.key}</p>}
       </div>
 

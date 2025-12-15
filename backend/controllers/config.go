@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/copier"
 	"github.com/pwnthemall/pwnthemall/backend/config"
@@ -158,6 +159,9 @@ func GetCTFStatus(c *gin.Context) {
 
 // GetPublicConfigs returns only public configurations
 func GetPublicConfigs(c *gin.Context) {
+	// Ensure SITE_THEME exists
+	config.EnsureSiteTheme()
+
 	var configs []models.Config
 	result := config.DB.Where("public = ?", true).Find(&configs)
 	if result.Error != nil {
