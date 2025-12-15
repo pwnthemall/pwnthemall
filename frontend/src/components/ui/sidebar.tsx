@@ -257,7 +257,7 @@ export const Sidebar = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "relative flex flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border",
+        "relative flex flex-col bg-sidebar text-sidebar-foreground",
         // Only apply transitions when not resizing (will be controlled by JS)
         "transition-all duration-300 ease-in-out",
         className
@@ -290,7 +290,7 @@ export const SidebarHeader = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "flex flex-col gap-2 p-2 border-b border-sidebar-border",
+        "flex flex-col gap-2 p-2",
         !open && "items-center",
         className
       )}

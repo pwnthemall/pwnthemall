@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSiteConfig } from "@/context/SiteConfigContext";
 import { CTFStatus } from "@/hooks/use-ctf-status";
 import { Challenge, Solve } from "@/models/Challenge";
-import { BadgeCheck, Trophy, Play, Square, Settings, Clock, Star, Lock } from "lucide-react";
+import { BadgeCheck, Trophy, Play, Square, Settings, Clock, Star, Lock, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import ConnectionInfo from "@/components/ConnectionInfo";
 import axios from "@/lib/axios";
 import { toast } from "sonner";
@@ -24,7 +24,25 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 import GeoPicker from "./GeoPicker";
 import ChallengeImage from "@/components/ChallengeImage";
 import { useInstances } from "@/hooks/use-instances";
@@ -43,9 +61,11 @@ interface CategoryContentProps {
   onChallengeUpdate?: () => void;
   ctfStatus: CTFStatus;
   ctfLoading: boolean;
+  initialCategory?: string;
+  loading?: boolean;
 }
 
-const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, ctfLoading }: CategoryContentProps) => {
+const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, ctfLoading, initialCategory, loading: externalLoading }: CategoryContentProps) => {
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
   const [flag, setFlag] = useState("");
   const [loading, setLoading] = useState(false);
@@ -58,7 +78,27 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
   const [instanceDetails, setInstanceDetails] = useState<{[key: number]: any}>({});
   const [connectionInfo, setConnectionInfo] = useState<{[key: number]: string[]}>({});
   const [instanceOwner, setInstanceOwner] = useState<{[key: number]: { userId: number; username?: string } }>({});
+
+  const [query, setQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string[]>(initialCategory ? [initialCategory] : []);
+  const [solveFilter, setSolveFilter] = useState<'all' | 'solved' | 'unsolved'>('all');
+  const [sortBy, setSortBy] = useState<'category' | 'name' | 'difficulty' | 'points' | 'solves' | 'status'>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
+  useEffect(() => {
+    if (!initialCategory) return;
+    setCategoryFilter([initialCategory]);
+  }, [initialCategory]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  const handleSort = (column: typeof sortBy) => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(column);
+      setSortOrder('asc');
+    }
+  };
   const { getSiteName } = useSiteConfig();
   const { loading: instanceLoading, startInstance, stopInstance, killInstance, getInstanceStatus: fetchInstanceStatus } = useInstances();
   const { teamScore, loading: hintsLoading, purchaseHint, refreshTeamScore } = useHints();
@@ -420,138 +460,462 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
   };
   
   const { t } = useLanguage();
-  
-  // Safety check for challenges
-  if (!challenges || challenges.length === 0) {
-    return (
-      <>
-        <Head>
-          <title>{getSiteName()} - {cat}</title>
-        </Head>
-        <main className="bg-muted flex flex-col items-center justify-center min-h-screen px-6 py-10 text-center">
-          <h1 className="text-3xl font-bold mb-6 dark:text-cyan-400">
-            {cat}
-          </h1>
-          <p className="text-muted-foreground">{t('no_challenges_available') || 'No challenges available'}</p>
-        </main>
-      </>
-    );
-  }
-  
+
+  const categories = useMemo(() => {
+    const names = (challenges || [])
+      .map((c) => c.challengeCategory?.name)
+      .filter((name): name is string => typeof name === "string" && name.trim().length > 0);
+    return Array.from(new Set(names)).sort((a, b) => a.localeCompare(b));
+  }, [challenges]);
+
+  const filteredChallenges = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    return (challenges || []).filter((challenge) => {
+      // Category filter: if any categories selected, challenge must match one of them
+      if (categoryFilter.length > 0 && !categoryFilter.includes(challenge.challengeCategory?.name || '')) {
+        return false;
+      }
+      // Solve filter
+      if (solveFilter === 'solved' && !challenge.solved) {
+        return false;
+      }
+      if (solveFilter === 'unsolved' && challenge.solved) {
+        return false;
+      }
+      if (!normalizedQuery) return true;
+
+      const haystack = [
+        challenge.name,
+        challenge.description,
+        challenge.author,
+        challenge.challengeCategory?.name,
+        challenge.challengeDifficulty?.name,
+        challenge.challengeType?.name,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(normalizedQuery);
+    }).sort((a, b) => {
+      let aValue: any, bValue: any;
+
+      switch (sortBy) {
+        case 'category':
+          aValue = a.challengeCategory?.name || '';
+          bValue = b.challengeCategory?.name || '';
+          break;
+        case 'name':
+          aValue = a.name || '';
+          bValue = b.name || '';
+          break;
+        case 'difficulty':
+          aValue = a.challengeDifficulty?.name || '';
+          bValue = b.challengeDifficulty?.name || '';
+          break;
+        case 'points':
+          aValue = typeof a.currentPoints === 'number' ? a.currentPoints : (typeof a.points === 'number' ? a.points : 0);
+          bValue = typeof b.currentPoints === 'number' ? b.currentPoints : (typeof b.points === 'number' ? b.points : 0);
+          break;
+        case 'solves':
+          aValue = typeof a.solveCount === 'number' ? a.solveCount : 0;
+          bValue = typeof b.solveCount === 'number' ? b.solveCount : 0;
+          break;
+        case 'status':
+          aValue = a.solved ? 2 : (a.locked ? 0 : 1);
+          bValue = b.solved ? 2 : (b.locked ? 0 : 1);
+          break;
+        default:
+          return 0;
+      }
+
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        const comparison = aValue.localeCompare(bValue, 'en', { sensitivity: 'base' });
+        return sortOrder === 'asc' ? comparison : -comparison;
+      } else {
+        const comparison = aValue - bValue;
+        return sortOrder === 'asc' ? comparison : -comparison;
+      }
+    });
+  }, [challenges, categoryFilter, query, solveFilter, sortBy, sortOrder]);
+
+  const getPoints = (challenge: Challenge) => {
+    if (typeof challenge.currentPoints === "number") return challenge.currentPoints;
+    if (typeof challenge.points === "number") return challenge.points;
+    return null;
+  };
+
+  const mostSolvedChallenges = useMemo(() => {
+    return [...challenges]
+      .sort((a, b) => {
+        const solveCountA = typeof a.solveCount === 'number' ? a.solveCount : 0;
+        const solveCountB = typeof b.solveCount === 'number' ? b.solveCount : 0;
+        return solveCountB - solveCountA;
+      })
+      .slice(0, 3);
+  }, [challenges]);
+
   return (
     <>
       <Head>
         <title>{getSiteName()} - {cat}</title>
       </Head>
 
-      <main className="bg-muted flex flex-col items-center justify-start min-h-screen px-6 py-10 text-center">
-        <h1 className="text-3xl font-bold mb-6 dark:text-cyan-400">
-          {cat}
-        </h1>
+      <main className="flex min-h-screen flex-col items-center justify-start px-4 py-10">
+        <div className="w-full max-w-screen-2xl">
+          {/* Page Header */}
+          <div className="mb-8">
+            <h1 className="text-2xl font-semibold tracking-tight">{cat}</h1>
+            <p className="text-sm text-muted-foreground">
+              {t("browse_challenges") !== "browse_challenges" ? t("browse_challenges") : "Browse, search, and solve challenges"}
+            </p>
+          </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 w-full max-w-7xl">
-          {(challenges || []).map((challenge) => (
-            <Card
-              key={challenge.id}
-              onClick={() => !challenge.locked && handleChallengeSelect(challenge)}
-              className={`hover:shadow-lg transition-shadow duration-200 relative overflow-hidden flex flex-col ${
-                challenge.locked 
-                  ? 'opacity-60 cursor-not-allowed' 
-                  : challenge.solved 
-                    ? 'bg-green-100 dark:bg-green-900 border-green-200 dark:border-green-700 cursor-pointer' 
-                    : 'cursor-pointer'
-              }`}
-            >
-              {/* Cover Image or Emoji Placeholder - Fixed height zone */}
-              <div className="h-48 flex-shrink-0 relative">
-                {challenge.coverImg && challenge.id ? (
-                  <ChallengeImage 
-                    challengeId={challenge.id} 
-                    alt={challenge.name || 'Challenge cover'}
-                    className="h-full w-full object-cover rounded-t-lg"
-                    positionX={challenge.coverPositionX}
-                    positionY={challenge.coverPositionY}
-                    zoom={challenge.coverZoom}
-                  />
-                ) : (
-                  <div className="h-full w-full rounded-t-lg flex items-center justify-center bg-muted/50">
-                    <span className="text-7xl opacity-30 select-none" aria-hidden="true">
-                      {challenge.emoji || '🎯'}
-                    </span>
-                  </div>
-                )}
-                
-                {/* Locked indicator */}
-                {challenge.locked && (
-                  <div className="absolute z-10 top-2 left-2">
-                    <Lock className="w-6 h-6 text-white drop-shadow-lg" />
-                  </div>
-                )}
-                
-                {/* Solved check */}
-                {challenge.solved && !challenge.locked && (
-                  <div className="absolute top-2 left-2">
-                    <BadgeCheck className="w-6 h-6 text-green-400 drop-shadow-lg" />
-                  </div>
-                )}
-
-                {/* Points badge at top-right */}
-                {(typeof challenge.currentPoints === 'number' || typeof challenge.points === 'number') && (
-                  <div className="absolute z-10 pointer-events-none select-none top-2 right-2">
-                    <div className="flex items-center gap-1 rounded-full border bg-muted/90 backdrop-blur-sm px-2 py-0.5 shadow-sm">
-                      <Star className="w-5 h-5" />
-                      <span className="text-sm font-semibold leading-none">
-                        {typeof challenge.currentPoints === 'number' ? challenge.currentPoints : challenge.points}
-                      </span>
-                      <span className="text-xs text-muted-foreground uppercase tracking-wide leading-none">{t('points') || 'Points'}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Content zone */}
-              <div className="flex flex-col p-4 pb-5">
-                <CardTitle className={`text-xl font-bold mb-3 text-center ${
-                  challenge.solved 
-                    ? 'text-green-700 dark:text-green-200' 
-                    : 'dark:text-cyan-300'
-                }`}>
-                  {challenge.name || 'Unnamed Challenge'}
-                </CardTitle>
-                
-                {/* Tags */}
-                <div className="flex flex-wrap gap-2">
-                  <Badge
-                    variant="secondary"
-                    className="text-xs bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-400 dark:border-gray-500 pointer-events-none select-none"
+          {/* Most Solved Section */}
+          {!externalLoading && mostSolvedChallenges.length > 0 && (
+            <section className="mb-8">
+              <h2 className="text-xl font-semibold mb-4">
+                {t("most_solved") !== "most_solved" ? t("most_solved") : "Most Solved"}
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {mostSolvedChallenges.map((challenge) => (
+                  <Card
+                    key={challenge.id}
+                    onClick={() => !challenge.locked && handleChallengeSelect(challenge)}
+                    className={`cursor-pointer overflow-hidden transition-all hover:shadow-lg group relative ${
+                      challenge.locked ? 'opacity-60 cursor-not-allowed' : ''
+                    } ${
+                      challenge.solved ? 'ring-2 ring-green-500' : ''
+                    }`}
                   >
-                    {challenge.challengeDifficulty?.name || 'Unknown Difficulty'}
-                  </Badge>
-                  {isInstanceChallenge(challenge) && (
-                    <Badge 
-                      variant="secondary" 
-                      className={`text-xs ${
-                        getLocalInstanceStatus(challenge.id) === 'running' 
-                          ? 'bg-green-300 dark:bg-green-700 text-green-900 dark:text-green-100 border border-green-500 dark:border-green-400' 
-                          : getLocalInstanceStatus(challenge.id) === 'building'
-                          ? 'bg-orange-300 dark:bg-orange-700 text-orange-900 dark:text-orange-100 border border-orange-500 dark:border-orange-400'
-                          : getLocalInstanceStatus(challenge.id) === 'stopping'
-                          ? 'bg-orange-300 dark:bg-orange-700 text-orange-900 dark:text-orange-100 border border-orange-500 dark:border-orange-400'
-                          : getLocalInstanceStatus(challenge.id) === 'expired'
-                          ? 'bg-red-300 dark:bg-red-700 text-red-900 dark:text-red-100 border border-red-500 dark:border-red-400'
-                          : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-400 dark:border-gray-500'
-                      } pointer-events-none select-none`}
-                    >
-                      {getLocalInstanceStatus(challenge.id) === 'running' ? t('running') : 
-                       getLocalInstanceStatus(challenge.id) === 'building' ? t('building') : 
-                       getLocalInstanceStatus(challenge.id) === 'stopping' ? t('stopping') : 
-                       getLocalInstanceStatus(challenge.id) === 'expired' ? t('expired') : t('stopped')}
-                    </Badge>
-                  )}
-                </div>
+                    <div className="relative w-full aspect-[16/9] overflow-hidden">
+                      {challenge.coverImg && challenge.id ? (
+                        <>
+                          <div className="absolute inset-0">
+                            <ChallengeImage
+                              challengeId={challenge.id}
+                              alt={challenge.name || 'Challenge cover'}
+                              className="transition-transform group-hover:scale-105"
+                              positionX={challenge.coverPositionX}
+                              positionY={challenge.coverPositionY}
+                              zoom={challenge.coverZoom}
+                            />
+                          </div>
+                          {/* Gradient overlay for better text readability */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent pointer-events-none" />
+                        </>
+                      ) : (
+                        <>
+                          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
+                            <span className="text-8xl opacity-20">{challenge.emoji || '🎯'}</span>
+                          </div>
+                          {/* Gradient overlay for better text readability */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent pointer-events-none" />
+                        </>
+                      )}
+                      
+                      {/* Status badges */}
+                      <div className="absolute top-3 right-3 flex gap-2">
+                        {challenge.locked && (
+                          <div className="bg-black/60 backdrop-blur-sm rounded-full p-2">
+                            <Lock className="w-4 h-4 text-white" />
+                          </div>
+                        )}
+                        {challenge.solved && !challenge.locked && (
+                          <div className="bg-green-500/90 backdrop-blur-sm rounded-full p-2">
+                            <BadgeCheck className="w-4 h-4 text-white" />
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Content overlay at bottom */}
+                      <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                        <div className="mb-2">
+                          <Badge variant="secondary" className="text-xs bg-white/20 backdrop-blur-sm text-white border-white/30">
+                            {challenge.challengeCategory?.name || 'Uncategorized'}
+                          </Badge>
+                        </div>
+                        <h3 className="text-lg font-semibold line-clamp-2 drop-shadow-lg">
+                          {challenge.name}
+                        </h3>
+                        <p className="text-sm text-white/80 mt-1">
+                          {typeof challenge.solveCount === 'number' ? challenge.solveCount : 0} {t("solves") !== "solves" ? t("solves").toLowerCase() : "solves"}
+                        </p>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
               </div>
-            </Card>
-          ))}
+            </section>
+          )}
+
+          {/* Browse Section */}
+          <section>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+              <h2 className="text-xl font-semibold">
+                {t("browse") !== "browse" ? t("browse") : "Browse"}
+              </h2>
+              <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+                <Input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={t("search") !== "search" ? t("search") : "Search"}
+                  className="w-full sm:w-64"
+                />
+
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full sm:w-48 justify-start text-left font-normal"
+                    >
+                      {categoryFilter.length === 0
+                        ? (t("all_categories") !== "all_categories" ? t("all_categories") : "All categories")
+                        : categoryFilter.length === 1
+                        ? categoryFilter[0]
+                        : `${categoryFilter.length} ${t("categories") !== "categories" ? t("categories") : "categories"}`}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-56 p-3" align="start">
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="all-categories"
+                          checked={categoryFilter.length === 0}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setCategoryFilter([]);
+                            }
+                          }}
+                        />
+                        <label
+                          htmlFor="all-categories"
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                        >
+                          {t("all_categories") !== "all_categories" ? t("all_categories") : "All categories"}
+                        </label>
+                      </div>
+                      <div className="border-t pt-2 space-y-2">
+                        {categories.map((name) => (
+                          <div key={name} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`category-${name}`}
+                              checked={categoryFilter.includes(name)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setCategoryFilter([...categoryFilter, name]);
+                                } else {
+                                  setCategoryFilter(categoryFilter.filter(c => c !== name));
+                                }
+                              }}
+                            />
+                            <label
+                              htmlFor={`category-${name}`}
+                              className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                            >
+                              {name}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+
+                <Button
+                  type="button"
+                  variant={solveFilter !== 'all' ? "default" : "outline"}
+                  onClick={() => {
+                    setSolveFilter(current => {
+                      if (current === 'all') return 'solved';
+                      if (current === 'solved') return 'unsolved';
+                      return 'all';
+                    });
+                  }}
+                >
+                  {solveFilter === 'all' 
+                    ? (t("all") !== "all" ? t("all") : "All")
+                    : solveFilter === 'solved'
+                    ? (t("solved_only") !== "solved_only" ? t("solved_only") : "Solved only")
+                    : (t("unsolved_only") !== "unsolved_only" ? t("unsolved_only") : "Unsolved only")}
+                </Button>
+              </div>
+            </div>
+
+            <div className="rounded-lg border bg-card">
+            <div className="max-h-[70vh] overflow-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => handleSort('category')}
+                    >
+                      <div className="flex items-center gap-2">
+                        {t("category") !== "category" ? t("category") : "Category"}
+                        {sortBy === 'category' ? (
+                          sortOrder === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />
+                        ) : (
+                          <ArrowUpDown className="h-4 w-4 opacity-50" />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => handleSort('name')}
+                    >
+                      <div className="flex items-center gap-2">
+                        {t("challenge") !== "challenge" ? t("challenge") : "Challenge"}
+                        {sortBy === 'name' ? (
+                          sortOrder === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />
+                        ) : (
+                          <ArrowUpDown className="h-4 w-4 opacity-50" />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => handleSort('difficulty')}
+                    >
+                      <div className="flex items-center gap-2">
+                        {t("difficulty") !== "difficulty" ? t("difficulty") : "Difficulty"}
+                        {sortBy === 'difficulty' ? (
+                          sortOrder === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />
+                        ) : (
+                          <ArrowUpDown className="h-4 w-4 opacity-50" />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => handleSort('points')}
+                    >
+                      <div className="flex items-center gap-2">
+                        {t("points") !== "points" ? t("points") : "Points"}
+                        {sortBy === 'points' ? (
+                          sortOrder === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />
+                        ) : (
+                          <ArrowUpDown className="h-4 w-4 opacity-50" />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => handleSort('solves')}
+                    >
+                      <div className="flex items-center gap-2">
+                        {t("solves") !== "solves" ? t("solves") : "Solves"}
+                        {sortBy === 'solves' ? (
+                          sortOrder === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />
+                        ) : (
+                          <ArrowUpDown className="h-4 w-4 opacity-50" />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => handleSort('status')}
+                    >
+                      <div className="flex items-center gap-2">
+                        {t("status") !== "status" ? t("status") : "Status"}
+                        {sortBy === 'status' ? (
+                          sortOrder === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />
+                        ) : (
+                          <ArrowUpDown className="h-4 w-4 opacity-50" />
+                        )}
+                      </div>
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {externalLoading || challenges.length === 0 ? (
+                    // Skeleton loading state
+                    Array.from({ length: 8 }).map((_, i) => (
+                      <TableRow key={`skeleton-${i}`}>
+                        <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Skeleton className="h-8 w-8 rounded-full" />
+                            <div className="space-y-2">
+                              <Skeleton className="h-4 w-32" />
+                              <Skeleton className="h-3 w-24" />
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-12" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                        <TableCell><Skeleton className="h-6 w-16 rounded-full" /></TableCell>
+                      </TableRow>
+                    ))
+                  ) : filteredChallenges.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
+                        {t("no_challenges_available") !== "no_challenges_available"
+                          ? t("no_challenges_available")
+                          : "No challenges match your filters."}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredChallenges.map((challenge) => {
+                      const points = getPoints(challenge);
+                      const locked = Boolean(challenge.locked);
+                      const solved = Boolean(challenge.solved);
+                      const solveCount = typeof challenge.solveCount === 'number' ? challenge.solveCount : 0;
+
+                      return (
+                        <TableRow
+                          key={challenge.id}
+                          className={locked ? "opacity-60" : "cursor-pointer"}
+                          onClick={() => !locked && handleChallengeSelect(challenge)}
+                          role={!locked ? "button" : undefined}
+                          tabIndex={!locked ? 0 : -1}
+                          onKeyDown={(e) => {
+                            if (locked) return;
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              handleChallengeSelect(challenge);
+                            }
+                          }}
+                        >
+                          <TableCell className="whitespace-nowrap">
+                            {challenge.challengeCategory?.name || ""}
+                          </TableCell>
+                          <TableCell className="min-w-[16rem]">
+                            <div className="flex items-center gap-2">
+                              <span className="text-base">{challenge.emoji || "🎯"}</span>
+                              <div className="min-w-0">
+                                <div className="truncate font-medium">{challenge.name}</div>
+                                <div className="truncate text-xs text-muted-foreground">{challenge.author}</div>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            {challenge.challengeDifficulty?.name || ""}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            {points ?? "—"}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            {solveCount}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            {locked ? (
+                              <Badge variant="secondary">{t("locked") !== "locked" ? t("locked") : "Locked"}</Badge>
+                            ) : solved ? (
+                              <Badge>{t("solved") !== "solved" ? t("solved") : "Solved"}</Badge>
+                            ) : (
+                              <Badge variant="outline">{t("open") !== "open" ? t("open") : "Open"}</Badge>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            </div>
+          </section>
         </div>
 
         <Dialog open={open} onOpenChange={setOpen}>
@@ -1097,6 +1461,6 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
           </main>
         </>
       );
-    };
+};
 
 export default CategoryContent;

@@ -1,28 +1,37 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "@/context/AuthContext";
 import { useSiteConfig } from "@/context/SiteConfigContext";
-import { useLanguage } from "@/context/LanguageContext";
 import { useCTFStatus } from "@/hooks/use-ctf-status";
 import axios from "@/lib/axios";
 import Head from "next/head";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Clock, Users } from "lucide-react";
+import CategoryContent from "@/components/pwn/CategoryContent";
+import type { Challenge } from "@/models/Challenge";
+import { Item, ItemContent, ItemMedia, ItemTitle } from "@/components/ui/item";
+import { Spinner } from "@/components/ui/spinner";
 
 const PwnPage = () => {
   const router = useRouter();
   const { loggedIn, checkAuth, authChecked } = useAuth();
   const { getSiteName } = useSiteConfig();
-  const { t } = useLanguage();
   const { ctfStatus, loading: ctfLoading } = useCTFStatus();
   const [teamChecked, setTeamChecked] = useState(false);
   const [hasTeam, setHasTeam] = useState(false);
   const [role, setRole] = useState<string | null>(null);
 
+  const [challenges, setChallenges] = useState<Challenge[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     checkAuth();
-  }, []);
+  }, [checkAuth]);
+
+  useEffect(() => {
+    if (authChecked && !loggedIn) {
+      router.replace("/login");
+    }
+  }, [authChecked, loggedIn, router]);
 
   useEffect(() => {
     if (authChecked && loggedIn) {
@@ -43,16 +52,62 @@ const PwnPage = () => {
     }
   }, [authChecked, loggedIn, router]);
 
+  const fetchChallenges = useCallback(async () => {
+    if (!authChecked || !loggedIn || (!hasTeam && role !== "admin")) return;
+
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await axios.get<Challenge[]>("/api/challenges");
+      setChallenges(res.data || []);
+    } catch (err: any) {
+      setError(err?.response?.data?.error || "Failed to load challenges");
+      setChallenges([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [authChecked, loggedIn, hasTeam, role]);
+
+  useEffect(() => {
+    fetchChallenges();
+  }, [fetchChallenges]);
+
+  // Real-time: update solve status in list
+  useEffect(() => {
+    const handler = (e: any) => {
+      try {
+        const data = e?.detail ?? (typeof e?.data === "string" ? JSON.parse(e.data) : e?.data);
+        if (!data || data.event !== "team_solve") return;
+
+        let foundInList = false;
+        setChallenges((prev) => {
+          const exists = prev.some((c) => c.id === data.challengeId);
+          if (!exists) return prev;
+          foundInList = true;
+          return prev.map((c) => (c.id === data.challengeId ? { ...c, solved: true } : c));
+        });
+
+        if (foundInList) {
+          fetchChallenges();
+        }
+      } catch {
+        // ignore
+      }
+    };
+
+    window.addEventListener?.("team-solve", handler as EventListener);
+    return () => {
+      window.removeEventListener?.("team-solve", handler as EventListener);
+    };
+  }, [fetchChallenges]);
+
+  const initialCategory = useMemo(() => {
+    const raw = router.query.category;
+    return typeof raw === "string" && raw.trim() ? raw.trim() : undefined;
+  }, [router.query.category]);
+
   if (!authChecked || !loggedIn || !teamChecked) return null;
   if (!hasTeam && role !== "admin") return null;
-
-  const formatDateTime = (isoString: string) => {
-    try {
-      return new Date(isoString).toLocaleString();
-    } catch {
-      return isoString;
-    }
-  };
 
   // Redirect to main page only when CTF hasn't started
   if (!ctfLoading && ctfStatus.status === 'not_started') {
@@ -65,11 +120,31 @@ const PwnPage = () => {
       <Head>
         <title>{getSiteName()}</title>
       </Head>
-    <main className="bg-muted flex flex-col items-center justify-center min-h-screen px-6 text-center">
-      <h1 className="text-3xl font-bold mb-4 dark:text-cyan-400">
-          {t('choose_a_category')}
-      </h1>
-    </main>
+      {loading ? (
+        <CategoryContent
+          cat="Challenges"
+          challenges={[]}
+          onChallengeUpdate={fetchChallenges}
+          ctfStatus={ctfStatus}
+          ctfLoading={ctfLoading}
+          initialCategory={initialCategory}
+          loading={true}
+        />
+      ) : error ? (
+        <main className="flex min-h-screen items-center justify-center px-6">
+          <p className="text-sm text-destructive">{error}</p>
+        </main>
+      ) : (
+        <CategoryContent
+          cat="Challenges"
+          challenges={challenges}
+          onChallengeUpdate={fetchChallenges}
+          ctfStatus={ctfStatus}
+          ctfLoading={ctfLoading}
+          initialCategory={initialCategory}
+          loading={false}
+        />
+      )}
     </>
   );
 };

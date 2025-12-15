@@ -20,9 +20,6 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSiteConfig } from "@/context/SiteConfigContext";
-
-import { useChallengeCategories } from "@/hooks/use-challenge-categories";
-import { useDraggableCategories } from "@/hooks/use-draggable-categories";
 import { useCTFStatus } from "@/hooks/use-ctf-status";
 import type { NavItem } from "@/models/NavItem";
 
@@ -32,7 +29,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { getSiteName, siteConfig } = useSiteConfig();
   const router = useRouter();
   const { isMobile } = useSidebar();
-  const { categories, loading, reorderCategories } = useDraggableCategories(loggedIn);
   const { ctfStatus, loading: ctfLoading } = useCTFStatus();
 
   const [userData, setUserData] = React.useState({
@@ -88,26 +84,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     const shouldShowPwn = ctfLoading || ctfStatus.status !== 'not_started';
     
     if (loggedIn && shouldShowPwn) {
-    let pwnSubItems;
-    if (loading) {
-      pwnSubItems = [{ title: t('loading'), url: "#" }];
-    } else if (categories.length === 0) {
-      pwnSubItems = [{ title: t('no_categories'), url: "#" }];
-    } else {
-      pwnSubItems = categories.map((cat) => ({
-        title: cat.name,
-        url: `/pwn/${cat.name}`,
-      }));
-    }
-      
       items.push({
         title: t('pwn'),
         url: "/pwn",
         icon: Swords,
         isActive: router.pathname.startsWith("/pwn"),
-        items: pwnSubItems,
-        draggableItems: loading ? undefined : categories,
-        onReorderItems: reorderCategories,
       });
     }
     
@@ -170,7 +151,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       }
     }
     return items;
-  }, [authChecked, loggedIn, router.pathname, userData.role, categories, loading, reorderCategories, t, siteConfig.REGISTRATION_ENABLED, ctfLoading, ctfStatus.status]);
+  }, [authChecked, loggedIn, router.pathname, userData.role, t, siteConfig.REGISTRATION_ENABLED, ctfLoading, ctfStatus.status]);
 
   return (
     <Sidebar
