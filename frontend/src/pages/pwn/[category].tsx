@@ -10,6 +10,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock } from "lucide-react";
 import Head from "next/head";
 import axios from "@/lib/axios";
+import {
+  Item,
+  ItemContent,
+  ItemMedia,
+  ItemTitle,
+} from "@/components/ui/item"
+import { Spinner } from "@/components/ui/spinner"
 
 export default function CategoryPage() {
   const router = useRouter();
@@ -121,7 +128,20 @@ export default function CategoryPage() {
     return <div>Invalid category</div>;
   }
   if (loading) {
-    return <div>Loading challenges...</div>;
+    return (
+    <div className="flex w-full min-h-screen items-center justify-center">
+      <div className="w-full max-w-xs flex flex-col gap-4 [--radius:1rem]">
+        <Item variant="muted" className="flex items-center">
+          <ItemMedia>
+            <Spinner />
+          </ItemMedia>
+          <ItemContent>
+            <ItemTitle className="line-clamp-1">Loading challenges</ItemTitle>
+          </ItemContent>
+        </Item>
+      </div>
+    </div>
+    );
   }
   if (error) {
     return <div>Error: {error}</div>;
