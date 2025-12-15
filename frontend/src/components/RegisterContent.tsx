@@ -48,74 +48,72 @@ const RegisterContent: React.FC<RegisterContentProps> = ({
     };
 
     return (
-        <div className="bg-muted flex min-h-screen flex-col items-center justify-center px-4 py-8">
-            <div className="w-full max-w-sm">
-                <Card>
-                    <CardHeader className="text-center">
-                        <CardTitle className="text-xl">{t('sign_up')}</CardTitle>
-                        <CardDescription>{t('create_account')}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <form onSubmit={onSubmit} className="grid gap-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="username">{t('username')}</Label>
-                                <Input
-                                    type="text"
-                                    name="username"
-                                    placeholder={t('username')}
-                                    value={form.username}
-                                    onChange={handleChange}
-                                    required
-                                    maxLength={32}
-                                />
-                                {errors.username && <span className="text-red-500 text-xs">{errors.username}</span>}
+        <div className="w-full max-w-sm px-4"> {/* removed min-h-screen; parent controls fullscreen/scroll */}
+            <Card>
+                <CardHeader className="text-center">
+                    <CardTitle className="text-xl">{t('sign_up')}</CardTitle>
+                    <CardDescription></CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={onSubmit} className="grid gap-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="username">{t('username')}</Label>
+                            <Input
+                                type="text"
+                                name="username"
+                                placeholder={t('username')}
+                                value={form.username}
+                                onChange={handleChange}
+                                required
+                                maxLength={32}
+                            />
+                            {errors.username && <span className="text-red-500 text-xs">{errors.username}</span>}
 
-                                <Label htmlFor="email">{t('email')}</Label>
-                                <Input
-                                    type="email"
-                                    name="email"
-                                    placeholder={t('email')}
-                                    value={form.email}
-                                    onChange={handleChange}
-                                    required
-                                    maxLength={254}
-                                />
-                                {errors.email && <span className="text-red-500 text-xs">{errors.email}</span>}
+                            <Label htmlFor="email">{t('email')}</Label>
+                            <Input
+                                type="email"
+                                name="email"
+                                placeholder={t('email')}
+                                value={form.email}
+                                onChange={handleChange}
+                                required
+                                maxLength={254}
+                            />
+                            {errors.email && <span className="text-red-500 text-xs">{errors.email}</span>}
+                        </div>
+                        <div className="grid gap-2">
+                            <div className="flex items-center">
+                                <Label htmlFor="password">{t('password')}</Label>
                             </div>
-                            <div className="grid gap-2">
-                                <div className="flex items-center">
-                                    <Label htmlFor="password">{t('password')}</Label>
-                                </div>
-                                <Input
-                                    id="password"
-                                    name="password"
-                                    type="password"
-                                    placeholder={t('password_min_8')}
-                                    minLength={8}
-                                    value={form.password}
-                                    onChange={handleChange}
-                                    required
-                                    maxLength={72}
-                                />
-                                {errors.password && <span className="text-red-500 text-xs">{errors.password}</span>}
-                            </div>
-                            <Button
-                                type="submit"
-                                disabled={loading}
-                                className="w-full"
-                            >
-                                {loading ? t('loading') : t('register')}
-                            </Button>
-                            <p className="text-center text-sm text-muted-foreground">
-                                {t('already_have_account')}{" "}
-                                <Link href="/login" className="underline underline-offset-4">
-                                    {t('sign_in')}
-                                </Link>
-                            </p>
-                        </form>
-                    </CardContent>
-                </Card>
-            </div>
+                            <Input
+                                id="password"
+                                name="password"
+                                type="password"
+                                placeholder={t('password_min_8')}
+                                minLength={8}
+                                value={form.password}
+                                onChange={handleChange}
+                                required
+                                maxLength={72}
+                            />
+                            {errors.password && <span className="text-red-500 text-xs">{errors.password}</span>}
+                        </div>
+                        <Button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full"
+                        >
+                            {loading ? t('loading') : t('register')}
+                        </Button>
+                        <p className="text-center text-sm text-muted-foreground">
+                            {t('already_have_account')}{" "}
+                            <Link href="/login" className="underline underline-offset-4">
+                                {t('sign_in')}
+                            </Link>
+                        </p>
+                    </form>
+                </CardContent>
+            </Card>
         </div>
     );
 };

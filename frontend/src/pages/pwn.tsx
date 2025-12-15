@@ -66,7 +66,7 @@ const PwnPage = () => {
         <title>{getSiteName()}</title>
       </Head>
     <main className="bg-muted flex flex-col items-center justify-center min-h-screen px-6 text-center">
-      <h1 className="text-3xl font-bold mb-4 dark:text-cyan-400">
+      <h1 className="text-3xl font-bold mb-4">
           {t('choose_a_category')}
       </h1>
     </main>

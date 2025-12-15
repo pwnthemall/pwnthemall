@@ -10,7 +10,7 @@ import { ThemeProvider } from '@/components/theme-provider'
 import '../styles/globals.css'
 import { CookieConsent } from "@/components/ui/CookieConsent"
 import { useEffect, useState, useRef } from 'react'
-import { Toaster } from "@/components/ui/sonner"
+import { Toaster } from 'sonner'
 import { useRouter } from 'next/router'
 
 
@@ -77,99 +77,52 @@ function MyApp({ Component, pageProps, sidebarDefaultOpen }: MyAppProps) {
     }
   }, [windowWidth, router])
 
-  if (router.pathname === '/mobile-blocked') {
-    return <Component {...pageProps} />
-  }
-
-  // Render without sidebar for live scoreboard pages
-  if (router.pathname.startsWith('/live')) {
-    return (
-      <LanguageProvider>
-        <AuthProvider>
-          <UserProvider>
-            <SiteConfigProvider>
-              <NotificationProvider>
-                <ThemeProvider
-                  attribute="class"
-                  defaultTheme={systemTheme}
-                  enableSystem={false}
-                  value={{
-                    light: "light",
-                    dark: "dark",
-                    latte: "theme-latte",
-                    frappe: "theme-frappe",
-                    macchiato: "theme-macchiato",
-                    mocha: "theme-mocha",
-                    slate: "theme-slate",
-                    rose: "theme-rose",
-                    emerald: "theme-emerald",
-                    cyan: "theme-cyan",
-                    violet: "theme-violet",
-                    orange: "theme-orange",
-                    cyberpunk: "theme-cyberpunk",
-                  }}
-                >
-                  <Component {...pageProps} />
-                  <Toaster
-                    richColors
-                    position="top-right"
-                    closeButton
-                    expand
-                  />
-                </ThemeProvider>
-              </NotificationProvider>
-            </SiteConfigProvider>
-          </UserProvider>
-        </AuthProvider>
-      </LanguageProvider>
-    )
-  }
+  const themes = [
+    'light',
+    'dark',
+    'latte',
+    'macchiato',
+    'mocha',
+    'slate',
+    'emerald',
+    'violet',
+    'orange',
+    'cyberpunk'
+  ]
 
   return (
     <LanguageProvider>
-      <AuthProvider>
-        <UserProvider>
-          <SiteConfigProvider>
+      <SiteConfigProvider>
+        <AuthProvider>
+          <UserProvider>
             <NotificationProvider>
               <ThemeProvider
                 attribute="class"
                 defaultTheme={systemTheme}
-                enableSystem={false}
-                value={{
-                  light: "light",
-                  dark: "dark",
-                  latte: "theme-latte",
-                  frappe: "theme-frappe",
-                  macchiato: "theme-macchiato",
-                  mocha: "theme-mocha",
-                  slate: "theme-slate",
-                  rose: "theme-rose",
-                  emerald: "theme-emerald",
-                  cyan: "theme-cyan",
-                  violet: "theme-violet",
-                  orange: "theme-orange",
-                  cyberpunk: "theme-cyberpunk",
-                }}
+                themes={themes}
+                enableSystem
+                disableTransitionOnChange
               >
-                <SidebarProvider defaultOpen={sidebarDefaultOpen}>
-                  <AppSidebar />
-                  <SidebarInset>
-                    <Component {...pageProps} />
-                    <CookieConsent />
-                  </SidebarInset>
-                </SidebarProvider>
-
-                <Toaster
-                  richColors
-                  position="top-right"
-                  closeButton
-                  expand
-                />
+                <Toaster position="top-right" richColors />
+                {router.pathname === '/mobile-blocked' ? (
+                  <Component {...pageProps} />
+                ) : router.pathname.startsWith('/live') ? (
+                  <Component {...pageProps} />
+                ) : router.pathname === '/login' || router.pathname === '/register' ? (
+                  <Component {...pageProps} />
+                ) : (
+                  <SidebarProvider defaultOpen={sidebarDefaultOpen}>
+                    <AppSidebar />
+                    <SidebarInset>
+                      <Component {...pageProps} />
+                    </SidebarInset>
+                  </SidebarProvider>
+                )}
               </ThemeProvider>
             </NotificationProvider>
-          </SiteConfigProvider>
-        </UserProvider>
-      </AuthProvider>
+          </UserProvider>
+        </AuthProvider>
+      </SiteConfigProvider>
     </LanguageProvider>
   )
 }

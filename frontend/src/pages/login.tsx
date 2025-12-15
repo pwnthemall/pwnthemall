@@ -8,14 +8,23 @@ import { toast } from "sonner";
 import axios from "@/lib/axios";
 import Head from "next/head";
 import { CheckCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 const LoginPage = () => {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, loggedIn, authChecked } = useAuth();
   const { t, language } = useLanguage();
   const { getSiteName } = useSiteConfig();
 
   const [form, setForm] = useState({ username: "", password: "" });
+
+  // Redirect to home if already logged in
+  useEffect(() => {
+    if (authChecked && loggedIn) {
+      router.replace('/');
+    }
+  }, [authChecked, loggedIn, router]);
 
   useEffect(() => {
     if (router.query.success === "register") {
@@ -30,10 +39,6 @@ const LoginPage = () => {
         duration: Infinity,
         className: "bg-red-600 text-white",
       });
-      // Remove banned param from URL
-      const { banned, ...rest } = router.query;
-      const query = new URLSearchParams(rest as Record<string, string>).toString();
-      router.replace(`/login${query ? `?${query}` : ""}`, undefined, { shallow: true });
     }
   }, [router.query, t, router, language]);
 
@@ -59,12 +64,27 @@ const LoginPage = () => {
     }
   };
 
+  // Don't render login form if already logged in
+  if (authChecked && loggedIn) {
+    return null;
+  }
+
   return (
     <>
-      <Head>
-        <title>{getSiteName()}</title>
-      </Head>
-    <LoginContent form={form} onChange={onChange} onSubmit={handleLogin} />
+      <div className="min-h-screen w-screen bg-muted flex items-center justify-center overflow-hidden relative">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="absolute top-4 left-4"
+          aria-label="Back"
+        >
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+        </button>
+
+        <LoginContent form={form} onChange={onChange} onSubmit={handleLogin} />
+      </div>
     </>
   );
 };

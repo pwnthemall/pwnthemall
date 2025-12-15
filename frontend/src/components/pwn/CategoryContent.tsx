@@ -429,7 +429,7 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
           <title>{getSiteName()} - {cat}</title>
         </Head>
         <main className="bg-muted flex flex-col items-center justify-center min-h-screen px-6 py-10 text-center">
-          <h1 className="text-3xl font-bold mb-6 dark:text-cyan-400">
+          <h1 className="text-3xl font-bold mb-6">
             {cat}
           </h1>
           <p className="text-muted-foreground">{t('no_challenges_available') || 'No challenges available'}</p>
@@ -445,7 +445,7 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
       </Head>
 
       <main className="bg-muted flex flex-col items-center justify-start min-h-screen px-6 py-10 text-center">
-        <h1 className="text-3xl font-bold mb-6 dark:text-cyan-400">
+        <h1 className="text-3xl font-bold mb-6">
           {cat}
         </h1>
 
@@ -935,7 +935,7 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
                                     </div>
                                   </div>
                                   <div className="text-right">
-                                    <div className="text-sm font-bold dark:text-cyan-400">
+                                    <div className="text-sm font-bold">
                                       {solve.firstBlood && solve.firstBlood.bonuses.length > 0 ? (
                                         <div className="space-y-1">
                                           <div className="flex items-center justify-end gap-1">

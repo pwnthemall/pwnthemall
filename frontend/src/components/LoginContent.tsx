@@ -31,61 +31,58 @@ export default function LoginContent({
     const { t } = useLanguage();
 
     return (
-        <div className="bg-muted flex min-h-screen flex-col items-center justify-center px-4 py-8">
-            <div className="w-full max-w-sm">
-
-                <Card>
-                    <CardHeader className="text-center">
-                        <CardTitle className="text-xl">{t('welcome_back')}</CardTitle>
-                        <CardDescription>{t('enter_credentials')}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <form onSubmit={onSubmit} className="grid gap-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="username">{t('username_or_email')}</Label>
-                                <Input
-                                    id="username"
-                                    name="username"
-                                    value={form.username}
-                                    onChange={onChange}
-                                    placeholder="you@example.com"
-                                    required
-                                />
+        <div className="w-full max-w-sm px-4"> {/* removed min-h-screen; parent controls fullscreen/scroll */}
+            <Card>
+                <CardHeader className="text-center">
+                    <CardTitle className="text-xl">{t('welcome_back')}</CardTitle>
+                    <CardDescription>{t('enter_credentials')}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={onSubmit} className="grid gap-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="username">{t('username_or_email')}</Label>
+                            <Input
+                                id="username"
+                                name="username"
+                                value={form.username}
+                                onChange={onChange}
+                                placeholder="you@example.com"
+                                required
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <div className="flex items-center">
+                                <Label htmlFor="password" >{t('password')}</Label>
+                                <button
+                                    type="button"
+                                    tabIndex={-1}
+                                    className="ml-auto text-sm underline-offset-4 hover:underline bg-transparent border-0 cursor-pointer p-0"
+                                >
+                                    {t('forgot_password')}
+                                </button>
                             </div>
-                            <div className="grid gap-2">
-                                <div className="flex items-center">
-                                    <Label htmlFor="password" >{t('password')}</Label>
-                                    <button
-                                        type="button"
-                                        tabIndex={-1}
-                                        className="ml-auto text-sm underline-offset-4 hover:underline bg-transparent border-0 cursor-pointer p-0"
-                                    >
-                                        {t('forgot_password')}
-                                    </button>
-                                </div>
-                                <Input
-                                    id="password"
-                                    name="password"
-                                    type="password"
-                                    placeholder="***********"
-                                    value={form.password}
-                                    onChange={onChange}
-                                    required
-                                />
-                            </div>
-                            <Button type="submit" className="w-full">
-                                {t('login')}
-                            </Button>
-                            <p className="text-center text-sm text-muted-foreground">
-                                {t('dont_have_account')}{" "}
-                                <Link href="/register" className="underline underline-offset-4">
-                                    {t('sign_up')}
-                                </Link>
-                            </p>
-                        </form>
-                    </CardContent>
-                </Card>
-            </div>
+                            <Input
+                                id="password"
+                                name="password"
+                                type="password"
+                                placeholder="***********"
+                                value={form.password}
+                                onChange={onChange}
+                                required
+                            />
+                        </div>
+                        <Button type="submit" className="w-full">
+                            {t('login')}
+                        </Button>
+                        <p className="text-center text-sm text-muted-foreground">
+                            {t('dont_have_account')}{" "}
+                            <Link href="/register" className="underline underline-offset-4">
+                                {t('sign_up')}
+                            </Link>
+                        </p>
+                    </form>
+                </CardContent>
+            </Card>
         </div>
     )
 }
