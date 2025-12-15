@@ -14,7 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pwnthemall/pwnthemall/backend/config"
 	"github.com/pwnthemall/pwnthemall/backend/debug"
-	_ "github.com/pwnthemall/pwnthemall/backend/handlers" // MANDATORY to launch init() func and register challenge type handlers
+	"github.com/pwnthemall/pwnthemall/backend/handlers"
 	"github.com/pwnthemall/pwnthemall/backend/pluginsystem"
 	"github.com/pwnthemall/pwnthemall/backend/routes"
 	"github.com/pwnthemall/pwnthemall/backend/utils"
@@ -76,6 +76,12 @@ func main() {
 	config.ConnectDB()
 	config.ConnectMinio()
 	config.InitCasbin()
+
+	// Initialize theme bucket in MinIO
+	themeHandler := handlers.NewThemeHandler(config.MinioClient)
+	if err := themeHandler.EnsureBucketExists(context.Background()); err != nil {
+		debug.Log("Warning: Failed to initialize theme bucket: %v", err)
+	}
 
 	if err := config.ConnectDocker(); err != nil {
 		debug.Log("Failed to connect to docker host: %s", err.Error())
@@ -151,6 +157,7 @@ func main() {
 	routes.RegisterDecayFormulaRoutes(router)
 	routes.RegisterSubmissionRoutes(router)
 	routes.RegisterDashboardRoutes(router)
+	routes.RegisterThemeRoutes(router)
 
 	if os.Getenv("PTA_PLUGINS_ENABLED") == "true" {
 		debug.Log("Loading plugins...")

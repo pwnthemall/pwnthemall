@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DateTimePicker } from "@/components/ui/date-picker";
 import { useLanguage } from "@/context/LanguageContext";
 import { ConfigFormData } from "@/models/Config";
+import { ThemeSelectorField } from "./ThemeSelectorField";
 
 interface ConfigurationFormProps {
   isEdit?: boolean;
@@ -66,25 +67,86 @@ export default function ConfigurationForm({
     }
   };
 
+  // Predefined config keys for easy selection
+  const PREDEFINED_KEYS = [
+    { value: "SITE_THEME", label: "Site Theme", description: "Choose the visual theme for your CTF platform" },
+    { value: "SITE_NAME", label: "Site Name", description: "Name of your CTF platform" },
+    { value: "REGISTRATION_ENABLED", label: "Registration Enabled", description: "Allow new user registrations" },
+    { value: "CTF_START_TIME", label: "CTF Start Time", description: "When the competition starts" },
+    { value: "CTF_END_TIME", label: "CTF End Time", description: "When the competition ends" },
+    { value: "CUSTOM", label: "Custom Key", description: "Enter a custom configuration key" },
+  ];
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4 mt-4">
       <div className="space-y-2">
         <Label htmlFor="key">{t("key")}</Label>
-        <Input
-          id="key"
-          type="text"
-          value={formData.key}
-          onChange={(e) => handleInputChange("key", e.target.value)}
-          disabled={isEdit}
-          className={errors.key ? "border-red-500" : ""}
-          placeholder={t("enter_key") || "Enter configuration key"}
-        />
+        {isEdit ? (
+          <Input
+            id="key"
+            type="text"
+            value={formData.key}
+            disabled={true}
+            className="bg-muted"
+          />
+        ) : (
+          <>
+            <Select
+              value={PREDEFINED_KEYS.find(k => k.value === formData.key) ? formData.key : "CUSTOM"}
+              onValueChange={(value) => {
+                if (value === "CUSTOM") {
+                  handleInputChange("key", "");
+                } else {
+                  handleInputChange("key", value);
+                  // Auto-set defaults for certain keys
+                  if (value === "SITE_THEME" && !formData.value) {
+                    handleInputChange("value", "default");
+                    handleInputChange("public", true);
+                  } else if (value === "REGISTRATION_ENABLED" && !formData.value) {
+                    handleInputChange("value", "true");
+                    handleInputChange("public", true);
+                  }
+                }
+              }}
+            >
+              <SelectTrigger className={errors.key ? "border-red-500" : ""}>
+                <SelectValue placeholder={t("select_config_key") || "Select a configuration key"} />
+              </SelectTrigger>
+              <SelectContent>
+                {PREDEFINED_KEYS.map((key) => (
+                  <SelectItem key={key.value} value={key.value}>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{key.label}</span>
+                      <span className="text-xs text-muted-foreground">{key.description}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {(!PREDEFINED_KEYS.find(k => k.value === formData.key) && formData.key !== "") && (
+              <Input
+                id="custom-key"
+                type="text"
+                value={formData.key}
+                onChange={(e) => handleInputChange("key", e.target.value)}
+                className={errors.key ? "border-red-500" : ""}
+                placeholder={t("enter_custom_key") || "Enter custom key"}
+              />
+            )}
+          </>
+        )}
         {errors.key && <p className="text-sm text-red-500">{errors.key}</p>}
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="value">{t("value")}</Label>
-        {formData.key === "REGISTRATION_ENABLED" ? (
+        {formData.key === "SITE_THEME" ? (
+          <ThemeSelectorField
+            value={formData.value}
+            onChange={(value) => handleInputChange("value", value)}
+            error={errors.value}
+          />
+        ) : formData.key === "REGISTRATION_ENABLED" ? (
           <Select
             value={formData.value}
             onValueChange={(value) => handleInputChange("value", value)}

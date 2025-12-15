@@ -1,0 +1,129 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CTF Theme Configuration",
+  "description": "Theme configuration schema for PwnThemAll CTF platform",
+  "type": "object",
+  "required": ["id", "name", "version", "colors", "typography", "spacing", "layout", "effects"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "Unique theme identifier (lowercase, kebab-case)"
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name for the theme"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version (e.g., 1.0.0)"
+    },
+    "author": {
+      "type": "string",
+      "description": "Theme creator name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description of the theme"
+    },
+    "colors": {
+      "type": "object",
+      "required": ["primary", "secondary", "accent", "background", "surface", "text", "textMuted", "border", "success", "danger", "warning", "info"],
+      "properties": {
+        "primary": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "primaryHover": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "secondary": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "accent": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "background": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "surface": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "surfaceHover": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "text": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "textMuted": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "border": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "success": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "danger": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "warning": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "info": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "solved": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "locked": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" }
+      }
+    },
+    "typography": {
+      "type": "object",
+      "required": ["fontFamily", "scale"],
+      "properties": {
+        "fontFamily": {
+          "type": "object",
+          "required": ["heading", "body", "mono"],
+          "properties": {
+            "heading": { "type": "string" },
+            "body": { "type": "string" },
+            "mono": { "type": "string" }
+          }
+        },
+        "scale": {
+          "type": "string",
+          "enum": ["compact", "normal", "spacious"]
+        }
+      }
+    },
+    "spacing": {
+      "type": "object",
+      "required": ["scale"],
+      "properties": {
+        "scale": {
+          "type": "number",
+          "minimum": 0.8,
+          "maximum": 1.2
+        }
+      }
+    },
+    "layout": {
+      "type": "object",
+      "required": ["cardStyle", "cardCorners", "headerStyle", "tableStyle"],
+      "properties": {
+        "cardStyle": {
+          "type": "string",
+          "enum": ["flat", "elevated", "outlined", "glass"]
+        },
+        "cardCorners": {
+          "type": "string",
+          "enum": ["sharp", "rounded", "pill"]
+        },
+        "headerStyle": {
+          "type": "string",
+          "enum": ["minimal", "normal", "bold"]
+        },
+        "tableStyle": {
+          "type": "string",
+          "enum": ["default", "bordered", "striped", "minimal"]
+        }
+      }
+    },
+    "effects": {
+      "type": "object",
+      "required": ["animations", "glowEffects", "hoverScale", "backdropBlur"],
+      "properties": {
+        "animations": { "type": "boolean" },
+        "glowEffects": { "type": "boolean" },
+        "hoverScale": { "type": "boolean" },
+        "backdropBlur": { "type": "boolean" }
+      }
+    },
+    "customCSS": {
+      "type": "string",
+      "maxLength": 102400,
+      "description": "Custom CSS (max 100KB, sanitized)"
+    },
+    "assets": {
+      "type": "object",
+      "properties": {
+        "backgroundImage": { "type": "string" },
+        "backgroundPattern": { "type": "string" },
+        "logo": { "type": "string" },
+        "favicon": { "type": "string" }
+      }
+    }
+  }
+}
