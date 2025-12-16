@@ -22,6 +22,9 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useSiteConfig } from "@/context/SiteConfigContext";
 import { useCTFStatus } from "@/hooks/use-ctf-status";
 import type { NavItem } from "@/models/NavItem";
+import Image from "next/image";
+import Link from "next/link";
+import { useTheme } from "next-themes";
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { loggedIn, logout, authChecked } = useAuth();
@@ -30,6 +33,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter();
   const { isMobile } = useSidebar();
   const { ctfStatus, loading: ctfLoading } = useCTFStatus();
+  const { theme } = useTheme();
 
   const [userData, setUserData] = React.useState({
     name: "",
@@ -82,7 +86,12 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     
     // Only show pwn section if CTF has started (active, ended, no timing, or still loading CTF status)
     const shouldShowPwn = ctfLoading || ctfStatus.status !== 'not_started';
-    
+    items.push({
+      title: t('Home'),
+      url: "/",
+      icon:  Home,
+      isActive: router.pathname.startsWith("/"),
+    });
     if (loggedIn && shouldShowPwn) {
       items.push({
         title: t('pwn'),
@@ -133,22 +142,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         });
       }
     } else {
-      items.push({
-        title: t('login'),
-        url: "/login",
-        icon: LogIn,
-        isActive: router.pathname === "/login",
-      });
-      // Only show register link if registration is enabled
-      const registrationEnabled = siteConfig.REGISTRATION_ENABLED !== "false" && siteConfig.REGISTRATION_ENABLED !== "0";
-      if (registrationEnabled) {
-      items.push({
-        title: t('register'),
-        url: "/register",
-        icon: UserPlus,
-        isActive: router.pathname === "/register",
-      });
-      }
+      // Not logged in
     }
     return items;
   }, [authChecked, loggedIn, router.pathname, userData.role, t, siteConfig.REGISTRATION_ENABLED, ctfLoading, ctfStatus.status]);
@@ -161,9 +155,15 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     >
       <div className="flex flex-col h-full">
         <SidebarHeader>
-          <TeamSwitcher
-            teams={[{ name: getSiteName(), logo: Home, plan: "CTF" }]}
-          />
+          <Link href="/">
+            <Image
+              src={theme === 'dark' ? '/logo-v2-text-dark.png' : '/logo-v2-text-light.png'}
+              alt={getSiteName()}
+              width={isMobile ? 150 : 150}
+              height={isMobile ? 150 : 150}
+              className="mx-auto pt-2"
+            ></Image>
+          </Link>
         </SidebarHeader>
         {authChecked && (
           <>

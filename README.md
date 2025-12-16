@@ -2,7 +2,7 @@
 
 <img src="frontend/public/logo-v2-no-text.png" width=250>  
 <br>
-<img src="frontend/public/logo-v2-text.png" width=400>
+<img src="frontend/public/logo-v2-text-dark.png" width=400>
 
 
 [![Docker](https://img.shields.io/badge/docker-ready-blue?style=for-the-badge&logo=docker)](https://www.docker.com/)

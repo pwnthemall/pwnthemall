@@ -373,7 +373,7 @@ function ProfileContentInner() {
         {activeTab === "Appearance" && (
           <div className="space-y-4">
             <div className="p-3 bg-muted/50 rounded-lg border border-border/50 text-sm text-muted-foreground">
-              <strong className="text-foreground">Note:</strong> These are color mode presets (light/dark variants). The site's theme (colors, fonts, effects) is controlled by administrators in the Configuration page.
+              <strong className="text-foreground">Note:</strong> These are color mode presets (light/dark variants). The site&apos;s theme (colors, fonts, effects) is controlled by administrators in the Configuration page.
             </div>
             <ThemeSelector />
           </div>

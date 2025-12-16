@@ -1,18 +1,15 @@
-import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSiteConfig } from "@/context/SiteConfigContext";
 import { CTFStatus } from "@/hooks/use-ctf-status";
 import { Challenge, Solve } from "@/models/Challenge";
 import axios from "@/lib/axios";
 import Head from "next/head";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useInstances } from "@/hooks/use-instances";
 import { useHints } from "@/hooks/use-hints";
 import { debugError, debugLog } from "@/lib/debug";
+import { toast } from "sonner";
 import type { User } from "@/models/User";
 import { useChallengeFilters } from "@/hooks/useChallengeFilters";
 import { useChallengeWebSocket } from "@/hooks/useChallengeWebSocket";
@@ -33,17 +30,38 @@ interface CategoryContentProps {
   loading?: boolean;
 }
 
+/**
+ * Validates WebSocket instance update events to prevent malicious event injection
+ * @param event - The event object to validate
+ * @returns true if event is valid, false otherwise
+ */
+const validateInstanceUpdate = (event: any): boolean => {
+  if (!event?.detail) return false;
+  const { challengeId, status, event: eventType } = event.detail;
+  
+  // Validate event type
+  if (eventType !== 'instance_update') return false;
+  
+  // Validate required fields
+  if (!challengeId || !status) return false;
+  
+  // Validate types
+  if (typeof challengeId !== 'number' && typeof challengeId !== 'string') return false;
+  if (!['running', 'stopped', 'building', 'expired', 'stopping'].includes(status)) return false;
+  
+  return true;
+};
+
 const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, ctfLoading, initialCategory, loading: externalLoading }: CategoryContentProps) => {
   const { t } = useLanguage();
   const { getSiteName } = useSiteConfig();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [instanceDetails, setInstanceDetails] = useState<{[key: number]: any}>({});
   
   // Instance management hooks
-  const { loading: instanceLoading, startInstance, stopInstance, killInstance, getInstanceStatus: fetchInstanceStatus } = useInstances();
+  const { loading: instanceLoading, startInstance, stopInstance, getInstanceStatus: fetchInstanceStatus } = useInstances();
   const { teamScore, loading: hintsLoading, purchaseHint, refreshTeamScore } = useHints();
   
-  // NEW: Use extracted hooks for filters, actions, and WebSocket
+  // Challenge filters hook
   const {
     query,
     categoryFilter,
@@ -95,74 +113,88 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
     t,
   });
   
-  // Fetch instance status for all Docker challenges when challenges are loaded
   const [statusFetched, setStatusFetched] = useState(false);
   
+  useEffect(() => {
+    let mounted = true;
+    axios.get<User>("/api/me").then((res) => {
+      if (mounted) setCurrentUser(res.data as User);
+    }).catch(() => {});
+    return () => { mounted = false };
+  }, []);
+
   useEffect(() => {
     if (!challenges || challenges.length === 0 || statusFetched) return;
     
     const fetchAllInstanceStatuses = async () => {
       const dockerChallenges = challenges.filter(challenge => isInstanceChallenge(challenge));
       
-      for (const challenge of dockerChallenges) {
-        try {
-          const status = await fetchInstanceStatus(challenge.id.toString());
-          if (status) {
-            // Map API status to local status
-            let localStatus: 'running' | 'stopped' | 'building' | 'expired' = 'stopped';
-            if (status.status === 'running') {
-              localStatus = 'running';
-            } else if (status.status === 'building') {
-              localStatus = 'building';
-            } else if (status.status === 'expired') {
-              localStatus = 'expired';
-            } else {
-              // 'no_instance', 'stopped', 'no_team', etc. all map to 'stopped'
-              localStatus = 'stopped';
-            }
-            
-            setInstanceStatus(prev => ({
-              ...prev,
-              [challenge.id]: localStatus
-            }));
+      await Promise.all(
+        dockerChallenges.map(async (challenge) => {
+          try {
+            const status = await fetchInstanceStatus(challenge.id.toString());
+            if (status) {
+              let localStatus: 'running' | 'stopped' | 'building' | 'expired' = 'stopped';
+              if (status.status === 'running') {
+                localStatus = 'running';
+              } else if (status.status === 'building') {
+                localStatus = 'building';
+              } else if (status.status === 'expired') {
+                localStatus = 'expired';
+              }
+              
+              setInstanceStatus(prev => ({
+                ...prev,
+                [challenge.id]: localStatus
+              }));
 
-            // Store connection info if available
-            if (status.connection_info && status.connection_info.length > 0) {
-              setConnectionInfo(prev => ({
-                ...prev,
-                [challenge.id]: status.connection_info
-              }));
-            } else {
-              setConnectionInfo(prev => ({
-                ...prev,
-                [challenge.id]: []
-              }));
+              if (status.connection_info && status.connection_info.length > 0) {
+                setConnectionInfo(prev => ({
+                  ...prev,
+                  [challenge.id]: status.connection_info
+                }));
+              } else {
+                setConnectionInfo(prev => ({
+                  ...prev,
+                  [challenge.id]: []
+                }));
+              }
             }
+          } catch (error) {
+            debugError(`Failed to fetch status for challenge ${challenge.id}:`, error);
           }
-        } catch (error) {
-          debugError(`Failed to fetch status for challenge ${challenge.id}:`, error);
-        }
-      }
+        })
+      );
+      
       setStatusFetched(true);
     };
 
     fetchAllInstanceStatuses();
-  }, [challenges.length, statusFetched]); // Only run once when challenges load
+  }, [challenges.map(c => c.id).join(','), statusFetched, fetchInstanceStatus, isInstanceChallenge, setInstanceStatus, setConnectionInfo]);
+
+  // Reset status fetched flag when challenges change
+  useEffect(() => {
+    setStatusFetched(false);
+  }, [challenges.map(c => c.id).join(',')]);
 
   // Listen to WebSocket instance updates via window events
   useEffect(() => {
     const handleInstanceUpdate = (e: any) => {
-      const data = e?.detail || e?.data;
-      if (!data || data.event !== 'instance_update') return;
+      if (!validateInstanceUpdate(e)) {
+        debugError('[Security] Invalid instance update event received:', e);
+        return;
+      }
 
+      const data = e.detail;
       const challengeId = Number(data.challengeId);
-      if (!challengeId) return;
 
       // Map status
       let newStatus: 'running' | 'stopped' | 'building' | 'expired' | 'stopping' = 'stopped';
       if (data.status === 'running') newStatus = 'running';
       else if (data.status === 'stopped') newStatus = 'stopped';
       else if (data.status === 'building') newStatus = 'building';
+      else if (data.status === 'stopping') newStatus = 'stopping';
+      else if (data.status === 'expired') newStatus = 'expired';
       
       debugLog('[CategoryContent] Instance update received:', { challengeId, status: data.status, newStatus });
       setInstanceStatus(prev => ({ ...prev, [challengeId]: newStatus }));
@@ -193,7 +225,7 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
       window.addEventListener('instance-update', handleInstanceUpdate as EventListener);
       return () => window.removeEventListener('instance-update', handleInstanceUpdate as EventListener);
     }
-  }, [onChallengeUpdate]);
+  }, [onChallengeUpdate, setInstanceStatus, setConnectionInfo, setInstanceOwner]);
 
   useChallengeWebSocket({
     socket: null, // Using window events instead of socket.io in this codebase
@@ -220,179 +252,6 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
     },
     onInstanceUpdate: () => {}, // Handled by window event listener above
   });
-
-
-
-  useEffect(() => {
-    let mounted = true;
-    axios.get<User>("/api/me").then((res) => {
-      if (mounted) setCurrentUser(res.data as User);
-    }).catch(() => {});
-    return () => { mounted = false };
-  }, []);
-
-  const handleSubmit = async () => {
-    if (!selectedChallenge) return;
-    setLoading(true);
-    try {
-      const payload = buildSubmitPayload(selectedChallenge, flag, geoCoords);
-      const res = await axios.post(`/api/challenges/${selectedChallenge.id}/submit`, payload);
-
-      toast.success(t(res.data.message) || 'Challenge solved!');
-      if (onChallengeUpdate) onChallengeUpdate();
-      
-      fetchSolves(selectedChallenge.id);
-      await handlePostSubmitInstanceCleanup(selectedChallenge.id);
-    } catch (err: any) {
-      const errorKey = err.response?.data?.error || err.response?.data?.result;
-      toast.error(t(errorKey) || 'Try again');
-      if (onChallengeUpdate) onChallengeUpdate();
-    } finally {
-      setLoading(false);
-      setFlag("");
-    }
-  };
-
-  const handlePostSubmitInstanceCleanup = async (challengeId: number) => {
-    try {
-      if (getLocalInstanceStatus(challengeId) === 'running') {
-        await stopInstance(challengeId.toString());
-        setInstanceStatus(prev => ({ ...prev, [challengeId]: 'stopped' }));
-        toast.success(t('instance_stopped_success') || 'Instance stopped successfully');
-      }
-    } catch {}
-  };
-
-  const fetchSolves = async (challengeId: number) => {
-    if (!Number.isInteger(challengeId) || challengeId <= 0) {
-      debugError('Invalid challenge ID provided to fetchSolves');
-      setSolves([]);
-      setSolvesLoading(false);
-      return;
-    }
-    
-    setSolvesLoading(true);
-    try {
-      const response = await axios.get<Solve[]>(`/api/challenges/${challengeId}/solves`, {
-        headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        }
-      });
-      setSolves(response.data || []);
-    } catch (err: any) {
-      debugError('Failed to fetch solves:', err);
-      setSolves([]);
-    } finally {
-      setSolvesLoading(false);
-    }
-  };
-
-  const handleChallengeSelect = (challenge: Challenge) => {
-    setSelectedChallenge(challenge);
-    setFlag("");
-    setOpen(true);
-    setActiveTab("description");
-    // Clear previous solves data and fetch fresh data
-    setSolves([]);
-    setSolvesLoading(false);
-    fetchSolves(challenge.id);
-    // Refresh team score when opening challenge
-    refreshTeamScore();
-  };
-
-
-
-  const handleStartInstance = async (challengeId: number) => {
-    try {
-      setInstanceStatus(prev => ({ ...prev, [challengeId]: 'building' }));
-      await startInstance(challengeId.toString());
-      // Fetch the actual status from backend after starting
-      const status = await fetchInstanceStatus(challengeId.toString());
-      if (status) {
-        let localStatus: 'running' | 'stopped' | 'building' | 'expired' = 'running';
-        if (status.status === 'running') {
-          localStatus = 'running';
-        } else if (status.status === 'building') {
-          localStatus = 'building';
-        } else if (status.status === 'expired') {
-          localStatus = 'expired';
-        } else {
-          localStatus = 'stopped';
-        }
-        setInstanceStatus(prev => ({ ...prev, [challengeId]: localStatus }));
-
-        // Store connection info if available
-        if (status.connection_info && status.connection_info.length > 0) {
-          setConnectionInfo(prev => ({
-            ...prev,
-            [challengeId]: status.connection_info
-          }));
-        } else {
-          setConnectionInfo(prev => ({
-            ...prev,
-            [challengeId]: []
-          }));
-        }
-      } else {
-        setInstanceStatus(prev => ({ ...prev, [challengeId]: 'running' }));
-      }
-    } catch (error) {
-      setInstanceStatus(prev => ({ ...prev, [challengeId]: 'stopped' }));
-    }
-  };
-
-  const handleStopInstance = async (challengeId: number) => {
-    try {
-      // If we know the owner and it's not the current user (and not admin), show localized toast and abort
-      const owner = instanceOwner[challengeId];
-      if (owner && currentUser && owner.userId !== currentUser.id && currentUser.role !== 'admin') {
-        const ownerName = owner.username || t('a_teammate');
-        const key = 'cannot_stop_instance_not_owner';
-        const translated = t(key, { username: ownerName });
-        toast.error(translated !== key ? translated : `You can't stop this instance because it was started by ${ownerName}.`);
-        return;
-      }
-
-      // Set status to 'stopping' to show stopping state
-      setInstanceStatus(prev => ({ ...prev, [challengeId]: 'stopping' }));
-      
-      await stopInstance(challengeId.toString());
-      
-      // The status will be updated to 'stopped' via websocket when backend finishes stopping
-      // No polling needed - websocket 'instance_update' event will handle it
-    } catch (error: any) {
-      // If backend denies or not found while we think it's running, assume non-owner attempt
-      const errCode = error?.response?.data?.error;
-      const httpStatus = error?.response?.status;
-      if (
-        (errCode === 'not_authorized' || errCode === 'forbidden' || errCode === 'instance_not_found') &&
-        getLocalInstanceStatus(challengeId) === 'running'
-      ) {
-        const owner = instanceOwner[challengeId];
-        const ownerName = owner?.username || t('a_teammate');
-        const key = 'cannot_stop_instance_not_owner';
-        const translated = t(key, { username: ownerName });
-        toast.error(translated !== key ? translated : `You can't stop this instance because it was started by ${ownerName}.`);
-      }
-      // Keep current status on error otherwise
-    }
-  };
-
-  const isInstanceChallenge = (challenge: Challenge) => {
-    const instFlag = challenge.challengeType?.instance
-    if (typeof instFlag === 'boolean') return instFlag
-
-    // fallback to legacy name-based (static) detection
-    const name = challenge.challengeType?.name?.toLowerCase() || ''
-    return name === 'docker' || name === 'compose'
-  };
-
-  const getLocalInstanceStatus = (challengeId: number) => {
-    return instanceStatus[challengeId] || 'stopped';
-  };
-  
-  const { t } = useLanguage();
   
   // Safety check for challenges
   if (!challenges || challenges.length === 0) {
@@ -468,7 +327,16 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
           </section>
         </div>
 
-        <Suspense fallback={null}>
+        <Suspense fallback={
+          <div 
+            role="status" 
+            aria-live="polite" 
+            className="flex items-center justify-center p-8"
+          >
+            <span className="sr-only">Loading challenge details...</span>
+            <Skeleton className="h-96 w-full max-w-3xl" />
+          </div>
+        }>
           <ChallengeDetailModal
             open={open}
             onOpenChange={setOpen}
@@ -500,6 +368,14 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
             t={t}
           />
         </Suspense>
+
+        <div 
+          role="status" 
+          aria-live="polite" 
+          aria-atomic="true" 
+          className="sr-only"
+        >
+        </div>
       </main>
     </>
   );
