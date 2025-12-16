@@ -249,14 +249,14 @@ const ChallengeDetailModal = ({
                           disabled={loading}
                         />
                       )}
-                      <Button
+                    <Button
                         onClick={handleSubmit}
                         disabled={
                           loading || 
                           (challenge?.challengeType?.name?.toLowerCase() === 'geo' ? !geoCoords : !flag.trim()) ||
                           !!(challenge?.maxAttempts && challenge.maxAttempts > 0 && (challenge.teamFailedAttempts || 0) >= challenge.maxAttempts)
                         }
-                        className="bg-cyan-600 hover:bg-cyan-700 dark:bg-cyan-500 dark:hover:bg-cyan-600"
+                        // className="bg-cyan-600 hover:bg-cyan-700 dark:bg-cyan-500 dark:hover:bg-cyan-600"
                       >
                         {loading ? t('submitting') : t('submit')}
                       </Button>
