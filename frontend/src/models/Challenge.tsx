@@ -56,6 +56,7 @@ export interface Challenge {
   coverPositionX?: number  // 0-100, supports decimals
   coverPositionY?: number  // 0-100, supports decimals
   coverZoom?: number       // 100-200, default 100 (no zoom)
+  solveCount?: number
 }
 
 export interface FirstBlood {

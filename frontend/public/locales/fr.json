@@ -423,7 +423,11 @@
     "starting": "Démarrage...",
     "stop_instance": "Arrêter l'instance",
     "stopped": "Arrêté",
-    "stopping": "Arrêt..."
+    "stopping": "Arrêt...",
+    "building": "Construction...",
+    "expired": "Expiré",
+    "instance_started_by_user": "Instance démarrée par {username}",
+    "a_teammate": "un coéquipier"
   },
   "messages": {
     "error": "Erreur",

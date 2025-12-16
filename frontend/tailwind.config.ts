@@ -19,6 +19,7 @@ const config: Config = {
   			sm: 'calc(var(--radius) - 4px)'
   		},
   		colors: {
+  			// Existing shadcn colors (keep for compatibility)
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
@@ -58,7 +59,25 @@ const config: Config = {
   				'3': 'hsl(var(--chart-3))',
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
-  			}
+  			},
+  			// Theme system colors (CSS variables from theme JSON)
+  			'theme-primary': 'var(--color-primary)',
+  			'theme-secondary': 'var(--color-secondary)',
+  			'theme-accent': 'var(--color-accent)',
+  			'theme-background': 'var(--color-background)',
+  			'theme-surface': 'var(--color-surface)',
+  			'theme-text': 'var(--color-text)',
+  			'theme-text-muted': 'var(--color-text-muted)',
+  			'theme-border': 'var(--color-border)',
+  			'theme-success': 'var(--color-success)',
+  			'theme-danger': 'var(--color-danger)',
+  			'theme-warning': 'var(--color-warning)',
+  			'theme-info': 'var(--color-info)',
+  		},
+  		fontFamily: {
+  			heading: 'var(--font-heading)',
+  			body: 'var(--font-body)',
+  			mono: 'var(--font-mono)',
   		}
   	}
   },
