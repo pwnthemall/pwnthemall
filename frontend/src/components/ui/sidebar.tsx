@@ -329,7 +329,7 @@ export const SidebarFooter = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "p-2",
+        "p-2 mt-auto flex-shrink-0",
         !open && "items-center",
         className
       )}

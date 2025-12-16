@@ -130,7 +130,7 @@ const ChallengeDetailModal = ({
               )}
               <TabsTrigger value="solves">{t('solves')}</TabsTrigger>
               {challenge && isInstanceChallenge(challenge) && (
-                <TabsTrigger value="instance">{t('docker_instance')}</TabsTrigger>
+                <TabsTrigger value="instance">{t('instance.docker_instance')}</TabsTrigger>
               )}
             </TabsList>
                 
@@ -528,36 +528,36 @@ const ChallengeDetailModal = ({
                       <div className="p-4 rounded-lg border bg-card">
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-foreground">{t('instance_status')}:</span>
+                            <span className="text-sm font-medium text-foreground">{t('instance.instance_status')}:</span>
                             <div className="flex items-center gap-2">
                               {getLocalInstanceStatus(challenge.id) === 'running' && (
                                 <>
                                   <Play className="w-4 h-4 text-green-600" />
-                                  <span className="text-sm font-medium text-green-600">{t('running')}</span>
+                                  <span className="text-sm font-medium text-green-600">{t('instance_actions.running')}</span>
                                 </>
                               )}
                               {getLocalInstanceStatus(challenge.id) === 'building' && (
                                 <>
                                   <Settings className="w-4 h-4 text-orange-600 animate-spin" />
-                                  <span className="text-sm font-medium text-orange-600">{t('building')}</span>
+                                  <span className="text-sm font-medium text-orange-600">{t('instance_actions.building')}</span>
                                 </>
                               )}
                               {getLocalInstanceStatus(challenge.id) === 'stopping' && (
                                 <>
                                   <Settings className="w-4 h-4 text-orange-600 animate-spin" />
-                                  <span className="text-sm font-medium text-orange-600">{t('stopping')}</span>
+                                  <span className="text-sm font-medium text-orange-600">{t('instance_actions.stopping')}</span>
                                 </>
                               )}
                               {getLocalInstanceStatus(challenge.id) === 'expired' && (
                                 <>
                                   <Square className="w-4 h-4 text-red-600" />
-                                  <span className="text-sm font-medium text-red-600">{t('expired')}</span>
+                                  <span className="text-sm font-medium text-red-600">{t('instance_actions.expired')}</span>
                                 </>
                               )}
                               {getLocalInstanceStatus(challenge.id) === 'stopped' && (
                                 <>
                                   <Square className="w-4 h-4 text-gray-600" />
-                                  <span className="text-sm font-medium text-gray-600">{t('stopped')}</span>
+                                  <span className="text-sm font-medium text-gray-600">{t('instance_actions.stopped')}</span>
                                 </>
                               )}
                             </div>
@@ -565,7 +565,7 @@ const ChallengeDetailModal = ({
 
                           {getLocalInstanceStatus(challenge.id) === 'running' && instanceOwner[challenge.id] && (
                             <div className="text-sm text-muted-foreground">
-                              {t('instance_started_by_user', { username: instanceOwner[challenge.id]?.username || t('a_teammate') })}
+                              {t('instance_actions.instance_started_by_user', { username: instanceOwner[challenge.id]?.username || t('instance_actions.a_teammate') })}
                             </div>
                           )}
                           {getLocalInstanceStatus(challenge.id) === 'running' && 
@@ -590,12 +590,12 @@ const ChallengeDetailModal = ({
                             {instanceLoading ? (
                               <>
                                 <Settings className="w-4 h-4 mr-2 animate-spin" />
-                                {t('starting')}
+                                {t('instance_actions.starting')}
                               </>
                             ) : (
                               <>
                                 <Play className="w-4 h-4 mr-2" />
-                                {t('start_instance')}
+                                {t('instance_actions.start_instance')}
                               </>
                             )}
                           </Button>
@@ -610,12 +610,12 @@ const ChallengeDetailModal = ({
                             {instanceLoading ? (
                               <>
                                 <Settings className="w-4 h-4 mr-2 animate-spin" />
-                                {t('stopping')}
+                                {t('instance_actions.stopping')}
                               </>
                             ) : (
                               <>
                                 <Square className="w-4 h-4 mr-2" />
-                                {t('stop_instance')}
+                                {t('instance_actions.stop_instance')}
                               </>
                             )}
                           </Button>
