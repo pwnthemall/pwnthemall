@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, ReactNode } from "react";
 import { Card } from "@/components/ui/card";
+import { useTheme } from "next-themes";
 
 interface AnimatedBorderCardProps {
   children: ReactNode;
@@ -19,6 +20,7 @@ export function AnimatedBorderCard({
   locked = false 
 }: AnimatedBorderCardProps) {
   const [progress, setProgress] = useState(0);
+  const { theme, resolvedTheme } = useTheme();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -72,21 +74,26 @@ export function AnimatedBorderCard({
 
   const [position1, position2] = getPositions(progress);
 
+  // Check if the current theme is light
+  const isLightTheme = theme === 'light' || resolvedTheme === 'light';
+
   return (
     <div 
       onClick={onClick}
       className={`relative cursor-pointer group ${locked ? 'opacity-60 cursor-not-allowed' : ''}`}
     >
-      {/* Two animated borders traveling from corners */}
-      <div 
-        className="absolute -inset-[2px] rounded-lg"
-        style={{
-          background: `
-            radial-gradient(circle 150px at ${position1.x}% ${position1.y}%, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.5) 40%, transparent 100%),
-            radial-gradient(circle 150px at ${position2.x}% ${position2.y}%, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.5) 40%, transparent 100%)
-          `
-        }}
-      />
+      {/* Two animated borders traveling from corners - only show if not light theme */}
+      {!isLightTheme && (
+        <div 
+          className="absolute -inset-[2px] rounded-lg"
+          style={{
+            background: `
+              radial-gradient(circle 150px at ${position1.x}% ${position1.y}%, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.5) 40%, transparent 100%),
+              radial-gradient(circle 150px at ${position2.x}% ${position2.y}%, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.5) 40%, transparent 100%)
+            `
+          }}
+        />
+      )}
       
       <Card className={`relative overflow-hidden transition-all hover:shadow-lg bg-background ${
         solved ? 'ring-2 ring-green-500' : ''
