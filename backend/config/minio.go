@@ -23,6 +23,5 @@ func ConnectMinio() *minio.Client {
 		os.Exit(1)
 	}
 	FS = minioClient
-
 	return minioClient
 }
