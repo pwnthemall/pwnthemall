@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BadgeCheck, Lock } from "lucide-react";
 import ChallengeImage from "@/components/ChallengeImage";
+import { AnimatedBorderCard } from "./AnimatedBorderCard";
 
 interface MostSolvedSectionProps {
   challenges: Challenge[];
@@ -70,16 +71,13 @@ const MostSolvedSection = ({
         ) : (
           mostSolvedChallenges.map((challenge) => {
             return (
-            <Card
+            <AnimatedBorderCard
               key={challenge.id}
-            onClick={() => !challenge.locked && onChallengeSelect(challenge)}
-            className={`cursor-pointer overflow-hidden transition-all hover:shadow-lg group relative ${
-              challenge.locked ? 'opacity-60 cursor-not-allowed' : ''
-            } ${
-              challenge.solved ? 'ring-2 ring-green-500' : ''
-            }`}
-          >
-                <div className="relative w-full aspect-[16/9] overflow-hidden">
+              onClick={() => !challenge.locked && onChallengeSelect(challenge)}
+              solved={challenge.solved}
+              locked={challenge.locked}
+            >
+              <div className="relative w-full aspect-[16/9] overflow-hidden">
               {challenge.coverImg && challenge.id ? (
                 <>
                   <div className="absolute inset-0">
@@ -130,7 +128,7 @@ const MostSolvedSection = ({
                 </p>
               </div>
             </div>
-          </Card>
+            </AnimatedBorderCard>
             );
           })
         )}
