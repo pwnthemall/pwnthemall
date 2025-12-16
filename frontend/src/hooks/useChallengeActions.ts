@@ -87,6 +87,9 @@ export const useChallengeActions = ({
       
       fetchSolves(selectedChallenge.id);
       await handlePostSubmitInstanceCleanup(selectedChallenge.id);
+      
+      // Close the modal after successful submission
+      setOpen(false);
     } catch (err: any) {
       const errorKey = err.response?.data?.error || err.response?.data?.result;
       toast.error(t(errorKey) || 'Try again');

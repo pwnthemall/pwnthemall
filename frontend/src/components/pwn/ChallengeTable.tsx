@@ -40,6 +40,16 @@ const ChallengeTable = ({
     return null;
   };
 
+  const getTextColor = (bgColor: string): string => {
+    // Calculate luminance to determine if text should be black or white
+    const hex = bgColor.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.5 ? '#000000' : '#ffffff';
+  };
+
   const SortableHeader = ({ 
     column, 
     label 
@@ -112,11 +122,17 @@ const ChallengeTable = ({
                     }`}
                   >
                     <TableCell className="whitespace-nowrap">
-                      {challenge.challengeCategory?.name || ""}
+                      {challenge.challengeCategory?.name ? (
+                        <Badge variant="outline" className="font-normal">
+                          {challenge.challengeCategory.name}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
                     </TableCell>
                     <TableCell className="min-w-[16rem]">
                       <div className="flex items-center gap-2">
-                        <span className="text-base">{challenge.emoji || "🎯"}</span>
+                        {challenge.emoji && <span className="text-base">{challenge.emoji}</span>}
                         <div className="min-w-0">
                           <div className="truncate font-medium">{challenge.name}</div>
                           <div className="truncate text-xs text-muted-foreground">{challenge.author}</div>
@@ -124,7 +140,19 @@ const ChallengeTable = ({
                       </div>
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
-                      {challenge.challengeDifficulty?.name || ""}
+                      {challenge.challengeDifficulty?.name ? (
+                        <Badge 
+                          className="font-normal border-0"
+                          style={{
+                            backgroundColor: challenge.challengeDifficulty.color || '#22c55e',
+                            color: getTextColor(challenge.challengeDifficulty.color || '#22c55e')
+                          }}
+                        >
+                          {challenge.challengeDifficulty.name}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
                       {points ?? "—"}

@@ -1182,3 +1182,13 @@ html, body {
   color: #f9fafb !important;
   border: 1px solid #047857 !important;
 }
+
+/* Animated rotating border gradient for cards */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

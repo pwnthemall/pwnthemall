@@ -114,7 +114,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             { title: t('users'), url: "/admin/users" },
             { title: t('instances'), url: "/admin/instances" },
             { title: t('admin.submissions'), url: "/admin/submissions" },
-            { title: t('challenge_category.challenge_categories'), url: "/admin/challenge-categories" },
+            { title: 'Categories & Difficulties', url: "/admin/challenge-categories" },
             { title: 'Challenges', url: "/admin/challenges" },
             { title: t('challenge_order_management'), url: "/admin/challenge-order" },
             { title: t('configuration'), url: "/admin/configuration" },

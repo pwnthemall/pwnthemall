@@ -20,8 +20,10 @@ import { useChallengeActions } from "@/hooks/useChallengeActions";
 
 const ChallengeDetailModal = lazy(() => import('./ChallengeDetailModal'));
 import ChallengeTable from './ChallengeTable';
+import ChallengeGrid from './ChallengeGrid';
 import MostSolvedSection from './MostSolvedSection';
 import { ChallengeFilterBar } from './ChallengeFilterBar';
+import { AnimatedSeparator } from '@/components/ui/animated-separator';
 
 interface CategoryContentProps {
   cat: string;
@@ -38,6 +40,22 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
   const { getSiteName } = useSiteConfig();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [instanceDetails, setInstanceDetails] = useState<{[key: number]: any}>({});
+  
+  // Load view mode from localStorage with 'table' as default
+  const [viewMode, setViewMode] = useState<'table' | 'grid'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('challengeViewMode');
+      return (saved as 'table' | 'grid') || 'table';
+    }
+    return 'table';
+  });
+  
+  // Save view mode to localStorage when it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('challengeViewMode', viewMode);
+    }
+  }, [viewMode]);
   
   // Instance management hooks
   const { loading: instanceLoading, startInstance, stopInstance, killInstance, getInstanceStatus: fetchInstanceStatus } = useInstances();
@@ -261,6 +279,8 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
             t={t}
           />
 
+          <AnimatedSeparator />
+
           <section>
             <ChallengeFilterBar
               query={query}
@@ -272,19 +292,32 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
               categories={categories}
               t={t}
               loading={!!externalLoading}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
             />
 
-            <ChallengeTable
-              challenges={filteredChallenges}
-              loading={externalLoading || challenges.length === 0}
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              onSort={handleSort}
-              onChallengeSelect={handleChallengeSelect}
-              instanceStatus={instanceStatus}
-              isInstanceChallenge={isInstanceChallenge}
-              t={t}
-            />
+            {viewMode === 'table' ? (
+              <ChallengeTable
+                challenges={filteredChallenges}
+                loading={externalLoading || challenges.length === 0}
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                onChallengeSelect={handleChallengeSelect}
+                instanceStatus={instanceStatus}
+                isInstanceChallenge={isInstanceChallenge}
+                t={t}
+              />
+            ) : (
+              <ChallengeGrid
+                challenges={filteredChallenges}
+                loading={externalLoading || challenges.length === 0}
+                onChallengeSelect={handleChallengeSelect}
+                instanceStatus={instanceStatus}
+                isInstanceChallenge={isInstanceChallenge}
+                t={t}
+              />
+            )}
           </section>
         </div>
 

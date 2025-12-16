@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BadgeCheck, Lock } from "lucide-react";
 import ChallengeImage from "@/components/ChallengeImage";
+import { AnimatedBorderCard } from "./AnimatedBorderCard";
 
 interface MostSolvedSectionProps {
   challenges: Challenge[];
@@ -29,6 +30,22 @@ const MostSolvedSection = ({
       .slice(0, 3);
   }, [challenges]);
 
+  const getGradientColors = (difficultyColor: string | undefined) => {
+    const baseColor = difficultyColor || '#22c55e';
+    // Create a lighter version for gradient start
+    const lightenColor = (hex: string, percent: number) => {
+      const num = parseInt(hex.replace('#', ''), 16);
+      const r = Math.min(255, Math.floor(((num >> 16) & 0xff) + (255 - ((num >> 16) & 0xff)) * percent));
+      const g = Math.min(255, Math.floor(((num >> 8) & 0xff) + (255 - ((num >> 8) & 0xff)) * percent));
+      const b = Math.min(255, Math.floor((num & 0xff) + (255 - (num & 0xff)) * percent));
+      return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+    };
+    return {
+      light: lightenColor(baseColor, 0.4),
+      base: baseColor
+    };
+  };
+
   if (mostSolvedChallenges.length === 0 && !loading) {
     return null;
   }
@@ -52,17 +69,15 @@ const MostSolvedSection = ({
             </Card>
           ))
         ) : (
-          mostSolvedChallenges.map((challenge) => (
-            <Card
+          mostSolvedChallenges.map((challenge) => {
+            return (
+            <AnimatedBorderCard
               key={challenge.id}
-            onClick={() => !challenge.locked && onChallengeSelect(challenge)}
-            className={`cursor-pointer overflow-hidden transition-all hover:shadow-lg group relative ${
-              challenge.locked ? 'opacity-60 cursor-not-allowed' : ''
-            } ${
-              challenge.solved ? 'ring-2 ring-green-500' : ''
-            }`}
-          >
-            <div className="relative w-full aspect-[16/9] overflow-hidden">
+              onClick={() => !challenge.locked && onChallengeSelect(challenge)}
+              solved={challenge.solved}
+              locked={challenge.locked}
+            >
+              <div className="relative w-full aspect-[16/9] overflow-hidden">
               {challenge.coverImg && challenge.id ? (
                 <>
                   <div className="absolute inset-0">
@@ -79,7 +94,7 @@ const MostSolvedSection = ({
                 </>
               ) : (
                 <>
-                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
+                  <div className="absolute inset-0 flex items-center justify-center bg-muted">
                     <span className="text-8xl opacity-20">{challenge.emoji || '🎯'}</span>
                   </div>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent pointer-events-none" />
@@ -113,8 +128,9 @@ const MostSolvedSection = ({
                 </p>
               </div>
             </div>
-          </Card>
-        ))
+            </AnimatedBorderCard>
+            );
+          })
         )}
       </div>
     </section>
