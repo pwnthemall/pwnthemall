@@ -79,11 +79,11 @@ export function AnimatedBorderCard({
     >
       {/* Two animated borders traveling from corners */}
       <div 
-        className="absolute -inset-[2px] rounded-lg opacity-90"
+        className="absolute -inset-[2px] rounded-lg"
         style={{
           background: `
-            radial-gradient(circle 120px at ${position1.x}% ${position1.y}%, hsl(var(--primary)), transparent 100%),
-            radial-gradient(circle 120px at ${position2.x}% ${position2.y}%, hsl(var(--primary)), transparent 100%)
+            radial-gradient(circle 150px at ${position1.x}% ${position1.y}%, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.5) 40%, transparent 100%),
+            radial-gradient(circle 150px at ${position2.x}% ${position2.y}%, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.5) 40%, transparent 100%)
           `
         }}
       />
