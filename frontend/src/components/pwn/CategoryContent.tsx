@@ -1,18 +1,15 @@
-import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSiteConfig } from "@/context/SiteConfigContext";
 import { CTFStatus } from "@/hooks/use-ctf-status";
 import { Challenge, Solve } from "@/models/Challenge";
 import axios from "@/lib/axios";
 import Head from "next/head";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useInstances } from "@/hooks/use-instances";
 import { useHints } from "@/hooks/use-hints";
 import { debugError, debugLog } from "@/lib/debug";
+import { toast } from "sonner";
 import type { User } from "@/models/User";
 import { useChallengeFilters } from "@/hooks/useChallengeFilters";
 import { useChallengeWebSocket } from "@/hooks/useChallengeWebSocket";
@@ -35,11 +32,32 @@ interface CategoryContentProps {
   loading?: boolean;
 }
 
+/**
+ * Validates WebSocket instance update events to prevent malicious event injection
+ * @param event - The event object to validate
+ * @returns true if event is valid, false otherwise
+ */
+const validateInstanceUpdate = (event: any): boolean => {
+  if (!event?.detail) return false;
+  const { challengeId, status, event: eventType } = event.detail;
+  
+  // Validate event type
+  if (eventType !== 'instance_update') return false;
+  
+  // Validate required fields
+  if (!challengeId || !status) return false;
+  
+  // Validate types
+  if (typeof challengeId !== 'number' && typeof challengeId !== 'string') return false;
+  if (!['running', 'stopped', 'building', 'expired', 'stopping'].includes(status)) return false;
+  
+  return true;
+};
+
 const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, ctfLoading, initialCategory, loading: externalLoading }: CategoryContentProps) => {
   const { t } = useLanguage();
   const { getSiteName } = useSiteConfig();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [instanceDetails, setInstanceDetails] = useState<{[key: number]: any}>({});
   
   // Load view mode from localStorage with 'table' as default
   const [viewMode, setViewMode] = useState<'table' | 'grid'>(() => {
@@ -58,10 +76,10 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
   }, [viewMode]);
   
   // Instance management hooks
-  const { loading: instanceLoading, startInstance, stopInstance, killInstance, getInstanceStatus: fetchInstanceStatus } = useInstances();
+  const { loading: instanceLoading, startInstance, stopInstance, getInstanceStatus: fetchInstanceStatus } = useInstances();
   const { teamScore, loading: hintsLoading, purchaseHint, refreshTeamScore } = useHints();
   
-  // NEW: Use extracted hooks for filters, actions, and WebSocket
+  // Challenge filters hook
   const {
     query,
     categoryFilter,
@@ -113,74 +131,88 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
     t,
   });
   
-  // Fetch instance status for all Docker challenges when challenges are loaded
   const [statusFetched, setStatusFetched] = useState(false);
   
+  useEffect(() => {
+    let mounted = true;
+    axios.get<User>("/api/me").then((res) => {
+      if (mounted) setCurrentUser(res.data as User);
+    }).catch(() => {});
+    return () => { mounted = false };
+  }, []);
+
   useEffect(() => {
     if (!challenges || challenges.length === 0 || statusFetched) return;
     
     const fetchAllInstanceStatuses = async () => {
       const dockerChallenges = challenges.filter(challenge => isInstanceChallenge(challenge));
       
-      for (const challenge of dockerChallenges) {
-        try {
-          const status = await fetchInstanceStatus(challenge.id.toString());
-          if (status) {
-            // Map API status to local status
-            let localStatus: 'running' | 'stopped' | 'building' | 'expired' = 'stopped';
-            if (status.status === 'running') {
-              localStatus = 'running';
-            } else if (status.status === 'building') {
-              localStatus = 'building';
-            } else if (status.status === 'expired') {
-              localStatus = 'expired';
-            } else {
-              // 'no_instance', 'stopped', 'no_team', etc. all map to 'stopped'
-              localStatus = 'stopped';
-            }
-            
-            setInstanceStatus(prev => ({
-              ...prev,
-              [challenge.id]: localStatus
-            }));
+      await Promise.all(
+        dockerChallenges.map(async (challenge) => {
+          try {
+            const status = await fetchInstanceStatus(challenge.id.toString());
+            if (status) {
+              let localStatus: 'running' | 'stopped' | 'building' | 'expired' = 'stopped';
+              if (status.status === 'running') {
+                localStatus = 'running';
+              } else if (status.status === 'building') {
+                localStatus = 'building';
+              } else if (status.status === 'expired') {
+                localStatus = 'expired';
+              }
+              
+              setInstanceStatus(prev => ({
+                ...prev,
+                [challenge.id]: localStatus
+              }));
 
-            // Store connection info if available
-            if (status.connection_info && status.connection_info.length > 0) {
-              setConnectionInfo(prev => ({
-                ...prev,
-                [challenge.id]: status.connection_info
-              }));
-            } else {
-              setConnectionInfo(prev => ({
-                ...prev,
-                [challenge.id]: []
-              }));
+              if (status.connection_info && status.connection_info.length > 0) {
+                setConnectionInfo(prev => ({
+                  ...prev,
+                  [challenge.id]: status.connection_info
+                }));
+              } else {
+                setConnectionInfo(prev => ({
+                  ...prev,
+                  [challenge.id]: []
+                }));
+              }
             }
+          } catch (error) {
+            debugError(`Failed to fetch status for challenge ${challenge.id}:`, error);
           }
-        } catch (error) {
-          debugError(`Failed to fetch status for challenge ${challenge.id}:`, error);
-        }
-      }
+        })
+      );
+      
       setStatusFetched(true);
     };
 
     fetchAllInstanceStatuses();
-  }, [challenges.length, statusFetched]); // Only run once when challenges load
+  }, [challenges.map(c => c.id).join(','), statusFetched, fetchInstanceStatus, isInstanceChallenge, setInstanceStatus, setConnectionInfo]);
+
+  // Reset status fetched flag when challenges change
+  useEffect(() => {
+    setStatusFetched(false);
+  }, [challenges.map(c => c.id).join(',')]);
 
   // Listen to WebSocket instance updates via window events
   useEffect(() => {
     const handleInstanceUpdate = (e: any) => {
-      const data = e?.detail || e?.data;
-      if (!data || data.event !== 'instance_update') return;
+      if (!validateInstanceUpdate(e)) {
+        debugError('[Security] Invalid instance update event received:', e);
+        return;
+      }
 
+      const data = e.detail;
       const challengeId = Number(data.challengeId);
-      if (!challengeId) return;
 
       // Map status
       let newStatus: 'running' | 'stopped' | 'building' | 'expired' | 'stopping' = 'stopped';
       if (data.status === 'running') newStatus = 'running';
       else if (data.status === 'stopped') newStatus = 'stopped';
       else if (data.status === 'building') newStatus = 'building';
+      else if (data.status === 'stopping') newStatus = 'stopping';
+      else if (data.status === 'expired') newStatus = 'expired';
       
       debugLog('[CategoryContent] Instance update received:', { challengeId, status: data.status, newStatus });
       setInstanceStatus(prev => ({ ...prev, [challengeId]: newStatus }));
@@ -211,7 +243,7 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
       window.addEventListener('instance-update', handleInstanceUpdate as EventListener);
       return () => window.removeEventListener('instance-update', handleInstanceUpdate as EventListener);
     }
-  }, [onChallengeUpdate]);
+  }, [onChallengeUpdate, setInstanceStatus, setConnectionInfo, setInstanceOwner]);
 
   useChallengeWebSocket({
     socket: null, // Using window events instead of socket.io in this codebase
@@ -238,17 +270,24 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
     },
     onInstanceUpdate: () => {}, // Handled by window event listener above
   });
-
-
-
-  useEffect(() => {
-    let mounted = true;
-    axios.get<User>("/api/me").then((res) => {
-      if (mounted) setCurrentUser(res.data as User);
-    }).catch(() => {});
-    return () => { mounted = false };
-  }, []);
-
+  
+  // Safety check for challenges
+  if (!challenges || challenges.length === 0) {
+    return (
+      <>
+        <Head>
+          <title>{getSiteName()} - {cat}</title>
+        </Head>
+        <main className="bg-muted flex flex-col items-center justify-center min-h-screen px-6 py-10 text-center">
+          <h1 className="text-3xl font-bold mb-6">
+            {cat}
+          </h1>
+          <p className="text-muted-foreground">{t('no_challenges_available') || 'No challenges available'}</p>
+        </main>
+      </>
+    );
+  }
+  
   return (
     <>
       <Head>
@@ -321,7 +360,16 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
           </section>
         </div>
 
-        <Suspense fallback={null}>
+        <Suspense fallback={
+          <div 
+            role="status" 
+            aria-live="polite" 
+            className="flex items-center justify-center p-8"
+          >
+            <span className="sr-only">Loading challenge details...</span>
+            <Skeleton className="h-96 w-full max-w-3xl" />
+          </div>
+        }>
           <ChallengeDetailModal
             open={open}
             onOpenChange={setOpen}
@@ -353,6 +401,14 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
             t={t}
           />
         </Suspense>
+
+        <div 
+          role="status" 
+          aria-live="polite" 
+          aria-atomic="true" 
+          className="sr-only"
+        >
+        </div>
       </main>
     </>
   );
