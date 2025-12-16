@@ -39,9 +39,30 @@ export const useChallengeFilters = ({
   initialCategory,
 }: UseChallengeFiltersProps): ChallengeFiltersResult => {
   const [query, setQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState<string[]>(
-    initialCategory ? [initialCategory] : []
-  );
+  
+  // Load category filter from localStorage or use initialCategory
+  const [categoryFilter, setCategoryFilterState] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('challengeCategoryFilter');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {
+          return initialCategory ? [initialCategory] : [];
+        }
+      }
+    }
+    return initialCategory ? [initialCategory] : [];
+  });
+  
+  // Wrapper to save to localStorage when category filter changes
+  const setCategoryFilter = useCallback((categories: string[]) => {
+    setCategoryFilterState(categories);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('challengeCategoryFilter', JSON.stringify(categories));
+    }
+  }, []);
+  
   const [solveFilter, setSolveFilter] = useState<SolveFilter>('all');
   const [sortBy, setSortBy] = useState<SortColumn>('name');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');

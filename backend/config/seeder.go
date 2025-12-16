@@ -254,11 +254,11 @@ func seedChallengeType() {
 
 func seedChallengeDifficulty() {
 	challengeDifficulties := []models.ChallengeDifficulty{
-		{Name: "intro"},
-		{Name: "easy"},
-		{Name: "medium"},
-		{Name: "hard"},
-		{Name: "insane"},
+		{Name: "intro", Color: "#94a3b8"},
+		{Name: "easy", Color: "#22c55e"},
+		{Name: "medium", Color: "#f59e0b"},
+		{Name: "hard", Color: "#ef4444"},
+		{Name: "insane", Color: "#dc2626"},
 	}
 	for _, challengeDifficulty := range challengeDifficulties {
 		var existing models.ChallengeDifficulty
@@ -268,13 +268,17 @@ func seedChallengeDifficulty() {
 			continue
 		}
 		if err == nil {
+			// Update color if it's missing
+			if existing.Color == "" {
+				DB.Model(&existing).Update("color", challengeDifficulty.Color)
+			}
 			continue
 		}
 		if err := DB.Create(&challengeDifficulty).Error; err != nil {
 			debug.Log("Failed to seed challengeDifficulty %s: %v\n", challengeDifficulty.Name, err)
 		}
 	}
-	debug.Println("Seeding: challengeTypes finished")
+	debug.Println("Seeding: challengeDifficulties finished")
 }
 
 func seedDecayFormulas() {

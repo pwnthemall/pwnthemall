@@ -3,6 +3,7 @@ import axios from "@/lib/axios";
 import { ColumnDef, RowSelectionState } from "@tanstack/react-table"
 import { DataTable } from "@/components/ui/data-table"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import {
   Sheet,
@@ -21,32 +22,54 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import ChallengeCategoriesForm from "./ChallengeCategoriesForm"
-import { ChallengeCategory, ChallengeCategoryFormData } from "@/models/ChallengeCategory"
+import ChallengeDifficultiesForm from "./ChallengeDifficultiesForm"
+import { ChallengeDifficulty, ChallengeDifficultyFormData } from "@/models/ChallengeDifficulty"
 import { useLanguage } from "@/context/LanguageContext"
 
-interface ChallengeCategoriesContentProps {
-  challengeCategories: ChallengeCategory[]
+interface ChallengeDifficultiesContentProps {
+  challengeDifficulties: ChallengeDifficulty[]
   onRefresh: () => void
 }
 
-export default function ChallengeCategoriesContent({ challengeCategories, onRefresh }: ChallengeCategoriesContentProps) {
+export default function ChallengeDifficultiesContent({ challengeDifficulties, onRefresh }: ChallengeDifficultiesContentProps) {
   const { t } = useLanguage();
-  const [editingChallengeCategory, setEditingChallengeCategory] = useState<ChallengeCategory | null>(null)
+  const [editingChallengeDifficulty, setEditingChallengeDifficulty] = useState<ChallengeDifficulty | null>(null)
   const [creating, setCreating] = useState(false)
-  const [deleting, setDeleting] = useState<ChallengeCategory | null>(null)
+  const [deleting, setDeleting] = useState<ChallengeDifficulty | null>(null)
   const [confirmMassDelete, setConfirmMassDelete] = useState(false)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
 
-  const columns: ColumnDef<ChallengeCategory>[] = [
+  const getTextColor = (bgColor: string): string => {
+    const hex = bgColor.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.5 ? '#000000' : '#ffffff';
+  };
+
+  const columns: ColumnDef<ChallengeDifficulty>[] = [
     { accessorKey: "id", header: t('id') },
     { accessorKey: "name", header: t('name') },
+    {
+      accessorKey: "color",
+      header: t('color'),
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <div 
+            className="w-8 h-8 rounded border border-border"
+            style={{ backgroundColor: row.original.color }}
+          />
+          <span className="text-sm font-mono">{row.original.color}</span>
+        </div>
+      ),
+    },
     {
       id: "actions",
       header: t('actions'),
       cell: ({ row }) => (
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => setEditingChallengeCategory(row.original)}>
+          <Button variant="outline" size="sm" onClick={() => setEditingChallengeDifficulty(row.original)}>
             {t('edit')}
           </Button>
           <Button variant="destructive" size="sm" onClick={() => setDeleting(row.original)}>
@@ -57,29 +80,29 @@ export default function ChallengeCategoriesContent({ challengeCategories, onRefr
     },
   ]
 
-  const handleCreate = async (data: ChallengeCategoryFormData) => {
-    await axios.post("/api/challenge-categories", data)
+  const handleCreate = async (data: ChallengeDifficultyFormData) => {
+    await axios.post("/api/challenge-difficulties", data)
     setCreating(false)
     onRefresh()
   }
 
-  const handleUpdate = async (data: ChallengeCategoryFormData) => {
-    if (!editingChallengeCategory) return
-    await axios.put(`/api/challenge-categories/${editingChallengeCategory.id}`, data)
-    setEditingChallengeCategory(null)
+  const handleUpdate = async (data: ChallengeDifficultyFormData) => {
+    if (!editingChallengeDifficulty) return
+    await axios.put(`/api/challenge-difficulties/${editingChallengeDifficulty.id}`, data)
+    setEditingChallengeDifficulty(null)
     onRefresh()
   }
 
   const handleDelete = async () => {
     if (!deleting) return
-    await axios.delete(`/api/challenge-categories/${deleting.id}`)
+    await axios.delete(`/api/challenge-difficulties/${deleting.id}`)
     setDeleting(null)
     onRefresh()
   }
 
   const doDeleteSelected = async () => {
-    const ids = Object.keys(rowSelection).map((key) => challengeCategories[Number.parseInt(key, 10)].id)
-    await Promise.all(ids.map((id) => axios.delete(`/api/challenge-categories/${id}`)))
+    const ids = Object.keys(rowSelection).map((key) => challengeDifficulties[Number.parseInt(key, 10)].id)
+    await Promise.all(ids.map((id) => axios.delete(`/api/challenge-difficulties/${id}`)))
     setRowSelection({})
     onRefresh()
     setConfirmMassDelete(false)
@@ -89,7 +112,7 @@ export default function ChallengeCategoriesContent({ challengeCategories, onRefr
     <>
       <div className="w-full">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-2xl font-semibold">{t('challenge_categories')}</h2>
+          <h2 className="text-2xl font-semibold">{t('challenge_difficulties')}</h2>
           <div className="flex items-center gap-2">
             <div
               className={cn(
@@ -107,35 +130,35 @@ export default function ChallengeCategoriesContent({ challengeCategories, onRefr
             </div>
             <Sheet open={creating} onOpenChange={setCreating}>
               <SheetTrigger asChild>
-                <Button size="sm">{t('new_challenge_category')}</Button>
+                <Button size="sm">{t('new_challenge_difficulty')}</Button>
               </SheetTrigger>
               <SheetContent side="right" onOpenAutoFocus={(e) => e.preventDefault()}>
                 <SheetHeader>
-                  <SheetTitle>{t('create_challenge_category')}</SheetTitle>
+                  <SheetTitle>{t('create_challenge_difficulty')}</SheetTitle>
                 </SheetHeader>
-                <ChallengeCategoriesForm onSubmit={handleCreate} />
+                <ChallengeDifficultiesForm onSubmit={handleCreate} />
               </SheetContent>
             </Sheet>
           </div>
         </div>
         <DataTable
           columns={columns}
-          data={challengeCategories}
+          data={challengeDifficulties}
           enableRowSelection
           rowSelection={rowSelection}
           onRowSelectionChange={setRowSelection}
           equalizeColumnWidths
         />
       </div>
-      <Sheet open={!!editingChallengeCategory} onOpenChange={(o) => !o && setEditingChallengeCategory(null)}>
+      <Sheet open={!!editingChallengeDifficulty} onOpenChange={(o) => !o && setEditingChallengeDifficulty(null)}>
         <SheetContent side="right" onOpenAutoFocus={(e) => e.preventDefault()}>
           <SheetHeader>
-            <SheetTitle>{t('edit_challenge_category')}</SheetTitle>
+            <SheetTitle>{t('edit_challenge_difficulty')}</SheetTitle>
           </SheetHeader>
-          {editingChallengeCategory && (
-            <ChallengeCategoriesForm
+          {editingChallengeDifficulty && (
+            <ChallengeDifficultiesForm
               isEdit
-              initialData={{ name: editingChallengeCategory.name }}
+              initialData={{ name: editingChallengeDifficulty.name, color: editingChallengeDifficulty.color }}
               onSubmit={handleUpdate}
             />
           )}
@@ -144,9 +167,9 @@ export default function ChallengeCategoriesContent({ challengeCategories, onRefr
       <AlertDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('delete_challenge_category')}</AlertDialogTitle>
+            <AlertDialogTitle>{t('delete_challenge_difficulty')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t('delete_challenge_category_confirm', { name: deleting?.name || '' })}
+              {t('delete_challenge_difficulty_confirm', { name: deleting?.name || '' })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -158,9 +181,9 @@ export default function ChallengeCategoriesContent({ challengeCategories, onRefr
       <AlertDialog open={confirmMassDelete} onOpenChange={setConfirmMassDelete}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('delete_challenge_categories')}</AlertDialogTitle>
+            <AlertDialogTitle>{t('delete_challenge_difficulties')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t('delete_challenge_categories_confirm')}
+              {t('delete_challenge_difficulties_confirm')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -172,4 +195,3 @@ export default function ChallengeCategoriesContent({ challengeCategories, onRefr
     </>
   )
 }
-

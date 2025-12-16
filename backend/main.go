@@ -143,6 +143,7 @@ func main() {
 	routes.RegisterWebhookRoutes(router)
 	routes.RegisterChallengeRoutes(router)
 	routes.RegisterChallengeCategoryRoutes(router)
+	routes.RegisterChallengeDifficultyRoutes(router)
 	routes.RegisterTeamRoutes(router)
 	routes.RegisterConfigRoutes(router)
 	routes.RegisterDockerConfigRoutes(router)

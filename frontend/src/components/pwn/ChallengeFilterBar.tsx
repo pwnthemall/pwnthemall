@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LayoutGrid, Table2 } from "lucide-react";
 
 interface ChallengeFilterBarProps {
   query: string;
@@ -14,6 +15,8 @@ interface ChallengeFilterBarProps {
   categories: string[];
   t: (key: string) => string;
   loading?: boolean;
+  viewMode?: 'table' | 'grid';
+  onViewModeChange?: (mode: 'table' | 'grid') => void;
 }
 
 export function ChallengeFilterBar({
@@ -26,6 +29,8 @@ export function ChallengeFilterBar({
   categories,
   t,
   loading = false,
+  viewMode = 'grid',
+  onViewModeChange,
 }: ChallengeFilterBarProps) {
   const cycleSolveFilter = () => {
     if (solveFilter === 'all') onSolveFilterChange('solved');
@@ -132,6 +137,31 @@ export function ChallengeFilterBar({
             ? (t("solved_only") !== "solved_only" ? t("solved_only") : "Solved only")
             : (t("unsolved_only") !== "unsolved_only" ? t("unsolved_only") : "Unsolved only")}
         </Button>
+
+        {onViewModeChange && (
+          <div className="flex gap-1 border rounded-md p-1">
+            <Button
+              type="button"
+              variant={viewMode === 'grid' ? "default" : "ghost"}
+              size="sm"
+              onClick={() => onViewModeChange('grid')}
+              disabled={loading}
+              className="px-2"
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Button>
+            <Button
+              type="button"
+              variant={viewMode === 'table' ? "default" : "ghost"}
+              size="sm"
+              onClick={() => onViewModeChange('table')}
+              disabled={loading}
+              className="px-2"
+            >
+              <Table2 className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
