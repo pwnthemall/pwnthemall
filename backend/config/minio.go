@@ -9,7 +9,6 @@ import (
 )
 
 var FS *minio.Client
-var MinioClient *minio.Client
 
 func ConnectMinio() *minio.Client {
 	endpoint := "minio:9000"
@@ -24,7 +23,6 @@ func ConnectMinio() *minio.Client {
 		os.Exit(1)
 	}
 	FS = minioClient
-	MinioClient = minioClient
-	
+
 	return minioClient
 }
