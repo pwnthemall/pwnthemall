@@ -326,7 +326,7 @@ export default function IndexContent({ ctfStatus, ctfLoading, isLoggedIn, hasTea
                   </div>
                 </button>
                 <button
-                  onClick={() => router.push('/profile/')}
+                  onClick={() => router.push('/profile')}
                   className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors text-left"
                 >
                   <Users className="h-5 w-5 text-cyan-600 dark:text-cyan-500" />
