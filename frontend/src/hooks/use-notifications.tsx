@@ -126,9 +126,7 @@ export const useNotifications = (isAuthenticated: boolean = false): UseNotificat
     const toWs = (httpUrl: string) => httpUrl.replace(/^https/, 'wss').replace(/^http/, 'ws');
 
     const candidates: string[] = [];
-    // Prefer proxied API path first so cookies are forwarded consistently via the same origin
-    candidates.push(toWs(origin + '/api/ws/notifications'));
-    // Then try direct frontend-origin path (if backend mounted at same host)
+    // Try direct frontend-origin path first (backend mounted at same host)
     candidates.push(toWs(origin + '/ws/notifications'));
     // Finally, try explicit backend origin if provided
     if (envBackend) {
