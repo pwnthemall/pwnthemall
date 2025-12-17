@@ -10,8 +10,8 @@ func RegisterConfigRoutes(router *gin.Engine) {
 	// Public endpoint for public configurations
 	router.GET("/public-configs", controllers.GetPublicConfigs)
 
-	// Public endpoint for CTF status
-	router.GET("/ctf-status", controllers.GetCTFStatus)
+	// Public endpoint for CTF status with rate limiting (30 requests per minute)
+	router.GET("/ctf-status", middleware.RateLimit(30), controllers.GetCTFStatus)
 
 	// Admin-only endpoints
 	configs := router.Group("/configs", middleware.AuthRequired(false))

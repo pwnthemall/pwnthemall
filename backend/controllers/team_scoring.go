@@ -59,10 +59,10 @@ func getTeamHintsCost(teamID uint) int {
 }
 
 // calculateTeamScore calculates total score for a team's solves
-func calculateTeamScore(teamID uint, decayService *utils.DecayService) (int, error) {
+func calculateTeamScore(teamID uint, decayService *utils.DecayService) (int, int, error) {
 	var solves []models.Solve
 	if err := config.DB.Where(queryTeamID, teamID).Find(&solves).Error; err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
 	totalScore := 0
@@ -79,7 +79,7 @@ func calculateTeamScore(teamID uint, decayService *utils.DecayService) (int, err
 			teamID, challenge.ID, challenge.Slug, position, points, challenge.DecayFormulaID)
 	}
 
-	return totalScore, nil
+	return totalScore, len(solves), nil
 }
 
 // sortLeaderboard sorts leaderboard by total score in descending order
@@ -147,7 +147,7 @@ type teamScore struct {
 
 // calculateTeamScoreWithHints calculates team score including hint costs
 func calculateTeamScoreWithHints(team models.Team, decayService *utils.DecayService) teamScore {
-	totalScore, err := calculateTeamScore(team.ID, decayService)
+	totalScore, _, err := calculateTeamScore(team.ID, decayService)
 	if err != nil {
 		return teamScore{team: team, score: 0}
 	}
@@ -228,7 +228,9 @@ func buildTimelinePoint(solve *models.Solve, allTeams []models.Team, teamScoresM
 // GetLeaderboard calculates and returns team rankings with current points
 func GetLeaderboard(c *gin.Context) {
 	var teams []models.Team
-	if err := config.DB.Preload("Users").Find(&teams).Error; err != nil {
+	result := config.DB.Find(&teams)
+	if result.Error != nil {
+		debug.Log("Failed to fetch teams for leaderboard", result.Error)
 		utils.InternalServerError(c, "failed_to_fetch_teams")
 		return
 	}
@@ -237,28 +239,29 @@ func GetLeaderboard(c *gin.Context) {
 	var leaderboard []dto.TeamScore
 
 	for _, team := range teams {
-		totalScore, err := calculateTeamScore(team.ID, decayService)
+		totalScore, solvesCount, err := calculateTeamScore(team.ID, decayService)
 		if err != nil {
 			continue
 		}
 
-		hintsCost := getTeamHintsCost(team.ID)
-		finalScore := totalScore - hintsCost
-
-		var solveCount int64
-		config.DB.Model(&models.Solve{}).Where(queryTeamID, team.ID).Count(&solveCount)
-
+		var teamScore dto.TeamScore
 		var safeTeam dto.SafeTeam
-		copier.Copy(&safeTeam, &team)
 
-		leaderboard = append(leaderboard, dto.TeamScore{
+		copier.Copy(&safeTeam, &team)
+		copier.Copy(&teamScore, &dto.TeamScore{
 			Team:       safeTeam,
-			TotalScore: finalScore,
-			SolveCount: int(solveCount),
+			TotalScore: totalScore,
+			SolveCount: solvesCount,
 		})
+		leaderboard = append(leaderboard, teamScore)
 	}
 
 	sortLeaderboard(leaderboard)
+
+	for i := range leaderboard {
+		leaderboard[i].Rank = i + 1
+	}
+
 	utils.OKResponse(c, leaderboard)
 }
 
@@ -337,7 +340,7 @@ func GetTeamScore(c *gin.Context) {
 
 	// Calculate total score with decay
 	decayService := utils.NewDecay()
-	totalScore, err := calculateTeamScore(*user.TeamID, decayService)
+	totalScore, _, err := calculateTeamScore(*user.TeamID, decayService)
 	if err != nil {
 		utils.InternalServerError(c, "failed_to_calculate_score")
 		return

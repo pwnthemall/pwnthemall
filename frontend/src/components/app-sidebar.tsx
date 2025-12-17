@@ -88,7 +88,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     // Only show pwn section if CTF has started (active, ended, no timing, or still loading CTF status)
     const shouldShowPwn = ctfLoading || ctfStatus.status !== 'not_started';
     items.push({
-      title: t('Home'),
+      title: t('sidebar.home'),
       url: "/",
       icon:  Home,
       isActive: router.pathname.startsWith("/"),

@@ -167,7 +167,7 @@ export default function ScoreboardContent() {
     }
   };
 
-    const filteredIndividualData = individualData.filter(entry => {
+  const filteredIndividualData = individualData.filter(entry => {
     if (!searchTerm) return true;
     return (entry.username && entry.username.toLowerCase().includes(searchTerm.toLowerCase())) ||
            (entry.teamName && entry.teamName.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -249,20 +249,20 @@ export default function ScoreboardContent() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600 dark:border-cyan-400 mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">{t('loading')}</p>
+          <p className="mt-2 text-muted-foreground">{t('common.loading')}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-muted min-h-screen">
+    <div className="min-h-screen">
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
-            <h1 className="text-3xl font-bold">{t('scoreboard.scoreboard') || 'Scoreboard'}</h1>
+            <h1 className="text-3xl font-bold">{t('scoreboard.scoreboard')}</h1>
             <p className="text-muted-foreground">
-              {t('scoreboard.scoreboard_description') || 'View rankings for individuals and teams'}
+              {t('scoreboard.scoreboard_description')}
             </p>
           </div>
           <div className="flex gap-2">
@@ -270,20 +270,20 @@ export default function ScoreboardContent() {
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="flex items-center gap-2">
                   <ExternalLink className="h-4 w-4" />
-                  Live View
+                  {t('scoreboard.live_view')}
                   <ChevronDown className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem onClick={() => window.open('/live/classic', '_blank')}>
-                  Live View
+                  {t('scoreboard.live_view')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </div>
 
-        {/* Timeline Chart - CTFd/TryHackMe Style */}
+        {/* Timeline Chart */}
         <Card className="relative">
           {/* Controls */}
           <div className="absolute top-4 right-4 z-10">
@@ -294,109 +294,112 @@ export default function ScoreboardContent() {
                   ? 'bg-primary text-primary-foreground' 
                   : 'bg-muted/50 text-muted-foreground hover:bg-muted'
               }`}
-              title="Controls"
+              title={t('scoreboard.controls')}
             >
               <Settings className="h-4 w-4" />
             </button>
             
             {showControls && (
               <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-lg p-3 shadow-lg min-w-[200px]">
-                <div className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Controls</div>
+                <div className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+                  {t('scoreboard.controls')}
+                </div>
                   
-                  {/* Mode Toggle */}
-                  <div className="mb-3">
-                    <div className="text-xs text-muted-foreground mb-1">Scoreboard Mode</div>
-                    <div className="flex gap-1">
-                      <button
-                        onClick={() => setActiveTab('individual')}
-                        className={`flex-1 px-2 py-1 rounded text-xs font-medium transition-all ${
-                          activeTab === 'individual'
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                        }`}
-                      >
-                        <User className="inline h-3 w-3 mr-1" />
-                        Individual
-                      </button>
-                      <button
-                        onClick={() => setActiveTab('team')}
-                        className={`flex-1 px-2 py-1 rounded text-xs font-medium transition-all ${
-                          activeTab === 'team'
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                        }`}
-                      >
-                        <Users className="inline h-3 w-3 mr-1" />
-                        Teams
-                      </button>
-                    </div>
-                  </div>
-                  
-                  {/* Animation Toggle */}
-                  <div className="mb-3">
-                    <div className="text-xs text-muted-foreground mb-1">Graph Transitions</div>
+                {/* Mode Toggle */}
+                <div className="mb-3">
+                  <div className="text-xs text-muted-foreground mb-1">{t('scoreboard.scoreboard_mode')}</div>
+                  <div className="flex gap-1">
                     <button
-                      onClick={() => setAnimationsEnabled(!animationsEnabled)}
-                      className={`w-full px-2 py-1 rounded text-xs font-medium transition-all flex items-center justify-center gap-1 ${
-                        animationsEnabled
-                          ? 'bg-green-500/20 text-green-500 border border-green-500/30'
+                      onClick={() => setActiveTab('individual')}
+                      className={`flex-1 px-2 py-1 rounded text-xs font-medium transition-all ${
+                        activeTab === 'individual'
+                          ? 'bg-primary text-primary-foreground'
                           : 'bg-muted text-muted-foreground hover:bg-muted/80'
                       }`}
                     >
-                      {animationsEnabled ? (
-                        <>
-                          <Zap className="h-3 w-3" />
-                          Smooth (Enabled)
-                        </>
-                      ) : (
-                        <>
-                          <ZapOff className="h-3 w-3" />
-                          Instant (Disabled)
-                        </>
-                      )}
+                      <User className="inline h-3 w-3 mr-1" />
+                      {t('scoreboard.individual')}
                     </button>
-                  </div>
-                  
-                  {/* Auto-Switch Toggle */}
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1">Auto-Switch Mode</div>
                     <button
-                      onClick={() => setAutoSwitch(!autoSwitch)}
-                      className={`w-full px-2 py-1 rounded text-xs font-medium transition-all flex items-center justify-center gap-1 ${
-                        autoSwitch
-                          ? 'bg-blue-500/20 text-blue-500 border border-blue-500/30'
+                      onClick={() => setActiveTab('team')}
+                      className={`flex-1 px-2 py-1 rounded text-xs font-medium transition-all ${
+                        activeTab === 'team'
+                          ? 'bg-primary text-primary-foreground'
                           : 'bg-muted text-muted-foreground hover:bg-muted/80'
                       }`}
                     >
-                      <RefreshCw className={`h-3 w-3 ${autoSwitch ? 'animate-spin' : ''}`} style={{ animationDuration: '3s' }} />
-                      {autoSwitch ? 'Auto-Switch ON' : 'Auto-Switch OFF'}
+                      <Users className="inline h-3 w-3 mr-1" />
+                      {t('scoreboard.teams')}
                     </button>
-                    {autoSwitch && (
-                      <div className="mt-2">
-                        <div className="text-xs text-muted-foreground mb-1">Interval (seconds)</div>
-                        <input
-                          type="number"
-                          min="5"
-                          max="120"
-                          value={autoSwitchInterval}
-                          onChange={(e) => setAutoSwitchInterval(Math.max(5, Math.min(120, parseInt(e.target.value) || 10)))}
-                          className="w-full px-2 py-1 rounded text-xs bg-muted border border-border text-foreground"
-                        />
-                      </div>
-                    )}
                   </div>
                 </div>
-              )}
-            </div>
+                
+                {/* Animation Toggle */}
+                <div className="mb-3">
+                  <div className="text-xs text-muted-foreground mb-1">{t('scoreboard.graph_transitions')}</div>
+                  <button
+                    onClick={() => setAnimationsEnabled(!animationsEnabled)}
+                    className={`w-full px-2 py-1 rounded text-xs font-medium transition-all flex items-center justify-center gap-1 ${
+                      animationsEnabled
+                        ? 'bg-green-500/20 text-green-500 border border-green-500/30'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    }`}
+                  >
+                    {animationsEnabled ? (
+                      <>
+                        <Zap className="h-3 w-3" />
+                        {t('scoreboard.smooth_enabled')}
+                      </>
+                    ) : (
+                      <>
+                        <ZapOff className="h-3 w-3" />
+                        {t('scoreboard.instant_disabled')}
+                      </>
+                    )}
+                  </button>
+                </div>
+                
+                {/* Auto-Switch Toggle */}
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">{t('scoreboard.auto_switch_mode')}</div>
+                  <button
+                    onClick={() => setAutoSwitch(!autoSwitch)}
+                    className={`w-full px-2 py-1 rounded text-xs font-medium transition-all flex items-center justify-center gap-1 ${
+                      autoSwitch
+                        ? 'bg-blue-500/20 text-blue-500 border border-blue-500/30'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    }`}
+                  >
+                    <RefreshCw className={`h-3 w-3 ${autoSwitch ? 'animate-spin' : ''}`} style={{ animationDuration: '3s' }} />
+                    {autoSwitch ? t('scoreboard.auto_switch_on') : t('scoreboard.auto_switch_off')}
+                  </button>
+                  {autoSwitch && (
+                    <div className="mt-2">
+                      <div className="text-xs text-muted-foreground mb-1">{t('scoreboard.interval_seconds')}</div>
+                      <input
+                        type="number"
+                        min="5"
+                        max="120"
+                        value={autoSwitchInterval}
+                        onChange={(e) => setAutoSwitchInterval(Math.max(5, Math.min(120, parseInt(e.target.value) || 10)))}
+                        className="w-full px-2 py-1 rounded text-xs bg-muted border border-border text-foreground"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5" />
-              {t('scoreboard.solve_activity') || 'Solve activity over time'}
+              {t('scoreboard.solve_activity')}
             </CardTitle>
             <CardDescription>
               {activeTab === 'individual' 
-                ? (t('scoreboard.solve_activity_description_individual') || 'Track how top players progress through challenges')
-                : (t('scoreboard.solve_activity_description') || 'Track how teams progress through challenges')
+                ? t('scoreboard.solve_activity_description_individual')
+                : t('scoreboard.solve_activity_description')
               }
             </CardDescription>
           </CardHeader>
@@ -407,7 +410,7 @@ export default function ScoreboardContent() {
               </div>
             ) : !timelineData || timelineData.timeline.length === 0 ? (
               <div className="flex items-center justify-center h-[300px] text-muted-foreground">
-                {t('scoreboard.no_solve_data') || 'No solve data available yet'}
+                {t('scoreboard.no_solve_data')}
               </div>
             ) : (
               <>
@@ -425,7 +428,7 @@ export default function ScoreboardContent() {
                     <YAxis 
                       className="text-xs"
                       tick={{ fill: 'currentColor' }}
-                      label={{ value: t('scoreboard.points') || 'Points', angle: -90, position: 'insideLeft' }}
+                      label={{ value: t('scoreboard.points'), angle: -90, position: 'insideLeft' }}
                     />
                     <Tooltip 
                       contentStyle={{ 
@@ -514,18 +517,18 @@ export default function ScoreboardContent() {
                 <TabsList className="grid w-full sm:w-auto grid-cols-2">
                   <TabsTrigger value="individual" className="flex items-center gap-2">
                     <User className="h-4 w-4" />
-                    {t('scoreboard.individual') || 'Individual'}
+                    {t('scoreboard.individual')}
                   </TabsTrigger>
                   <TabsTrigger value="team" className="flex items-center gap-2">
                     <Users className="h-4 w-4" />
-                    {t('team.team') || 'Teams'}
+                    {t('scoreboard.teams')}
                   </TabsTrigger>
                 </TabsList>
 
                 <div className="relative w-full sm:w-64">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder={t('scoreboard.search') || 'Search...'}
+                    placeholder={t('scoreboard.search')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-8"
@@ -533,224 +536,230 @@ export default function ScoreboardContent() {
                 </div>
               </div>
 
-        <TabsContent value="individual" className="mt-0">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                {t('scoreboard.individual_leaderboard') || 'Individual Leaderboard'}
-              </CardTitle>
-              <CardDescription>
-                {t('scoreboard.scoreboard_description') || 'Top players ranked by points'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {filteredIndividualData.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  {searchTerm ? t('challenges.no_challenges_yet') || 'No results found' : t('scoreboard.no_players_yet') || 'No players have scored yet'}
-                </div>
-              ) : (
-                <>
-                  <div className="mb-2 text-sm text-muted-foreground">
-                    {t('common.showing') || 'Showing'} {filteredIndividualData.length} {t('scoreboard.player') || 'player'}{filteredIndividualData.length !== 1 ? 's' : ''}
-                  </div>
-                  <div className="rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-[100px]">{t('scoreboard.rank') || 'Rank'}</TableHead>
-                          <TableHead>{t('scoreboard.player') || 'Player'}</TableHead>
-                          <TableHead>{t('team.team') || 'Team'}</TableHead>
-                          <TableHead className="text-right">{t('scoreboard.points') || 'Points'}</TableHead>
-                          <TableHead className="text-right">{t('scoreboard.solves') || 'Solves'}</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {paginatedIndividualData.map((entry) => (
-                          <TableRow
-                            key={entry.id}
-                            className={cn(
-                              "transition-colors",
-                              entry.id === user?.id && "bg-primary/10 hover:bg-primary/15"
-                            )}
-                          >
-                            <TableCell className="font-medium">
-                              <div className="flex items-center gap-2">
-                                {getRankIcon(entry.rank)}
-                                {getRankBadge(entry.rank)}
-                              </div>
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              <Link 
-                                href={`/users/${encodeURIComponent(entry.username)}`}
-                                className="hover:text-primary hover:underline transition-colors"
+              <TabsContent value="individual" className="mt-0">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <User className="h-5 w-5" />
+                      {t('scoreboard.individual_leaderboard')}
+                    </CardTitle>
+                    <CardDescription>
+                      {t('scoreboard.top_players_ranked')}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {filteredIndividualData.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        {searchTerm ? t('scoreboard.no_results_found') : t('scoreboard.no_players_yet')}
+                      </div>
+                    ) : (
+                      <>
+                        <div className="mb-2 text-sm text-muted-foreground">
+                          {filteredIndividualData.length === 1 
+                            ? t('scoreboard.showing_players', { count: filteredIndividualData.length })
+                            : t('scoreboard.showing_players_plural', { count: filteredIndividualData.length })
+                          }
+                        </div>
+                        <div className="rounded-md border">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead className="w-[100px]">{t('scoreboard.rank')}</TableHead>
+                                <TableHead>{t('scoreboard.player')}</TableHead>
+                                <TableHead>{t('scoreboard.team')}</TableHead>
+                                <TableHead className="text-right">{t('scoreboard.points')}</TableHead>
+                                <TableHead className="text-right">{t('scoreboard.solves')}</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {paginatedIndividualData.map((entry) => (
+                                <TableRow
+                                  key={entry.id}
+                                  className={cn(
+                                    "transition-colors",
+                                    entry.id === user?.id && "bg-primary/10 hover:bg-primary/15"
+                                  )}
+                                >
+                                  <TableCell className="font-medium">
+                                    <div className="flex items-center gap-2">
+                                      {getRankIcon(entry.rank)}
+                                      {getRankBadge(entry.rank)}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="font-medium">
+                                    <Link 
+                                      href={`/users/${encodeURIComponent(entry.username)}`}
+                                      className="hover:text-primary hover:underline transition-colors"
+                                    >
+                                      {entry.username}
+                                    </Link>
+                                    {entry.id === user?.id && (
+                                      <Badge variant="outline" className="ml-2">
+                                        {t('scoreboard.you')}
+                                      </Badge>
+                                    )}
+                                  </TableCell>
+                                  <TableCell className="text-muted-foreground">
+                                    {entry.teamName || <span className="italic">{t('scoreboard.no_team')}</span>}
+                                  </TableCell>
+                                  <TableCell className="text-right font-semibold">
+                                    {entry.points.toLocaleString()}
+                                  </TableCell>
+                                  <TableCell className="text-right text-muted-foreground">
+                                    {entry.solves}
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                        {totalIndividualPages >= 1 && (
+                          <div className="flex items-center justify-between mt-4">
+                            <div className="text-sm text-muted-foreground">
+                              {t('scoreboard.page_of', { current: individualPage, total: totalIndividualPages })}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setIndividualPage(p => Math.max(1, p - 1))}
+                                disabled={individualPage === 1}
                               >
-                                {entry.username}
-                              </Link>
-                              {entry.id === user?.id && (
-                                <Badge variant="outline" className="ml-2">
-                                  {t('scoreboard.you') || 'You'}
-                                </Badge>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-muted-foreground">
-                              {entry.teamName || <span className="italic">{t('scoreboard.no_team') || 'No team'}</span>}
-                            </TableCell>
-                            <TableCell className="text-right font-semibold">
-                              {entry.points.toLocaleString()}
-                            </TableCell>
-                            <TableCell className="text-right text-muted-foreground">
-                              {entry.solves}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                  {totalIndividualPages >= 1 && (
-                    <div className="flex items-center justify-between mt-4">
-                      <div className="text-sm text-muted-foreground">
-                        {t('common.page') || 'Page'} {individualPage} {t('common.of') || 'of'} {totalIndividualPages}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setIndividualPage(p => Math.max(1, p - 1))}
-                          disabled={individualPage === 1}
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                          {t('common.previous') || 'Previous'}
-                        </Button>
+                                <ChevronLeft className="h-4 w-4" />
+                                {t('common.previous')}
+                              </Button>
 
-                        <div className="flex items-center gap-1">
-                          {renderPageButtons(individualPage, totalIndividualPages, (n: number) => setIndividualPage(n))}
-                        </div>
-
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setIndividualPage(p => Math.min(totalIndividualPages, p + 1))}
-                          disabled={individualPage === totalIndividualPages}
-                        >
-                          {t('common.next') || 'Next'}
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="team" className="mt-0">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                {t('scoreboard.team_leaderboard') || 'Team Leaderboard'}
-              </CardTitle>
-              <CardDescription>
-                {t('scoreboard.scoreboard_description') || 'Top teams ranked by combined points'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {filteredTeamData.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  {searchTerm ? t('challenges.no_challenges_yet') || 'No results found' : t('scoreboard.no_teams_yet') || 'No teams have scored yet'}
-                </div>
-              ) : (
-                <>
-                  <div className="mb-2 text-sm text-muted-foreground">
-                    {t('common.showing') || 'Showing'} {filteredTeamData.length} {t('team.team') || 'team'}{filteredTeamData.length !== 1 ? 's' : ''}
-                  </div>
-                  <div className="rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-[100px]">{t('scoreboard.rank') || 'Rank'}</TableHead>
-                          <TableHead>{t('team.team') || 'Team'}</TableHead>
-                          <TableHead className="text-right">{t('scoreboard.members') || 'Members'}</TableHead>
-                          <TableHead className="text-right">{t('scoreboard.points') || 'Points'}</TableHead>
-                          <TableHead className="text-right">{t('scoreboard.solves') || 'Solves'}</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {paginatedTeamData.map((entry) => (
-                          <TableRow
-                            key={entry.id}
-                            className={cn(
-                              "transition-colors",
-                              entry.id === user?.teamId && "bg-primary/10 hover:bg-primary/15"
-                            )}
-                          >
-                            <TableCell className="font-medium">
-                              <div className="flex items-center gap-2">
-                                {getRankIcon(entry.rank)}
-                                {getRankBadge(entry.rank)}
+                              <div className="flex items-center gap-1">
+                                {renderPageButtons(individualPage, totalIndividualPages, setIndividualPage)}
                               </div>
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              {entry.name}
-                              {entry.id === user?.teamId && (
-                                <Badge variant="outline" className="ml-2">
-                                  {t('scoreboard.your_team') || 'Your Team'}
-                                </Badge>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-right text-muted-foreground">
-                              {entry.memberCount}
-                            </TableCell>
-                            <TableCell className="text-right font-semibold">
-                              {entry.points.toLocaleString()}
-                            </TableCell>
-                            <TableCell className="text-right text-muted-foreground">
-                              {entry.solves}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                  {totalTeamPages >= 1 && (
-                    <div className="flex items-center justify-between mt-4">
-                      <div className="text-sm text-muted-foreground">
-                        {t('common.page') || 'Page'} {teamPage} {t('common.of') || 'of'} {totalTeamPages}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setTeamPage(p => Math.max(1, p - 1))}
-                          disabled={teamPage === 1}
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                          {t('common.previous') || 'Previous'}
-                        </Button>
 
-                        <div className="flex items-center gap-1">
-                          {renderPageButtons(teamPage, totalTeamPages, (n: number) => setTeamPage(n))}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setIndividualPage(p => Math.min(totalIndividualPages, p + 1))}
+                                disabled={individualPage === totalIndividualPages}
+                              >
+                                {t('common.next')}
+                                <ChevronRight className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="team" className="mt-0">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="h-5 w-5" />
+                      {t('scoreboard.team_leaderboard')}
+                    </CardTitle>
+                    <CardDescription>
+                      {t('scoreboard.top_teams_ranked')}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {filteredTeamData.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        {searchTerm ? t('scoreboard.no_results_found') : t('scoreboard.no_teams_yet')}
+                      </div>
+                    ) : (
+                      <>
+                        <div className="mb-2 text-sm text-muted-foreground">
+                          {filteredTeamData.length === 1
+                            ? t('scoreboard.showing_teams', { count: filteredTeamData.length })
+                            : t('scoreboard.showing_teams_plural', { count: filteredTeamData.length })
+                          }
                         </div>
+                        <div className="rounded-md border">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead className="w-[100px]">{t('scoreboard.rank')}</TableHead>
+                                <TableHead>{t('scoreboard.team')}</TableHead>
+                                <TableHead className="text-right">{t('scoreboard.members')}</TableHead>
+                                <TableHead className="text-right">{t('scoreboard.points')}</TableHead>
+                                <TableHead className="text-right">{t('scoreboard.solves')}</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {paginatedTeamData.map((entry) => (
+                                <TableRow
+                                  key={entry.id}
+                                  className={cn(
+                                    "transition-colors",
+                                    entry.id === user?.teamId && "bg-primary/10 hover:bg-primary/15"
+                                  )}
+                                >
+                                  <TableCell className="font-medium">
+                                    <div className="flex items-center gap-2">
+                                      {getRankIcon(entry.rank)}
+                                      {getRankBadge(entry.rank)}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="font-medium">
+                                    {entry.name}
+                                    {entry.id === user?.teamId && (
+                                      <Badge variant="outline" className="ml-2">
+                                        {t('scoreboard.your_team')}
+                                      </Badge>
+                                    )}
+                                  </TableCell>
+                                  <TableCell className="text-right text-muted-foreground">
+                                    {entry.memberCount}
+                                  </TableCell>
+                                  <TableCell className="text-right font-semibold">
+                                    {entry.points.toLocaleString()}
+                                  </TableCell>
+                                  <TableCell className="text-right text-muted-foreground">
+                                    {entry.solves}
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                        {totalTeamPages >= 1 && (
+                          <div className="flex items-center justify-between mt-4">
+                            <div className="text-sm text-muted-foreground">
+                              {t('scoreboard.page_of', { current: teamPage, total: totalTeamPages })}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setTeamPage(p => Math.max(1, p - 1))}
+                                disabled={teamPage === 1}
+                              >
+                                <ChevronLeft className="h-4 w-4" />
+                                {t('common.previous')}
+                              </Button>
 
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setTeamPage(p => Math.min(totalTeamPages, p + 1))}
-                          disabled={teamPage === totalTeamPages}
-                        >
-                          {t('common.next') || 'Next'}
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+                              <div className="flex items-center gap-1">
+                                {renderPageButtons(teamPage, totalTeamPages, setTeamPage)}
+                              </div>
+
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setTeamPage(p => Math.min(totalTeamPages, p + 1))}
+                                disabled={teamPage === totalTeamPages}
+                              >
+                                {t('common.next')}
+                                <ChevronRight className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
             </Tabs>
           </CardContent>
         </Card>

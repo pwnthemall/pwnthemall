@@ -73,7 +73,7 @@ func PurchaseHint(c *gin.Context) {
 
 	// Calculate team score with decay
 	decayService := utils.NewDecay()
-	totalScore, err := calculateTeamScore(*user.TeamID, decayService)
+	totalScore, _, err := calculateTeamScore(*user.TeamID, decayService)
 	if err != nil {
 		tx.Rollback()
 		utils.InternalServerError(c, "failed_to_calculate_score")
