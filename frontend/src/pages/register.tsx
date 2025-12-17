@@ -81,16 +81,14 @@ const RegisterPage = () => {
   if (!registrationEnabled) {
     return (
       <div className="min-h-screen w-screen bg-muted flex items-center justify-center overflow-hidden relative">
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          className="absolute top-4 left-4 h-8 w-8 p-0"
           onClick={() => router.back()}
-          className="absolute top-4 left-4"
           aria-label="Back"
         >
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        </button>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
         <div className="text-center">
           <p className="text-lg font-semibold">{t('registration_disabled')}</p>
         </div>
@@ -100,16 +98,14 @@ const RegisterPage = () => {
 
   return (
     <div className="min-h-screen w-screen bg-muted flex items-center justify-center overflow-hidden relative">
-      <button
-        type="button"
+      <Button
+        variant="ghost"
+        className="absolute top-4 left-4 h-8 w-8 p-0"
         onClick={() => router.back()}
-        className="absolute top-4 left-4"
         aria-label="Back"
       >
-        <Button variant="ghost" className="h-8 w-8 p-0">
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-      </button>
+        <ArrowLeft className="h-4 w-4" />
+      </Button>
 
       <RegisterContent
         form={form}

@@ -112,11 +112,13 @@ export default function LoginContent({
                             <Image
                                 src={getThemeLogo(theme)}
                                 alt="logo"
-                                width="400"
-                                height="400"
+                                width={400}
+                                height={400}
+                                style={{ width: '400px', height: 'auto' }}
                                 className={`mx-auto transition-opacity duration-300 ${logoLoaded ? 'opacity-100' : 'opacity-0'}`}
                                 onLoad={() => setLogoLoaded(true)}
                                 priority
+                                unoptimized
                             />
                         </div>
                     </CardContent>
