@@ -81,6 +81,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await axios.get("/api/me");
       setLoggedIn(true);
     } catch (err: any) {
+      // 401/403 are expected when not logged in - don't log these
+      if (err?.response?.status !== 401 && err?.response?.status !== 403) {
+        console.error('Auth check failed:', err);
+      }
       setLoggedIn(false);
     } finally {
       authCheckedRef.current = true;
