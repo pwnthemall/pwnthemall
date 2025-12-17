@@ -24,7 +24,7 @@ export function AnimatedBorderCard({
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setProgress((prev) => (prev + 0.5) % 100);
+      setProgress((prev) => (prev + 0.3) % 100);
     }, 16); // ~60fps
 
     return () => clearInterval(interval);

@@ -39,9 +39,9 @@ const RegisterContent: React.FC<RegisterContentProps> = ({
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         let error = "";
-        if (name === "username" && value.length > 32) error = t('username_too_long') || "Username too long (max 32)";
-        if (name === "email" && value.length > 254) error = t('email_too_long') || "Email too long (max 254)";
-        if (name === "password" && value.length > 72) error = t('password_too_long') || "Password too long (max 72)";
+        if (name === "username" && value.length > 32) error = t('username_too_long');
+        if (name === "email" && value.length > 254) error = t('email_too_long');
+        if (name === "password" && value.length > 72) error = t('password_too_long');
         setErrors({ ...errors, [name]: error });
         onChange(e);
     };

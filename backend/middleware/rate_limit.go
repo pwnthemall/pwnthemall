@@ -91,3 +91,65 @@ func RateLimitJoinTeam() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+func RateLimit(maxRequests int) gin.HandlerFunc {
+	limiter := &rateLimiter{
+		attempts: make(map[string][]time.Time),
+		maxTries: maxRequests,
+		window:   1 * time.Minute,
+	}
+
+	go func() {
+		ticker := time.NewTicker(5 * time.Minute)
+		defer ticker.Stop()
+
+		for range ticker.C {
+			limiter.mu.Lock()
+			now := time.Now()
+			for key, attempts := range limiter.attempts {
+				var validAttempts []time.Time
+				for _, attemptTime := range attempts {
+					if now.Sub(attemptTime) < limiter.window {
+						validAttempts = append(validAttempts, attemptTime)
+					}
+				}
+				if len(validAttempts) == 0 {
+					delete(limiter.attempts, key)
+				} else {
+					limiter.attempts[key] = validAttempts
+				}
+			}
+			limiter.mu.Unlock()
+		}
+	}()
+
+	return func(c *gin.Context) {
+		key := c.ClientIP()
+		now := time.Now()
+
+		limiter.mu.Lock()
+		defer limiter.mu.Unlock()
+
+		attempts := limiter.attempts[key]
+		var validAttempts []time.Time
+		for _, attemptTime := range attempts {
+			if now.Sub(attemptTime) < limiter.window {
+				validAttempts = append(validAttempts, attemptTime)
+			}
+		}
+
+		if len(validAttempts) >= limiter.maxTries {
+			c.JSON(http.StatusTooManyRequests, gin.H{
+				"error":   "rate_limit_exceeded",
+				"message": "Too many requests. Please try again later.",
+			})
+			c.Abort()
+			return
+		}
+
+		validAttempts = append(validAttempts, now)
+		limiter.attempts[key] = validAttempts
+
+		c.Next()
+	}
+}
