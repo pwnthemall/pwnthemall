@@ -11,6 +11,8 @@ import React from "react"
 import Image from "next/image"
 import { useTheme } from "next-themes"
 import { MagicCard } from "@/components/ui/magic-card"
+import { getThemeLogo, getThemeType } from "@/lib/themeConfig"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface RegisterContentProps {
     form: {
@@ -33,6 +35,7 @@ const RegisterContent: React.FC<RegisterContentProps> = ({
 }) => {
     const { t } = useLanguage();
     const { theme } = useTheme();
+    const [logoLoaded, setLogoLoaded] = React.useState(false);
 
     const [errors, setErrors] = React.useState<{username?: string, email?: string, password?: string}>({});
 
@@ -50,7 +53,8 @@ const RegisterContent: React.FC<RegisterContentProps> = ({
         <div className="w-full max-w-4xl px-4">
             <Card className="border-0 rounded-[20px] overflow-hidden p-0 shadow-2xl dark:shadow-[0_20px_50px_rgba(255,255,255,0.1)]">
                 <MagicCard
-                    gradientColor={theme === "dark" ? "#262626" : "#cecece55"}
+                    gradientColor={getThemeType(theme) === 'dark' ? '#262626' : '#d0d0d0'}
+                    gradientOpacity={0.3}
                     className="rounded-[20px] p-0"
                 >
                     <CardContent className="grid p-0 md:grid-cols-2">
@@ -127,13 +131,18 @@ const RegisterContent: React.FC<RegisterContentProps> = ({
                             </div>
                         </form>
                         
-                        <div className="bg-muted/20 flex items-center justify-center p-6 md:p-8">
+                        <div className="bg-muted/20 flex items-center justify-center p-6 md:p-8 relative">
+                            {!logoLoaded && (
+                                <Skeleton className="w-[400px] h-[400px] mx-auto" />
+                            )}
                             <Image
-                                src={theme === 'dark' ? '/logo-v2-text-dark.png' : '/logo-v2-text-light.png'}
+                                src={getThemeLogo(theme)}
                                 alt="logo"
                                 width="400"
                                 height="400"
-                                className="mx-auto"
+                                className={`mx-auto transition-opacity duration-300 ${logoLoaded ? 'opacity-100' : 'opacity-0'}`}
+                                onLoad={() => setLogoLoaded(true)}
+                                priority
                             />
                         </div>
                     </CardContent>
