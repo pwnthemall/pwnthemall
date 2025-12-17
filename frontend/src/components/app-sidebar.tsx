@@ -169,7 +169,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       // Not logged in
     }
     return items;
-  }, [authChecked, loggedIn, router.pathname, userData.role, t, siteConfig.REGISTRATION_ENABLED, siteConfig.TICKETS_ENABLED, ctfLoading, ctfStatus.status]);
+  }, [authChecked, loggedIn, router.pathname, userData.role, t, siteConfig.TICKETS_ENABLED, ctfLoading, ctfStatus.status]);
 
   return (
     <Sidebar

@@ -153,6 +153,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         window.removeEventListener('new-notification', handleNewNotification as EventListener);
       };
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const value: NotificationContextType = {

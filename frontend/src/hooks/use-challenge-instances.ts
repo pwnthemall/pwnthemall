@@ -78,6 +78,7 @@ export function useChallengeInstances(
     };
 
     fetchAllInstanceStatuses();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [challenges.length, statusFetched]);
 
   // Real-time: listen to instance updates over WebSocket

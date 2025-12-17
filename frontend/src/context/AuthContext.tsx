@@ -95,8 +95,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     checkAuth();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run once on mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount - checkAuth is stable
 
   // Listen for auth refresh events (e.g., after username update, team changes)
   useEffect(() => {
@@ -110,6 +110,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         window.removeEventListener('auth:refresh', handleAuthRefresh);
       };
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Listen for user-banned events from WebSocket

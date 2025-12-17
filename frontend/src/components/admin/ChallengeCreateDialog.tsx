@@ -675,6 +675,7 @@ export default function ChallengeCreateDialog({
                               }))
                             }}
                           >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={URL.createObjectURL(formData.coverFile)}
                               alt="Cover preview"
@@ -701,6 +702,7 @@ export default function ChallengeCreateDialog({
                         <Label>Card Preview</Label>
                         <div className="border rounded-lg overflow-hidden bg-muted">
                           <div className="w-full aspect-[411/192]">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={URL.createObjectURL(formData.coverFile)}
                               alt="Card preview"

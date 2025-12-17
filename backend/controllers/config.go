@@ -160,14 +160,33 @@ func UpdateConfig(c *gin.Context) {
 		config.SynchronizeEnvWithDb()
 	}
 
-	// Broadcast CTF status update if timing-related config changed
-	if key == "CTF_START_TIME" || key == "CTF_END_TIME" {
-		invalidateCTFStatusCache()
-
-		if utils.UpdatesHub != nil {
+	// Broadcast updates for specific config changes
+	if utils.UpdatesHub != nil {
+		var event string
+		var action string
+		
+		switch key {
+		case "CTF_START_TIME", "CTF_END_TIME":
+			invalidateCTFStatusCache()
+			event = "ctf-status"
+			action = "config_update"
+		case "TICKETS_ENABLED":
+			event = "config-update"
+			action = "tickets_enabled"
+		default:
+			// For other public configs, broadcast a general config update
+			if cfg.Public {
+				event = "config-update"
+				action = "public_config"
+			}
+		}
+		
+		if event != "" {
 			if payload, err := json.Marshal(gin.H{
-				"event":  "ctf-status",
-				"action": "config_update",
+				"event":  event,
+				"action": action,
+				"key":    key,
+				"value":  cfg.Value,
 			}); err == nil {
 				utils.UpdatesHub.SendToAll(payload)
 			}

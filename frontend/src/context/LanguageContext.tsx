@@ -247,6 +247,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
     
     loadTranslations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language, isInitialLoad]);
 
   const handleSetLanguage = useCallback((lang: Language) => {

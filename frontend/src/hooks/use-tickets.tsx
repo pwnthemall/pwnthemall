@@ -53,6 +53,7 @@ export function useTickets(options: UseTicketsOptions = {}): UseTicketsReturn {
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, page, pageSize, isAdmin]);
 
   // Handle real-time updates with partial state updates
@@ -90,6 +91,7 @@ export function useTickets(options: UseTicketsOptions = {}): UseTicketsReturn {
           : ticket
       ));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, fetchTickets]);
 
   useRealtimeUpdates(handleUpdate, true);

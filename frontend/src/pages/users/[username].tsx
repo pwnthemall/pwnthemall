@@ -5,6 +5,7 @@
  */
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import Image from "next/image";
 import axios from "@/lib/axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -153,7 +154,7 @@ export default function PublicUserProfile() {
             <div className="flex items-center gap-4 mb-4">
               <div className="flex-shrink-0">
                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-accent p-0.5 shadow-lg shadow-primary/30">
-                  <img src="/logo-no-text.png" alt="Profile Avatar" className="w-full h-full rounded-full object-cover" />
+                  <Image src="/logo-no-text.png" alt="Profile Avatar" width={56} height={56} className="w-full h-full rounded-full object-cover" />
                 </div>
               </div>
               <div className="flex-1 min-w-0">
