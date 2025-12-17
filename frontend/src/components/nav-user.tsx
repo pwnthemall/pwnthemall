@@ -119,9 +119,6 @@ export function NavUser({
                   <>
                     <div className="grid flex-1 text-left text-sm leading-tight transition-all duration-200">
                       <span className="truncate font-medium">{user.name}</span>
-                      {loggedIn && user.email && (
-                        <span className="truncate text-xs">{user.email}</span>
-                      )}
                     </div>
                   </>
                 )}

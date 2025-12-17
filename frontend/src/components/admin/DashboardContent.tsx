@@ -159,7 +159,7 @@ export default function DashboardContent() {
         <Head>
           <title>{getSiteName()}</title>
         </Head>
-        <div className="bg-muted min-h-screen p-4">
+        <div className="min-h-screen p-4">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400"></div>
           </div>
@@ -173,7 +173,7 @@ export default function DashboardContent() {
       <Head>
         <title>{getSiteName()} - {t("admin.dashboard")}</title>
       </Head>
-      <div className="bg-muted min-h-screen p-3 space-y-3">
+      <div className="min-h-screen p-3 space-y-3">
         {/* CTF Status Section */}
         <CTFStatusOverview />
 

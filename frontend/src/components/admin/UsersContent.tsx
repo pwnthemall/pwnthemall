@@ -6,7 +6,7 @@ import { ColumnDef, RowSelectionState } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import { X, ArrowUpDown, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from "lucide-react"
+import { X, ArrowUpDown, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight, User as LucideUser } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   Sheet,
@@ -459,9 +459,9 @@ export default function UsersContent({ users, onRefresh }: UsersContentProps) {
       <Head>
         <title>{getSiteName()}</title>
       </Head>
-      <div className="bg-muted min-h-screen p-4">
+      <div className="min-h-screen p-4">
         <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-3xl font-bold">{t("users")}</h1>
+          <h1 className="text-2xl font-bold">{t("users")}</h1>
           <div className="flex items-center gap-2">
             <div
               className={cn(

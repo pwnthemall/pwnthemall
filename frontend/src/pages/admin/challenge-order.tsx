@@ -89,9 +89,9 @@ export default function ChallengeOrderPage() {
       <Head>
         <title>{t('challenge_order_management')} - {getSiteName()}</title>
       </Head>
-      <div className="bg-muted min-h-screen p-4">
+      <div className="min-h-screen p-4">
         <div className="mb-4">
-          <h1 className="text-3xl font-bold">{t('challenge_order_management')}</h1>
+          <h1 className="text-2xl font-bold">{t('challenge_order_management')}</h1>
           <p className="text-muted-foreground mt-1">
             {t('drag_drop_reorder_description')}
           </p>

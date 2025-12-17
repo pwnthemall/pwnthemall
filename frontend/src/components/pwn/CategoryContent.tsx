@@ -278,7 +278,7 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
         <Head>
           <title>{getSiteName()} - {cat}</title>
         </Head>
-        <main className="bg-muted flex flex-col items-center justify-center min-h-screen px-6 py-10 text-center">
+        <main className="flex flex-col items-center justify-center min-h-screen px-6 py-10 text-center">
           <h1 className="text-3xl font-bold mb-6">
             {cat}
           </h1>

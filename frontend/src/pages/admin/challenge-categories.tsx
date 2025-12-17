@@ -65,8 +65,8 @@ export default function ChallengeCategoriesPage() {
       <Head>
         <title>{getSiteName()}</title>
       </Head>
-      <div className="bg-muted min-h-screen p-4">
-        <h1 className="text-3xl font-bold mb-4">Categories & Difficulties</h1>
+      <div className="min-h-screen p-4">
+        <h1 className="text-2xl font-bold mb-4">Categories & Difficulties</h1>
         <Tabs defaultValue="categories" className="w-full">
           <TabsList className="mb-4">
             <TabsTrigger value="categories">Categories</TabsTrigger>
