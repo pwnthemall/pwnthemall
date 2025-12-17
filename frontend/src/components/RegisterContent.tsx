@@ -12,6 +12,7 @@ import Image from "next/image"
 import { useTheme } from "next-themes"
 import { MagicCard } from "@/components/ui/magic-card"
 import { getThemeLogo, getThemeType } from "@/lib/themeConfig"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface RegisterContentProps {
     form: {
@@ -34,6 +35,7 @@ const RegisterContent: React.FC<RegisterContentProps> = ({
 }) => {
     const { t } = useLanguage();
     const { theme } = useTheme();
+    const [logoLoaded, setLogoLoaded] = React.useState(false);
 
     const [errors, setErrors] = React.useState<{username?: string, email?: string, password?: string}>({});
 
@@ -129,13 +131,18 @@ const RegisterContent: React.FC<RegisterContentProps> = ({
                             </div>
                         </form>
                         
-                        <div className="bg-muted/20 flex items-center justify-center p-6 md:p-8">
+                        <div className="bg-muted/20 flex items-center justify-center p-6 md:p-8 relative">
+                            {!logoLoaded && (
+                                <Skeleton className="w-[400px] h-[400px] mx-auto" />
+                            )}
                             <Image
                                 src={getThemeLogo(theme)}
                                 alt="logo"
                                 width="400"
                                 height="400"
-                                className="mx-auto"
+                                className={`mx-auto transition-opacity duration-300 ${logoLoaded ? 'opacity-100' : 'opacity-0'}`}
+                                onLoad={() => setLogoLoaded(true)}
+                                priority
                             />
                         </div>
                     </CardContent>
