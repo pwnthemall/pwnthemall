@@ -25,6 +25,7 @@ import type { NavItem } from "@/models/NavItem";
 import Image from "next/image";
 import Link from "next/link";
 import { useTheme } from "next-themes";
+import { getThemeLogo } from "@/lib/themeConfig";
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { loggedIn, logout, authChecked } = useAuth();
@@ -157,7 +158,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarHeader>
           <Link href="/">
             <Image
-              src={theme === 'dark' ? '/logo-v2-text-dark.png' : '/logo-v2-text-light.png'}
+              src={getThemeLogo(theme)}
               alt={getSiteName()}
               width={isMobile ? 150 : 150}
               height={isMobile ? 150 : 150}
