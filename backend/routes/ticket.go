@@ -11,12 +11,12 @@ func RegisterTicketRoutes(router *gin.Engine) {
 	// User ticket endpoints
 	tickets := router.Group("/tickets", middleware.TicketsEnabled, middleware.AuthRequired(false))
 	{
-		tickets.POST("", middleware.CheckPolicy("/tickets", "write"), controllers.CreateTicket)
-		tickets.GET("", middleware.CheckPolicy("/tickets", "read"), controllers.GetUserTickets)
+		tickets.POST("", middleware.RateLimit(2), middleware.CheckPolicy("/tickets", "write"), controllers.CreateTicket)
+		tickets.GET("", middleware.RateLimit(10), middleware.CheckPolicy("/tickets", "read"), controllers.GetUserTickets)
 		tickets.GET("/:id", middleware.CheckPolicy("/tickets/:id", "read"), controllers.GetTicket)
 		tickets.POST("/:id/messages", middleware.CheckPolicy("/tickets/:id/messages", "write"), controllers.SendTicketMessage)
 		tickets.PUT("/:id/close", middleware.CheckPolicy("/tickets/:id/close", "write"), controllers.CloseTicket)
-		tickets.POST("/upload", middleware.CheckPolicy("/tickets/upload", "write"), controllers.UploadTicketAttachment)
+		tickets.POST("/upload", middleware.RateLimit(3), middleware.CheckPolicy("/tickets/upload", "write"), controllers.UploadTicketAttachment)
 		tickets.GET("/:id/attachments/:filename", middleware.CheckPolicy("/tickets/:id", "read"), controllers.GetTicketAttachment)
 	}
 

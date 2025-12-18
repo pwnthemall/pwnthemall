@@ -11,8 +11,8 @@ export const themeTypeMap: Record<string, ThemeType> = {
   'macchiato': 'dark',
   'mocha': 'dark',
   'cyberpunk': 'dark',
-  'emerald': 'dark',
-  'violet': 'dark',
+  'emerald': 'light',
+  'violet': 'light',
   'orange': 'dark',
 };
 

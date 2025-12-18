@@ -184,7 +184,7 @@ export function TicketCreateDialog({
                 <User className="h-4 w-4 mr-2" />
                 {t("tickets.personal") || "Personal"}
               </Button>
-              <Button
+              {/* <Button
                 type="button"
                 variant={ticketType === 'team' ? 'default' : 'outline'}
                 className="flex-1"
@@ -193,11 +193,11 @@ export function TicketCreateDialog({
               >
                 <Users className="h-4 w-4 mr-2" />
                 {t("tickets.team") || "Team"}
-              </Button>
+              </Button> */}
             </div>
             {!hasTeam && ticketType === 'user' && (
               <p className="text-xs text-muted-foreground">
-                {t("tickets.no_team_hint") || "You're not in a team. Team tickets are disabled."}
+                {t("tickets.no_team_hint") || "Team tickets are disabled."}
               </p>
             )}
           </div>

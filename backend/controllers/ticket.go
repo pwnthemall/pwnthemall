@@ -190,8 +190,6 @@ func GetUserTickets(c *gin.Context) {
 		return
 	}
 
-	// Parse query params
-	status := c.Query("status")
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "20"))
 
@@ -202,16 +200,7 @@ func GetUserTickets(c *gin.Context) {
 		pageSize = 20
 	}
 
-	// Build query: user's own tickets OR team tickets if user is in a team
 	query := config.DB.Model(&models.Ticket{}).Where("user_id = ?", userID)
-	if user.TeamID != nil {
-		query = query.Or("team_id = ?", *user.TeamID)
-	}
-
-	// Filter by status if provided
-	if status != "" {
-		query = query.Where("status = ?", status)
-	}
 
 	// Count total
 	var total int64

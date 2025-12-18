@@ -389,7 +389,6 @@
     "out_of": "out of",
     "complete": "complete",
     "quick_actions": "Quick actions",
-    "view_challenges": "Browse challenges",
     "browse_challenges": "Browse challenges",
     "view_scoreboard": "View scoreboard",
     "team_profile": "Team profile",
@@ -528,6 +527,7 @@
   "all_instances_stopped_success": "All instances stopped successfully!",
   "all_instances_stop_failed": "Failed to stop all instances",
   "clear_filters": "Clear Filters",
+  "rate_limit_exceeded": "Rate limit exceeded. Please wait a moment before trying again.",
   "messages": {
     "error": "Error",
     "info": "Info",
@@ -672,13 +672,13 @@
   },
   "tickets": {
     "tickets": "Tickets",
-    "title": "Support Tickets",
+    "title": "Support tickets",
     "subtitle": "Get help from our support team",
     "system": "Ticket System",
     "system_desc": "Allow users to create and manage support tickets",
     "support_tickets": "Support tickets",
-    "create_ticket": "Create Support Ticket",
-    "new_ticket": "New Ticket",
+    "create_ticket": "Create support ticket",
+    "new_ticket": "New ticket",
     "my_tickets": "My tickets",
     "all_tickets": "All tickets",
     "open_tickets": "Open tickets",
@@ -768,7 +768,7 @@
     "just_now": "Just now",
     "ago": "ago",
     "messages": "messages",
-    "no_team_hint": "You're not in a team. Team tickets are disabled."
+    "no_team_hint": "Team tickets are disabled."
   },
   "team": {
     "create_team": "Create a team",

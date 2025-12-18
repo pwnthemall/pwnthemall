@@ -389,7 +389,6 @@
     "out_of": "sur",
     "complete": "complété",
     "quick_actions": "Actions rapides",
-    "view_challenges": "Parcourir les challenges",
     "browse_challenges": "Parcourir les challenges",
     "view_scoreboard": "Voir le classement",
     "team_profile": "Profil de l'équipe",
@@ -528,6 +527,7 @@
   "all_instances_stopped_success": "Toutes les instances ont été arrêtées avec succès !",
   "all_instances_stop_failed": "Échec de l'arrêt de toutes les instances",
   "clear_filters": "Effacer les filtres",
+  "rate_limit_exceeded": "Limite de taux dépassée. Veuillez attendre un moment avant de réessayer.",
   "messages": {
     "error": "Erreur",
     "info": "Information",
@@ -768,7 +768,7 @@
     "just_now": "À l'instant",
     "ago": "",
     "messages": "messages",
-    "no_team_hint": "Vous n'êtes pas dans une équipe. Les tickets d'équipe sont désactivés."
+    "no_team_hint": "Les tickets d'équipe sont désactivés."
   },
   "team": {
     "create_team": "Créer une équipe",

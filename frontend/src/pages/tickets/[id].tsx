@@ -93,7 +93,7 @@ export default function TicketDetailPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-muted flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold mb-2">{t("tickets.error") || "Error"}</h2>
           <p className="text-muted-foreground mb-4">{error}</p>
@@ -108,7 +108,7 @@ export default function TicketDetailPage() {
 
   if (!ticket) {
     return (
-      <div className="min-h-screen bg-muted flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold mb-2">{t("tickets.not_found") || "Ticket Not Found"}</h2>
           <Button onClick={() => router.push('/tickets')}>
@@ -138,7 +138,7 @@ export default function TicketDetailPage() {
         <title>#{ticket.id} {ticket.subject} - {getSiteName()}</title>
       </Head>
       
-      <div className="min-h-screen bg-muted">
+      <div className="min-h-screen">
         <div className="container mx-auto px-4 py-8 max-w-4xl">
           {/* Back button */}
           <div className="mb-4">
