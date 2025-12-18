@@ -15,7 +15,7 @@ func RegisterAuthRoutes(router *gin.Engine) {
 
 		auth.POST("refresh", controllers.Refresh)
 		auth.GET("me", middleware.AuthRequired(false), controllers.GetCurrentUser)
-		auth.GET("csrf-token", middleware.CSRFProtection(), controllers.GetCSRFToken)
+		auth.GET("csrf-token", middleware.RateLimit(30), middleware.CSRFProtection(), controllers.GetCSRFToken)
 		auth.GET("pwn", middleware.AuthRequired(false), func(c *gin.Context) {
 			c.JSON(200, gin.H{"success": "true"})
 		})
