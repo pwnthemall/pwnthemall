@@ -84,7 +84,7 @@ export default function ConfigurationForm({
 
       <div className="space-y-2">
         <Label htmlFor="value">{t("value")}</Label>
-        {formData.key === "REGISTRATION_ENABLED" ? (
+        {(formData.key === "REGISTRATION_ENABLED" || formData.key === "TICKETS_ENABLED") ? (
           <Select
             value={formData.value}
             onValueChange={(value) => handleInputChange("value", value)}

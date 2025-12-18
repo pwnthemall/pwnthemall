@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Image from 'next/image'
 
 interface ChallengeImageProps {
   readonly challengeId: number
@@ -45,17 +46,25 @@ export default function ChallengeImage({
   const objectPosition = `${positionX}% ${positionY}%`
   // Scale factor for zoom (100 = 100% = no zoom, 150 = 150% scale)
   const scale = zoom / 100
+  // Transform origin to make scale expand from focal point
+  const transformOrigin = `${positionX}% ${positionY}%`
 
   return (
     <div className={`relative w-full h-full overflow-hidden bg-muted ${className}`}>
       {imageLoading && (
         <div className="absolute inset-0 animate-pulse bg-muted/50" />
       )}
-      <img
+      <Image
         src={imageUrl}
         alt={alt}
-        className="w-full h-full object-cover"
-        style={{ objectPosition, transform: `scale(${scale})` }}
+        fill
+        unoptimized
+        className="object-cover"
+        style={{ 
+          objectPosition, 
+          transform: `scale(${scale})`,
+          transformOrigin
+        }}
         onLoad={() => setImageLoading(false)}
         onError={() => {
           setImageError(true)

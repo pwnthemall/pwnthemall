@@ -1,9 +1,8 @@
 <div align="center">
-
-<img src="frontend/public/logo-v2-no-text.png" width=250>  
 <br>
-<img src="frontend/public/logo-v2-text.png" width=400>
+<img src="frontend/public/logo-v2-text-dark.png" width=400>
 
+<br>
 
 [![Docker](https://img.shields.io/badge/docker-ready-blue?style=for-the-badge&logo=docker)](https://www.docker.com/)
 [![Stars](https://img.shields.io/github/stars/pwnthemall/pwnthemall?style=for-the-badge)](https://github.com/pwnthemall/pwnthemall/stargazers)

@@ -65,6 +65,8 @@ export default function ThemeAdaptiveProfileCard() {
                 <Image
                   src="/logo-no-text.png"
                   alt="Profile Avatar"
+                  width={80}
+                  height={80}
                   className="w-full h-full rounded-full object-cover border-2 border-background/20"
                 />
               </div>

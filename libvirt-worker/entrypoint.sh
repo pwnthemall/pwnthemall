@@ -18,35 +18,35 @@ libvirtd --daemon
 
 echo "[+] Waiting for libvirtd socket..."
 for i in {1..30}; do
-    if [ -S /var/run/libvirt/libvirt-sock ]; then
-        echo "[✓] libvirtd socket ready"
-        break
-    fi
-    if [ $i -eq 30 ]; then
-        echo "[✗] libvirtd failed to start - socket not found"
-        exit 1
-    fi
-    sleep 1
+  if [ -S /var/run/libvirt/libvirt-sock ]; then
+    echo "[✓] libvirtd socket ready"
+    break
+  fi
+  if [ $i -eq 30 ]; then
+    echo "[✗] libvirtd failed to start - socket not found"
+    exit 1
+  fi
+  sleep 1
 done
 echo ""
 
 if [ -S /var/run/libvirt/libvirt-sock ]; then
-    chmod 660 /var/run/libvirt/libvirt-sock
-    chown root:libvirt /var/run/libvirt/libvirt-sock
-    echo "[✓] Socket permissions configured:"
-    ls -l /var/run/libvirt/libvirt-sock
+  chmod 660 /var/run/libvirt/libvirt-sock
+  chown root:libvirt /var/run/libvirt/libvirt-sock
+  echo "[✓] Socket permissions configured:"
+  ls -l /var/run/libvirt/libvirt-sock
 else
-    echo "[✗] Socket not found"
-    exit 1
+  echo "[✗] Socket not found"
+  exit 1
 fi
 echo ""
 
 echo "[+] Testing libvirt connection..."
 if virsh -c qemu:///system version >/dev/null 2>&1; then
-    echo "[✓] libvirt connection successful"
-    virsh -c qemu:///system version
+  echo "[✓] libvirt connection successful"
+  virsh -c qemu:///system version
 else
-    echo "[⚠] libvirt connection test failed (non-blocking)"
+  echo "[⚠] libvirt connection test failed (non-blocking)"
 fi
 echo ""
 
@@ -56,6 +56,13 @@ echo "  Groups: $(groups libvirt-user)"
 echo "  Socket: /var/run/libvirt/libvirt-sock"
 echo "  Images: /var/lib/libvirt/images"
 echo ""
+
+echo "[+] Starting virtlogd"
+if virtlogd -d; then
+  echo "[✓] Virtlogd started"
+else
+  echo "[⚠] Couldn't start virtlogd"
+fi
 
 echo "[✓] Libvirt Worker ready - SSH listening on port 22"
 echo ""

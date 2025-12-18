@@ -25,6 +25,7 @@ type JoinTeamInput struct {
 // TeamScore represents team scoring information for leaderboard
 type TeamScore struct {
 	Team       SafeTeam `json:"team"`
-	TotalScore int      `json:"totalScore"`
-	SolveCount int      `json:"solveCount"`
+	TotalScore int         `json:"totalScore"`
+	SolveCount int         `json:"solveCount"`
+	Rank       int         `json:"rank"` // Add rank field
 }

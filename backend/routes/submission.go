@@ -7,7 +7,7 @@ import (
 )
 
 func RegisterSubmissionRoutes(router *gin.Engine) {
-	adminSubmissions := router.Group("/admin/submissions", middleware.AuthRequired(false))
+	adminSubmissions := router.Group("/admin/submissions", middleware.AuthRequired(false), middleware.CSRFProtection())
 	{
 		adminSubmissions.GET("", middleware.CheckPolicy("/admin/submissions", "read"), controllers.GetAllSubmissions)
 	}

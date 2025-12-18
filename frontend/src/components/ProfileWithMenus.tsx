@@ -1,4 +1,5 @@
 import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import Image from "next/image";
 import axios from "@/lib/axios";
 import { AxiosResponse } from "axios";
 import { User } from "@/models/User";
@@ -241,9 +242,11 @@ export default function ProfileWithMenus() {
                 {/* Avatar */}
                 <div className="flex-shrink-0 relative">
                   <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-accent p-1 shadow-lg shadow-primary/30">
-                    <img
+                    <Image
                       src="/logo-no-text.png"
-                      alt="Profile Avatar"
+                      alt={user?.username ? `${user.username}'s profile` : "Profile Avatar"}
+                      width={80}
+                      height={80}
                       className="w-full h-full rounded-full object-cover border-2 border-background/20"
                     />
                   </div>

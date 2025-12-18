@@ -8,23 +8,32 @@ import { useLanguage } from "@/context/LanguageContext";
 import Head from "next/head";
 import Link from "next/link";
 import { CheckCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const RegisterPage = () => {
   const router = useRouter();
   const { t } = useLanguage();
   const { getSiteName, siteConfig, loading: configLoading } = useSiteConfig();
+  const { loggedIn, authChecked } = useAuth();
 
   const [form, setForm] = useState({ username: "", email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [registrationEnabled, setRegistrationEnabled] = useState(true);
 
+  // Redirect to home if already logged in
+  useEffect(() => {
+    if (authChecked && loggedIn) {
+      router.replace('/');
+    }
+  }, [authChecked, loggedIn, router]);
+
   // Check if registration is enabled
   useEffect(() => {
     // Only check if config is loaded (not loading)
     if (!configLoading) {
-      // Default to disabled if config is not available (security first)
-      const isEnabled = siteConfig.REGISTRATION_ENABLED === "true" || siteConfig.REGISTRATION_ENABLED === "1";
-      setRegistrationEnabled(isEnabled);
+      setRegistrationEnabled(siteConfig.REGISTRATION_ENABLED !== "false");
     }
   }, [siteConfig.REGISTRATION_ENABLED, configLoading]);
 
@@ -54,60 +63,58 @@ const RegisterPage = () => {
     }
   };
 
+  // Don't render if already logged in
+  if (authChecked && loggedIn) {
+    return null;
+  }
+
   // Show loading state while config is being loaded
   if (configLoading) {
     return (
-      <>
-        <Head>
-          <title>{getSiteName()}</title>
-        </Head>
-        <div className="bg-muted flex min-h-screen flex-col items-center justify-center px-4 py-8">
-          <div className="w-full max-w-sm">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-muted-foreground">{t('loading') || 'Loading...'}</p>
-            </div>
-          </div>
-        </div>
-      </>
+      <div className="min-h-screen w-screen bg-muted flex items-center justify-center">
+        <p>{t('loading')}</p>
+      </div>
     );
   }
 
   // If registration is disabled, show disabled message
   if (!registrationEnabled) {
     return (
-      <>
-        <Head>
-          <title>{getSiteName()}</title>
-        </Head>
-        <div className="bg-muted flex min-h-screen flex-col items-center justify-center px-4 py-8">
-          <div className="w-full max-w-sm">
-            <div className="text-center">
-              <h1 className="text-2xl font-bold mb-4">{t('registration_disabled')}</h1>
-              <p className="text-muted-foreground mb-4">{t('registration_disabled_message')}</p>
-              <Link href="/login" className="text-primary hover:underline">
-                {t('back_to_login')}
-              </Link>
-            </div>
-          </div>
+      <div className="min-h-screen w-screen bg-muted flex items-center justify-center overflow-hidden relative">
+        <Button
+          variant="ghost"
+          className="absolute top-4 left-4 h-8 w-8 p-0"
+          onClick={() => router.back()}
+          aria-label="Back"
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <div className="text-center">
+          <p className="text-lg font-semibold">{t('registration_disabled')}</p>
         </div>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
-      <Head>
-        <title>{getSiteName()}</title>
-      </Head>
-    <RegisterContent
-      form={form}
-      loading={loading}
-      message={null}
-      onChange={onChange}
-      onSubmit={handleRegister}
-    />
-    </>
+    <div className="min-h-screen w-screen bg-muted flex items-center justify-center overflow-hidden relative">
+      <Button
+        variant="ghost"
+        className="absolute top-4 left-4 h-8 w-8 p-0"
+        onClick={() => router.back()}
+        aria-label="Back"
+      >
+        <ArrowLeft className="h-4 w-4" />
+      </Button>
+
+      <RegisterContent
+        form={form}
+        loading={loading}
+        message={null}
+        onChange={onChange}
+        onSubmit={handleRegister}
+      />
+    </div>
   );
 };
 

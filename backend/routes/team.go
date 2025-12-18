@@ -8,21 +8,27 @@ import (
 
 // Route path constants
 const (
-	pathTeams              = "/teams"
-	pathTeamsID            = "/teams/:id"
-	pathTeamsRecalculate   = "/teams/recalculate-points"
-	actionRead             = "read"
-	actionWrite            = "write"
+	pathTeams            = "/teams"
+	pathTeamsID          = "/teams/:id"
+	pathTeamsRecalculate = "/teams/recalculate-points"
+	actionRead           = "read"
+	actionWrite          = "write"
 )
 
 func RegisterTeamRoutes(router *gin.Engine) {
-	teams := router.Group(pathTeams, middleware.AuthRequired(false))
+	// Public routes (no auth required, only policy check)
+	publicTeams := router.Group(pathTeams)
+	{
+		publicTeams.GET("/leaderboard", middleware.CheckPolicy("/teams/leaderboard", actionRead), controllers.GetLeaderboard)
+		publicTeams.GET("/timeline", middleware.CheckPolicy("/teams/timeline", actionRead), controllers.GetTeamTimeline)
+	}
+
+	teams := router.Group(pathTeams, middleware.AuthRequired(false), middleware.CSRFProtection())
 	{
 		teams.GET("", middleware.CheckPolicy(pathTeams, actionRead), controllers.GetTeams)
 		teams.GET("/:id", middleware.CheckPolicy(pathTeamsID, actionRead), controllers.GetTeam)
-		teams.GET("/leaderboard", middleware.CheckPolicy("/teams/leaderboard", actionRead), controllers.GetLeaderboard)
-		teams.GET("/timeline", middleware.CheckPolicy("/teams/timeline", actionRead), controllers.GetTeamTimeline)
 		teams.GET("/score", middleware.CheckPolicy("/teams/score", actionRead), controllers.GetTeamScore)
+
 		teams.POST("", middleware.CheckPolicy(pathTeams, actionWrite), controllers.CreateTeam)
 		teams.POST("/join", middleware.CheckPolicy("/teams/join", actionWrite), middleware.RateLimitJoinTeam(), controllers.JoinTeam)
 		teams.POST("/leave", middleware.CheckPolicy("/teams/leave", actionWrite), controllers.LeaveTeam)

@@ -1,5 +1,9 @@
 p, anonymous, /login, *
 p, anonymous, /register, *
+p, anonymous, /teams/leaderboard, read
+p, anonymous, /teams/timeline, read
+p, anonymous, /users/leaderboard, read
+p, anonymous, /users/timeline, read
 p, member, /logout, *
 p, member, /pwn, *
 p, member, /challenges, read
@@ -22,6 +26,7 @@ p, member, /teams/timeline, read
 p, member, /teams/score, read
 p, member, /users/leaderboard, read
 p, member, /users/timeline, read
+p, member, /users/:id/profile, read
 p, member, /teams, write
 p, member, /teams/join, write
 p, member, /teams/leave, write
@@ -33,6 +38,11 @@ p, member, /notifications/unread-count, read
 p, member, /notifications/:id/read, write
 p, member, /notifications/read-all, write
 p, member, /ws/notifications, read
+p, member, /tickets, *
+p, member, /tickets/:id, *
+p, member, /tickets/:id/messages, write
+p, member, /tickets/:id/close, write
+p, member, /tickets/upload, write
 
 p, admin, /admin/submissions, read
 p, admin, /*, *

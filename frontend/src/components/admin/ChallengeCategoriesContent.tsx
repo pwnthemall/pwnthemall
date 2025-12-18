@@ -1,4 +1,3 @@
-import Head from "next/head"
 import { useState } from "react"
 import axios from "@/lib/axios";
 import { ColumnDef, RowSelectionState } from "@tanstack/react-table"
@@ -25,7 +24,6 @@ import {
 import ChallengeCategoriesForm from "./ChallengeCategoriesForm"
 import { ChallengeCategory, ChallengeCategoryFormData } from "@/models/ChallengeCategory"
 import { useLanguage } from "@/context/LanguageContext"
-import { useSiteConfig } from "@/context/SiteConfigContext"
 
 interface ChallengeCategoriesContentProps {
   challengeCategories: ChallengeCategory[]
@@ -34,7 +32,6 @@ interface ChallengeCategoriesContentProps {
 
 export default function ChallengeCategoriesContent({ challengeCategories, onRefresh }: ChallengeCategoriesContentProps) {
   const { t } = useLanguage();
-  const { getSiteName } = useSiteConfig();
   const [editingChallengeCategory, setEditingChallengeCategory] = useState<ChallengeCategory | null>(null)
   const [creating, setCreating] = useState(false)
   const [deleting, setDeleting] = useState<ChallengeCategory | null>(null)
@@ -90,12 +87,9 @@ export default function ChallengeCategoriesContent({ challengeCategories, onRefr
 
   return (
     <>
-      <Head>
-        <title>{getSiteName()}</title>
-      </Head>
-      <div className="bg-muted min-h-screen p-4">
+      <div className="w-full">
         <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-3xl font-bold">{t('challenge_categories')}</h1>
+          <h2 className="text-2xl font-semibold">{t('challenge_categories')}</h2>
           <div className="flex items-center gap-2">
             <div
               className={cn(

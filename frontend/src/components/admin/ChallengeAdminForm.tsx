@@ -1,16 +1,17 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useLanguage } from "@/context/LanguageContext"
 import { Challenge, ChallengeCategory, ChallengeDifficulty } from "@/models"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import axios from "@/lib/axios"
 import { toast } from "sonner"
 import { Plus, Trash2, Edit } from "lucide-react"
+import Image from "next/image"
 import {
   Select,
   SelectContent,
@@ -123,14 +124,7 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
   const [newHint, setNewHint] = useState({ title: "", content: "", cost: 0, isActive: true, autoActiveAt: null as string | null })
   const [editingHints, setEditingHints] = useState<{[key: number]: {title: string, content: string, cost: number, isActive: boolean, autoActiveAt: string | null}}>({})
 
-  useEffect(() => {
-    fetchDecayFormulas()
-    fetchChallengeCategories()
-    fetchChallengeDifficulties()
-    fetchChallengeData()
-  }, [])
-
-  const fetchChallengeData = async () => {
+  const fetchChallengeData = useCallback(async () => {
     try {
       const response = await axios.get(`/api/admin/challenges/${challenge.id}`)
       const challengeData = response.data.challenge
@@ -162,9 +156,9 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
       }
       
     } catch (error) {
-      console.error("Failed to fetch challenge data:", error)
+      console.error('Failed to fetch challenge data:', error)
     }
-  }
+  }, [challenge.id])
 
   const fetchDecayFormulas = async () => {
     try {
@@ -193,7 +187,7 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
     }
   }
 
-  const fetchChallengeDifficulties = async () => {
+  const fetchChallengeDifficulties = useCallback(async () => {
     try {
       const response = await axios.get(`/api/admin/challenges/${challenge.id}`)
       if (response.data.challengeDifficulties) {
@@ -202,7 +196,14 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
     } catch (error) {
       console.error("Failed to fetch challenge difficulties:", error)
     }
-  }
+  }, [challenge.id])
+
+  useEffect(() => {
+    fetchDecayFormulas()
+    fetchChallengeCategories()
+    fetchChallengeDifficulties()
+    fetchChallengeData()
+  }, [fetchChallengeDifficulties, fetchChallengeData])
 
   const handleSubmit = async () => {
     setLoading(true)
@@ -396,16 +397,10 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
           <TabsTrigger value="hints">{t('challenge_form.tab_hints')}</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="general" className="min-h-[700px] max-h-[700px] flex flex-col">
-          <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+        <TabsContent value="general" className="flex flex-col h-[600px]">
+          <div className="flex-1 overflow-y-auto space-y-4 pr-2 scrollbar-thin scrollbar-track-background scrollbar-thumb-border">
             <Card>
-            <CardHeader>
-              <CardTitle>{t('challenge_form.general_info')}</CardTitle>
-              <CardDescription>
-                {t('challenge_form.general_info_desc')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 pt-6">
               <div>
                 <Label htmlFor="name">{t('challenge_form.challenge_name')}</Label>
                 <Input
@@ -484,26 +479,20 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
                 />
               </div>
 
-              <div className="pt-4">
-                <Button onClick={handleGeneralSubmit} disabled={generalLoading} className="w-full">
-                  {generalLoading ? t('challenge_form.saving') : t('challenge_form.save_general')}
-                </Button>
-              </div>
             </CardContent>
           </Card>
           </div>
+          <div className="pt-4 border-t">
+            <Button onClick={handleGeneralSubmit} disabled={generalLoading} className="w-full">
+              {generalLoading ? t('challenge_form.saving') : t('challenge_form.save_general')}
+            </Button>
+          </div>
         </TabsContent>
 
-        <TabsContent value="cover" className="min-h-[700px] max-h-[700px] flex flex-col">
-          <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+        <TabsContent value="cover" className="flex flex-col h-[600px]">
+          <div className="flex-1 overflow-y-auto space-y-4 pr-2 scrollbar-thin scrollbar-track-background scrollbar-thumb-border">
             <Card>
-            <CardHeader>
-              <CardTitle>{t('challenge_form.cover_position')}</CardTitle>
-              <CardDescription>
-                {t('challenge_form.cover_position_desc')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               {challenge.coverImg ? (
                 <div className="space-y-4">
                   {/* Side-by-side layout: Focal point selector + Live preview */}
@@ -538,6 +527,7 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
                             setCoverPosition({ x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) })
                           }}
                         >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={`/api/challenges/${challenge.id}/cover`}
                             alt="Full cover"
@@ -565,13 +555,15 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
                       <div className="border rounded-lg overflow-hidden bg-muted">
                         {/* Preview container matching card aspect ratio (411:192 ≈ 2.14:1) */}
                         <div className="w-full aspect-[411/192]">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={`/api/challenges/${challenge.id}/cover`}
                             alt={t('challenge_form.cover_preview_alt')}
                             className="w-full h-full object-cover"
                             style={{ 
                               objectPosition: `${coverPosition.x}% ${coverPosition.y}%`,
-                              transform: `scale(${coverZoom / 100})`
+                              transform: `scale(${coverZoom / 100})`,
+                              transformOrigin: `${coverPosition.x}% ${coverPosition.y}%`
                             }}
                           />
                         </div>
@@ -633,16 +625,10 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
           </div>
         </TabsContent>
 
-        <TabsContent value="points" className="min-h-[700px] max-h-[700px] flex flex-col">
-          <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+        <TabsContent value="points" className="flex flex-col h-[600px]">
+          <div className="flex-1 overflow-y-auto space-y-4 pr-2 scrollbar-thin scrollbar-track-background scrollbar-thumb-border">
             <Card>
-            <CardHeader>
-              <CardTitle>{t('challenge_form.points_config')}</CardTitle>
-              <CardDescription>
-                {t('challenge_form.points_config_desc')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 pt-6">
               <div>
                 <Label htmlFor="points">{t('challenge_form.base_points')}</Label>
                 <Input
@@ -679,7 +665,7 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
           </Card>
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className="flex justify-end space-x-2 pt-4 border-t">
             <Button variant="outline" onClick={onClose}>
               {t('challenge_form.cancel')}
             </Button>
@@ -689,8 +675,8 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
           </div>
         </TabsContent>
 
-        <TabsContent value="firstblood" className="min-h-[700px] max-h-[700px] flex flex-col">
-          <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+        <TabsContent value="firstblood" className="flex flex-col h-[600px]">
+          <div className="flex-1 overflow-y-auto space-y-4 pr-2 scrollbar-thin scrollbar-track-background scrollbar-thumb-border">
             <div className="flex items-center justify-between mb-4">
             <Label htmlFor="enableFirstBlood">{t('challenge_form.enable_firstblood')}</Label>
             <Switch
@@ -708,7 +694,7 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
           )}
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className="flex justify-end space-x-2 pt-4 border-t">
             <Button variant="outline" onClick={onClose}>
               {t('challenge_form.cancel')}
             </Button>
@@ -718,45 +704,12 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
           </div>
         </TabsContent>
 
-        <TabsContent value="hints" className="min-h-[700px] max-h-[700px] flex flex-col">
-          <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+
+        <TabsContent value="hints" className="flex flex-col h-[600px]">
+          <div className="flex-1 overflow-y-auto space-y-4 pr-2 scrollbar-thin scrollbar-track-background scrollbar-thumb-border">
             <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>{t('challenge_form.hints_title')}</CardTitle>
-                  <CardDescription>
-                    {t('challenge_form.hints_desc')}
-                  </CardDescription>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={async () => {
-                    try {
-                      await axios.post('/api/admin/challenges/hints/activate-scheduled')
-                      toast.success(t('challenge_form.hints_activated'))
-                      // Refresh the challenge data to show updated hint statuses
-                      const response = await axios.get(`/api/admin/challenges/${challenge.id}`)
-                      const updatedChallenge = response.data.challenge
-                      if (updatedChallenge.hints) {
-                        setFormData(prev => ({
-                          ...prev,
-                          hints: updatedChallenge.hints
-                        }))
-                      }
-                    } catch (error) {
-                      console.error('Error activating scheduled hints:', error);
-                      toast.error(t('challenge_form.hints_activate_error'))
-                    }
-                  }}
-                >
-                  {t('challenge_form.activate_hints')}
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-4">
+              <CardContent className="pt-6">
+                <div className="space-y-4">
                 <div>
                   <Label htmlFor="hintTitle">{t('challenge_form.hint_title')}</Label>
                   <Input
@@ -1000,7 +953,7 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
           </Card>
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className="flex justify-end space-x-2 pt-4 border-t">
             <Button variant="outline" onClick={onClose}>
               {t('challenge_form.cancel')}
             </Button>

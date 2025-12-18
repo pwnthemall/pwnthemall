@@ -251,14 +251,14 @@ export default function ConfigurationContent({ configs, onRefresh }: Configurati
       <Head>
         <title>{getSiteName()}</title>
       </Head>
-      <div className="bg-muted min-h-screen p-4 overflow-x-auto">
+      <div className="min-h-screen p-4 overflow-x-auto">
         {/* CTF Status Overview */}
         <div className="mb-6">
           <CTFStatusOverview />
         </div>
 
         <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-3xl font-bold">{t("configuration")}</h1>
+          <h1 className="text-2xl font-bold">{t("configuration")}</h1>
           <div className="flex items-center gap-2">
             <div
               className={cn(

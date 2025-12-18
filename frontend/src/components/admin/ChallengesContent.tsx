@@ -7,8 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Edit, Plus, Search, ArrowUpDown } from "lucide-react"
+import { Edit, Plus, Search, ArrowUpDown, Download } from "lucide-react"
 import ChallengeAdminForm from "./ChallengeAdminForm"
+import ChallengeCreateDialog from "./ChallengeCreateDialog"
 import {
   Dialog,
   DialogContent,
@@ -16,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import axios from "@/lib/axios"
 
 interface ChallengesContentProps {
   challenges: Challenge[]
@@ -26,6 +28,7 @@ export default function ChallengesContent({ challenges, onRefresh }: ChallengesC
   const { t } = useLanguage()
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [sortBy, setSortBy] = useState("name")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
@@ -45,6 +48,11 @@ export default function ChallengesContent({ challenges, onRefresh }: ChallengesC
     const uniqueDifficulties = Array.from(new Set(challenges.map(c => c.challengeDifficulty?.name).filter(Boolean)))
     return uniqueDifficulties.sort((a, b) => a.localeCompare(b))
   }, [challenges])
+
+  // Handle challenge created - just refresh the list
+  const handleChallengeCreated = async (challengeId: number) => {
+    onRefresh() // Refresh the list to show the new challenge
+  }
 
   // Filter and sort challenges
   const filteredAndSortedChallenges = useMemo(() => {
@@ -190,11 +198,14 @@ export default function ChallengesContent({ challenges, onRefresh }: ChallengesC
       <Head>
         <title>{t('admin_challenges.challenge_management')}</title>
       </Head>
-      <div className="bg-muted min-h-screen p-4">
+      <div className="min-h-screen p-4">
         <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-3xl font-bold">{t('admin_challenges.challenge_management')}</h1>
+          <h1 className="text-2xl font-bold">{t('admin_challenges.challenge_management')}</h1>
           <div className="flex items-center gap-2">
-            {/* Placeholder for future actions to mirror admin pages layout */}
+            <Button onClick={() => setIsCreateDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              {t('admin_challenges.create_challenge') || 'Create Challenge'}
+            </Button>
           </div>
         </div>
 
@@ -406,15 +417,28 @@ export default function ChallengesContent({ challenges, onRefresh }: ChallengesC
                           <div className="h-[22px]">&nbsp;</div>
                         )}
                       </td>
-                      <td className="w-[100px] px-3 py-2 align-middle">
+                      <td className="w-[140px] px-3 py-2 align-middle">
                         {challenge.id >= 0 ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEdit(challenge)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEdit(challenge)}
+                              title={t('admin_challenges.edit')}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              asChild
+                              variant="ghost"
+                              size="sm"
+                              title={t('admin_challenges.export') || 'Export'}
+                            >
+                              <a href={`/api/admin/challenges/${challenge.id}/export`}>
+                                <Download className="h-4 w-4" />
+                              </a>
+                            </Button>
+                          </div>
                         ) : (
                           <div className="h-[32px]">&nbsp;</div>
                         )}
@@ -477,6 +501,12 @@ export default function ChallengesContent({ challenges, onRefresh }: ChallengesC
             )}
           </DialogContent>
         </Dialog>
+
+        <ChallengeCreateDialog
+          open={isCreateDialogOpen}
+          onOpenChange={setIsCreateDialogOpen}
+          onCreated={handleChallengeCreated}
+        />
       </div>
     </>
   )

@@ -3,7 +3,8 @@ import { Challenge } from "./Challenge"
 export interface ChallengeType {
   id: number
   name: string
-  challenges?: Challenge[]
+  instance?: boolean
+  challenges?: any[]
 }
 
 export interface ChallengeTypeFormData {

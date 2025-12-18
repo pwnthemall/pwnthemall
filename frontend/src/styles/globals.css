@@ -73,6 +73,37 @@ html, body {
   --radius: 0.5rem;
 }
 
+/* Theme naming convention: CSS class names match theme values in _app.tsx themes array */
+/* Example: theme value "light" applies class "light", CSS selector is ".light" */
+.light {
+  --background: 0 0% 100%;
+  --sidebar-background: 210 40% 96.1%; /* secondary */
+  --muted-foreground: 215.4 16.3% 46.9%; /* muted-foreground */
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --primary: 222.2 47.4% 11.2%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted: 210 40% 96.1%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 222.2 84% 4.9%;
+  --chart-1: 12 76% 61%;
+  --chart-2: 173 58% 39%;
+  --chart-3: 197 37% 24%;
+  --chart-4: 43 74% 66%;
+  --chart-5: 27 87% 67%;
+  --radius: 0.5rem;
+}
+
 .dark {
   --background: 222.2 84% 4.9%;
   --sidebar-background: 217.2 32.6% 17.5%; /* secondary */
@@ -101,7 +132,7 @@ html, body {
   --chart-5: 340 75% 55%;
 }
 
-.theme-latte {
+.latte {
   --background: 220 23% 88%;
   --sidebar-background: 225 14% 77%; /* secondary */
   --muted-foreground: 233 10% 47%; /* muted-foreground */
@@ -132,7 +163,7 @@ html, body {
 
 
 
-.theme-macchiato {
+.macchiato {
   --background: 232 23% 18%;
   --sidebar-background: 230 19% 26%; /* secondary */
   --muted-foreground: 228 13% 52%; /* muted-foreground */
@@ -160,7 +191,7 @@ html, body {
   --chart-5: 340 75% 55%;
   --radius: 0.5rem;
 }
-.theme-mocha {
+.mocha {
   --background: 240 21% 15%;
   --sidebar-background: 237 16% 23%; /* secondary */
   --muted-foreground: 228 13% 52%; /* muted-foreground */
@@ -188,7 +219,7 @@ html, body {
   --chart-5: 340 75% 55%;
   --radius: 0.5rem;
 }
-.theme-slate {
+.slate {
   --background: 222 47% 11%;
   --sidebar-background: 215 19% 35%; /* secondary */
   --muted-foreground: 215 20.2% 65.1%; /* muted-foreground */
@@ -216,7 +247,7 @@ html, body {
   --chart-5: 340 75% 55%;
   --radius: 0.5rem;
 }
-.theme-rose {
+.rose {
   --background: 330 100% 99%;
   --sidebar-background: 330 100% 95%; /* secondary */
   --muted-foreground: 340 100% 27%; /* muted-foreground */
@@ -244,7 +275,7 @@ html, body {
   --chart-5: 260 100% 45%;
   --radius: 0.5rem;
 }
-.theme-emerald {
+.emerald {
   --background: 152 60% 96%;
   --sidebar-background: 152 60% 90%; /* secondary */
   --muted-foreground: 152 72% 18%; /* muted-foreground */
@@ -273,7 +304,7 @@ html, body {
   --radius: 0.5rem;
 }
 
-.theme-cyan {
+.cyan {
   --background: 180 100% 98%;
   --sidebar-background: 180 100% 94%; /* secondary */
   --muted-foreground: 180 100% 20%; /* muted-foreground */
@@ -302,7 +333,7 @@ html, body {
   --radius: 0.5rem;
 }
 
-.theme-violet {
+.violet {
   --background: 270 100% 98%;
   --sidebar-background: 270 100% 94%; /* secondary */
   --muted-foreground: 270 100% 20%; /* muted-foreground */
@@ -331,7 +362,7 @@ html, body {
   --radius: 0.5rem;
 }
 
-.theme-orange {
+.orange {
   --background: 30 100% 98%;
   --sidebar-background: 30 100% 94%; /* secondary */
   --muted-foreground: 30 100% 20%; /* muted-foreground */
@@ -360,7 +391,7 @@ html, body {
   --radius: 0.5rem;
 }
 
-.theme-indigo {
+.indigo {
   --background: 240 100% 98%;
   --sidebar-background: 240 100% 94%; /* secondary */
   --muted-foreground: 240 100% 20%; /* muted-foreground */
@@ -389,7 +420,7 @@ html, body {
   --radius: 0.5rem;
 }
 
-.theme-zinc {
+.zinc {
   --background: 240 5% 96%;
   --sidebar-background: 240 5% 90%; /* secondary */
   --muted-foreground: 240 5% 25%; /* muted-foreground */
@@ -418,7 +449,7 @@ html, body {
   --radius: 0.5rem;
 }
 
-.theme-blue {
+.blue {
   --background: 220 100% 98%;
   --sidebar-background: 220 100% 94%; /* secondary */
   --muted-foreground: 220 100% 20%; /* muted-foreground */
@@ -447,7 +478,7 @@ html, body {
   --radius: 0.5rem;
 }
 
-.theme-green {
+.green {
   --background: 120 100% 98%;
   --sidebar-background: 120 100% 94%; /* secondary */
   --muted-foreground: 120 100% 20%; /* muted-foreground */
@@ -476,7 +507,7 @@ html, body {
   --radius: 0.5rem;
 }
 
-.theme-yellow {
+.yellow {
   --background: 60 100% 98%;
   --sidebar-background: 60 100% 94%; /* secondary */
   --muted-foreground: 60 100% 20%; /* muted-foreground */
@@ -505,7 +536,7 @@ html, body {
   --radius: 0.5rem;
 }
 
-.theme-pink {
+.pink {
   --background: 330 100% 98%;
   --sidebar-background: 330 100% 94%; /* secondary */
   --muted-foreground: 330 100% 20%; /* muted-foreground */
@@ -534,7 +565,7 @@ html, body {
   --radius: 0.5rem;
 }
 
-.theme-teal {
+.teal {
   --background: 180 50% 96%;
   --sidebar-background: 180 50% 90%; /* secondary */
   --muted-foreground: 180 50% 25%; /* muted-foreground */
@@ -563,7 +594,7 @@ html, body {
   --radius: 0.5rem;
 }
 
-.theme-sky {
+.sky {
   --background: 200 100% 98%;
   --sidebar-background: 200 100% 94%; /* secondary */
   --muted-foreground: 200 100% 20%; /* muted-foreground */
@@ -592,7 +623,7 @@ html, body {
   --radius: 0.5rem;
 }
 
-.theme-lavender {
+.lavender {
   --background: 280 100% 98%;
   --sidebar-background: 280 100% 94%; /* secondary */
   --muted-foreground: 280 100% 20%; /* muted-foreground */
@@ -621,7 +652,7 @@ html, body {
   --radius: 0.5rem;
 }
 
-.theme-peach {
+.peach {
   --background: 25 100% 98%;
   --sidebar-background: 25 100% 94%; /* secondary */
   --muted-foreground: 25 100% 20%; /* muted-foreground */
@@ -650,7 +681,7 @@ html, body {
   --radius: 0.5rem;
 }
 
-.theme-flamingo {
+.flamingo {
   --background: 350 100% 98%;
   --sidebar-background: 350 100% 94%; /* secondary */
   --muted-foreground: 350 100% 20%; /* muted-foreground */
@@ -679,7 +710,7 @@ html, body {
   --radius: 0.5rem;
 }
 
-.theme-mauve {
+.mauve {
   --background: 300 50% 96%;
   --sidebar-background: 300 50% 90%; /* secondary */
   --muted-foreground: 300 50% 25%; /* muted-foreground */
@@ -708,7 +739,7 @@ html, body {
   --radius: 0.5rem;
 }
 
-.theme-maroon {
+.maroon {
   --background: 0 50% 96%;
   --sidebar-background: 0 50% 90%; /* secondary */
   --muted-foreground: 0 50% 25%; /* muted-foreground */
@@ -737,7 +768,7 @@ html, body {
   --radius: 0.5rem;
 }
 
-.theme-red {
+.red {
   --background: 0 100% 98%;
   --sidebar-background: 0 100% 94%; /* secondary */
   --muted-foreground: 0 100% 20%; /* muted-foreground */
@@ -766,7 +797,7 @@ html, body {
   --radius: 0.5rem;
 }
 
-.theme-rosewater {
+.rosewater {
   --background: 15 100% 98%;
   --sidebar-background: 15 100% 94%; /* secondary */
   --muted-foreground: 15 100% 20%; /* muted-foreground */
@@ -795,7 +826,7 @@ html, body {
   --radius: 0.5rem;
 }
 
-.theme-sapphire {
+.sapphire {
   --background: 220 50% 96%;
   --sidebar-background: 220 50% 90%; /* secondary */
   --muted-foreground: 220 50% 25%; /* muted-foreground */
@@ -824,7 +855,7 @@ html, body {
   --radius: 0.5rem;
 }
 
-.theme-cyberpunk {
+.cyberpunk {
   --background: 240 19% 12%;
   --sidebar-background: 290 25% 20%; /* secondary */
   --muted-foreground: 300 25% 70%; /* muted-foreground */
@@ -862,13 +893,13 @@ html, body {
   }
 }
 
-.theme-preview {
+.preview {
   position: relative;
   background: linear-gradient(135deg, hsl(var(--background, #eee)) 50%, hsl(var(--muted, #ccc)) 50%);
   color: var(--foreground, #222);
   transition: box-shadow 0.2s, border-color 0.2s;
 }
-.theme-preview.theme-light {
+.preview.light {
   --background: 0 0% 100%;
   --sidebar-background: 210 40% 96.1%;
   --muted-foreground: 215.4 16.3% 46.9%;
@@ -898,7 +929,7 @@ html, body {
   background: linear-gradient(135deg, hsl(var(--background)) 50%, hsl(var(--primary)) 50%);
   color: hsl(var(--foreground));
 }
-.theme-preview.theme-dark {
+.preview.dark {
   --background: 222.2 84% 4.9%;
   --sidebar-background: 217.2 32.6% 17.5%;
   --muted-foreground: 215 20.2% 65.1%;
@@ -928,7 +959,7 @@ html, body {
   background: linear-gradient(135deg, hsl(var(--background)) 50%, hsl(var(--primary)) 50%);
   color: hsl(var(--foreground));
 }
-.theme-preview.theme-latte {
+.preview.latte {
   --background: 220 23% 88%;
   --sidebar-background: 225 14% 77%;
   --muted-foreground: 233 10% 47%;
@@ -960,7 +991,7 @@ html, body {
 }
 
 
-.theme-preview.theme-cyberpunk {
+.preview.cyberpunk {
   --background: 240 19% 12%;
   --sidebar-background: 290 25% 20%;
   --muted-foreground: 300 25% 70%;
@@ -992,15 +1023,15 @@ html, body {
 }
 
 /* Fix radio button appearance in dark mode for theme selector */
-.theme-radio:not(:checked) {
+.radio:not(:checked) {
   accent-color: #d1d5db; /* Tailwind zinc-300, light gray */
 }
-.dark .theme-radio:not(:checked) {
+.dark .radio:not(:checked) {
   accent-color: #374151; /* Tailwind gray-700, dark gray */
 }
 
 /* Custom radio dot for theme selector */
-.theme-preview .custom-radio-dot {
+.preview .custom-radio-dot {
   width: 16px;
   height: 16px;
   border: 2px solid #a1a1aa; /* zinc-400 */
@@ -1011,14 +1042,14 @@ html, body {
   margin-right: 8px;
   transition: border-color 0.2s, background 0.2s;
 }
-.theme-preview input[type="radio"]:checked + .custom-radio-dot {
+.preview input[type="radio"]:checked + .custom-radio-dot {
   background: #06b6d4; /* cyan-400 or your primary */
   border-color: #06b6d4;
 }
-.dark .theme-preview .custom-radio-dot {
+.dark .preview .custom-radio-dot {
   border-color: #52525b; /* zinc-600 */
 }
-.dark .theme-preview input[type="radio"]:checked + .custom-radio-dot {
+.dark .preview input[type="radio"]:checked + .custom-radio-dot {
   background: #06b6d4;
   border-color: #06b6d4;
 }
@@ -1181,4 +1212,14 @@ html, body {
   background: linear-gradient(135deg, #065f46 0%, #1f2937 100%) !important;
   color: #f9fafb !important;
   border: 1px solid #047857 !important;
+}
+
+/* Animated rotating border gradient for cards */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

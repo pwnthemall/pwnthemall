@@ -79,7 +79,7 @@ export default function SubmissionsContent({ submissions, onRefresh }: Submissio
   const totalPages = Math.max(1, Math.ceil(filteredSubmissions.length / pageSize))
 
     // Reset to first page when filters change
-  useMemo(() => {
+  useEffect(() => {
     setCurrentPage(0)
   }, [userFilter, teamFilter, challengeFilter])
 
@@ -90,9 +90,9 @@ export default function SubmissionsContent({ submissions, onRefresh }: Submissio
       <Head>
         <title>{getSiteName()}</title>
       </Head>
-      <div className="bg-muted min-h-screen p-4">
+      <div className="min-h-screen p-4">
         <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-3xl font-bold">{t("admin.submissions") || "Submissions"}</h1>
+          <h1 className="text-2xl font-bold">{t("admin.submissions") || "Submissions"}</h1>
           <div>
             <Button size="sm" onClick={onRefresh}>{t("refresh") || "Refresh"}</Button>
           </div>

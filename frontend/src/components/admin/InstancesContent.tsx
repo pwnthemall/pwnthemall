@@ -145,7 +145,7 @@ export default function InstancesContent({ instances, onRefresh }: Readonly<Inst
   const totalPages = Math.max(1, Math.ceil(filteredInstances.length / pageSize))
 
   // Reset to first page when filters change
-  useMemo(() => {
+  useEffect(() => {
     setCurrentPage(0)
   }, [usernameFilter, challengeFilter, categoryFilter])
   
@@ -413,15 +413,12 @@ export default function InstancesContent({ instances, onRefresh }: Readonly<Inst
       <Head>
         <title>{getSiteName()} - {t("instances")}</title>
       </Head>
-      <div className="bg-muted min-h-screen p-4">
+      <div className="min-h-screen p-4">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Server className="h-8 w-8 text-primary" />
             <div>
-              <h1 className="text-3xl font-bold">{t("instances")}</h1>
-              <p className="text-sm text-muted-foreground">
-                {filteredInstances.length} {t("active_instances")}
-              </p>
+              <h1 className="text-2xl font-bold">{t("instances")}</h1>
             </div>
           </div>
           <div className="flex items-center gap-2">

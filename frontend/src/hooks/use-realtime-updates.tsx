@@ -2,10 +2,23 @@
 import { useEffect, useRef, useState } from 'react';
 
 export type UpdateEvent = {
-  event: 'challenge-category' | 'ctf-status' | 'instance' | 'user-banned';
+  event: 'challenge-category' | 'ctf-status' | 'instance' | 'user-banned' | 'ticket_created' | 'ticket_message' | 'ticket_resolved' | 'config-update';
   action?: string;
   data?: any;
+  key?: string;
+  value?: string;
   user_id?: number;
+  // Ticket event fields
+  ticketId?: number;
+  subject?: string;
+  userId?: number;
+  username?: string;
+  teamId?: number;
+  message?: string;
+  messageId?: number;
+  attachments?: string[];
+  createdAt?: string;
+  isAdmin?: boolean;
 };
 
 type UpdateCallback = (event: UpdateEvent) => void;
@@ -60,13 +73,13 @@ export function useRealtimeUpdates(onUpdate?: UpdateCallback, enabled: boolean =
       const connect = () => {
         try {
           const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-          const wsUrl = `${protocol}//${window.location.host}/api/ws/updates`;
+          const wsUrl = `${protocol}//${window.location.host}/ws/updates`;
 
           const ws = new WebSocket(wsUrl);
           globalWs = ws;
 
           ws.onopen = () => {
-            console.log('WebSocket connected to updates endpoint');
+            // Silently connect
             globalIsConnected = true;
             isConnecting = false;
             connectionListeners.forEach(listener => listener(true));
@@ -75,7 +88,7 @@ export function useRealtimeUpdates(onUpdate?: UpdateCallback, enabled: boolean =
           ws.onmessage = (event) => {
             try {
               const data: UpdateEvent = JSON.parse(event.data);
-              console.log('Received update:', data);
+              // Process update silently
               
               // Handle user-banned event specially - dispatch to window
               if (data.event === 'user-banned') {
@@ -92,12 +105,15 @@ export function useRealtimeUpdates(onUpdate?: UpdateCallback, enabled: boolean =
             }
           };
 
-          ws.onerror = (error) => {
-            console.error('WebSocket error:', error);
+          ws.onerror = () => {
+            // Silently handle WebSocket errors - likely due to not being authenticated
           };
 
           ws.onclose = (event) => {
-            console.log('WebSocket disconnected, code:', event.code, 'reason:', event.reason);
+            // Only log unexpected closures (not auth-related)
+            if (event.code !== 1006 && event.code !== 1000) {
+              console.log('WebSocket disconnected, code:', event.code, 'reason:', event.reason);
+            }
             globalIsConnected = false;
             globalWs = null;
             isConnecting = false;
@@ -112,16 +128,14 @@ export function useRealtimeUpdates(onUpdate?: UpdateCallback, enabled: boolean =
 
             // Don't reconnect if closed normally (1000) or going away (1001)
             if (event.code === 1000 || event.code === 1001) {
-              console.log('WebSocket closed normally, not reconnecting');
               return;
             }
 
             // Attempt to reconnect after 5 seconds if there are still active callbacks
+            // Silently retry for auth-related failures (1006)
             if (callbacks.size > 0) {
-              console.log(`Will reconnect in 5s (${callbacks.size} listeners)`);
               reconnectTimeout = setTimeout(() => {
                 if (callbacks.size > 0 && !globalWs && !isConnecting) {
-                  console.log('Attempting to reconnect...');
                   connect();
                 }
               }, 5000);

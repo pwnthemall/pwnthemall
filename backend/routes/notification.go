@@ -20,20 +20,20 @@ func RegisterNotificationRoutes(router *gin.Engine) {
 		utils.ServeWs(utils.UpdatesHub, userID, c.Writer, c.Request)
 	})
 
-	// User notification endpoints
-	notifications := router.Group("/notifications", middleware.AuthRequired(false))
+	notifications := router.Group("/notifications", middleware.AuthRequired(false), middleware.CSRFProtection())
 	{
 		notifications.GET("", controllers.GetUserNotifications)
 		notifications.GET("/unread-count", controllers.GetUnreadCount)
+
 		notifications.PUT("/:id/read", controllers.MarkNotificationAsRead)
 		notifications.PUT("/read-all", controllers.MarkAllNotificationsAsRead)
 	}
 
-	// Admin notification endpoints
-	adminNotifications := router.Group("/admin/notifications", middleware.AuthRequired(false))
+	adminNotifications := router.Group("/admin/notifications", middleware.AuthRequired(false), middleware.CSRFProtection())
 	{
-		adminNotifications.POST("", middleware.CheckPolicy("/admin/notifications", "write"), controllers.SendNotification)
 		adminNotifications.GET("", middleware.CheckPolicy("/admin/notifications", "read"), controllers.GetSentNotifications)
+
+		adminNotifications.POST("", middleware.CheckPolicy("/admin/notifications", "write"), controllers.SendNotification)
 		adminNotifications.DELETE("/:id", middleware.CheckPolicy("/admin/notifications", "write"), controllers.DeleteNotification)
 	}
 }

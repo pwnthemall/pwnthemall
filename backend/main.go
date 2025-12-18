@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"flag"
 	"net/http"
 	"os"
@@ -14,7 +12,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pwnthemall/pwnthemall/backend/config"
 	"github.com/pwnthemall/pwnthemall/backend/debug"
-	_ "github.com/pwnthemall/pwnthemall/backend/handlers" // MANDATORY to launch init() func and register challenge type handlers
+	_ "github.com/pwnthemall/pwnthemall/backend/handlers" // Import to trigger init() functions
+	"github.com/pwnthemall/pwnthemall/backend/middleware"
 	"github.com/pwnthemall/pwnthemall/backend/pluginsystem"
 	"github.com/pwnthemall/pwnthemall/backend/routes"
 	"github.com/pwnthemall/pwnthemall/backend/utils"
@@ -27,14 +26,6 @@ var (
 	seedTeams     = flag.Int("teams", 30, "Number of demo teams to create (default: 30)")
 	seedTimeRange = flag.Int("time-range", 20, "Time range in hours for spreading solve timestamps (default: 20)")
 )
-
-func generateRandomString(n int) (string, error) {
-	bytes := make([]byte, n)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", err
-	}
-	return hex.EncodeToString(bytes), nil
-}
 
 // initWebSocketHub initializes the WebSocket hubs
 func initWebSocketHub() {
@@ -97,11 +88,19 @@ func main() {
 	// Start hint activation scheduler
 	utils.StartHintScheduler()
 
+	var gReleaseMode string
+	if os.Getenv("PTA_DEBUG_ENABLED") == "true" {
+		gReleaseMode = gin.DebugMode
+	} else {
+		gReleaseMode = gin.ReleaseMode
+	}
+	gin.SetMode(gReleaseMode)
+
 	router := gin.Default()
 
 	sessionSecret := os.Getenv("SESSION_SECRET")
 	if sessionSecret == "" {
-		sessionSecret, _ = generateRandomString(25)
+		sessionSecret, _ = utils.GenerateRandomString(25)
 	}
 	store := cookie.NewStore([]byte(sessionSecret))
 	store.Options(sessions.Options{
@@ -111,12 +110,20 @@ func main() {
 		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
 	})
+
+	middleware.InitCSRFProtection()
+
 	router.Use(sessions.Sessions("pwnthemall", store))
 	router.SetTrustedProxies([]string{"172.70.1.0/24"})
+	allowedOrigin := os.Getenv("NEXT_PUBLIC_API_URL")
+	if allowedOrigin == "" {
+		debug.Log("Warning: NEXT_PUBLIC_API_URL is not set, CORS will allow all origins")
+		allowedOrigin = "*"
+	}
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"https://pwnthemall.local", "https://demo.pwnthemall.com"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type"},
+		AllowOrigins:     []string{allowedOrigin},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "X-CSRF-Token"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 	}))
@@ -130,6 +137,7 @@ func main() {
 	routes.RegisterWebhookRoutes(router)
 	routes.RegisterChallengeRoutes(router)
 	routes.RegisterChallengeCategoryRoutes(router)
+	routes.RegisterChallengeDifficultyRoutes(router)
 	routes.RegisterTeamRoutes(router)
 	routes.RegisterConfigRoutes(router)
 	routes.RegisterDockerConfigRoutes(router)
@@ -138,6 +146,7 @@ func main() {
 	routes.RegisterDecayFormulaRoutes(router)
 	routes.RegisterSubmissionRoutes(router)
 	routes.RegisterDashboardRoutes(router)
+	routes.RegisterTicketRoutes(router)
 
 	if os.Getenv("PTA_PLUGINS_ENABLED") == "true" {
 		debug.Log("Loading plugins...")

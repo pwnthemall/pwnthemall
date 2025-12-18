@@ -371,9 +371,12 @@ function ProfileContentInner() {
           </form>
         )}
         {activeTab === "Appearance" && (
-          <>
+          <div className="space-y-4">
+            <div className="p-3 bg-muted/50 rounded-lg border border-border/50 text-sm text-muted-foreground">
+              <strong className="text-foreground">Note:</strong> These are color mode presets (light/dark variants). The site&apos;s theme (colors, fonts, effects) is controlled by administrators in the Configuration page.
+            </div>
             <ThemeSelector />
-          </>
+          </div>
         )}
         {activeTab === "Team" && (
           <div className="space-y-4 max-w-md">
@@ -459,4 +462,4 @@ function ThemePreviewRadio({ value, label, previewLeft, previewRight, checked, o
       <span className="absolute inset-0 pointer-events-none" />
     </label>
   );
-} 
+}

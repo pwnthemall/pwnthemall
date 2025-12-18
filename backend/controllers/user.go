@@ -158,7 +158,7 @@ func GetCurrentUser(c *gin.Context) {
 		config.DB.Model(&models.Solve{}).Where("team_id = ?", *user.TeamID).Count(&solvesCount)
 		// Calculate current points with decay
 		decayService := utils.NewDecay()
-		score, err := calculateTeamScore(*user.TeamID, decayService)
+		score, _, err := calculateTeamScore(*user.TeamID, decayService)
 		if err == nil {
 			totalPoints = score
 		}

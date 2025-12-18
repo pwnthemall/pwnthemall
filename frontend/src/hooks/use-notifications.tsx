@@ -126,9 +126,7 @@ export const useNotifications = (isAuthenticated: boolean = false): UseNotificat
     const toWs = (httpUrl: string) => httpUrl.replace(/^https/, 'wss').replace(/^http/, 'ws');
 
     const candidates: string[] = [];
-    // Prefer proxied API path first so cookies are forwarded consistently via the same origin
-    candidates.push(toWs(origin + '/api/ws/notifications'));
-    // Then try direct frontend-origin path (if backend mounted at same host)
+    // Try direct frontend-origin path first (backend mounted at same host)
     candidates.push(toWs(origin + '/ws/notifications'));
     // Finally, try explicit backend origin if provided
     if (envBackend) {
@@ -193,6 +191,12 @@ export const useNotifications = (isAuthenticated: boolean = false): UseNotificat
                   } as any;
                   window.dispatchEvent(new CustomEvent('new-notification', { detail: notif }));
                   return; // Do not treat as notification list item
+                }
+                if (parsed && parsed.event === 'hint_purchase') {
+                  debugLog('[WS] hint_purchase event received:', parsed);
+                  window.dispatchEvent(new CustomEvent('hint-purchase', { detail: parsed }));
+                  debugLog('[WS] hint-purchase event dispatched');
+                  return; // Not a Notification object
                 }
                 if (parsed && parsed.event === 'instance_update') {
                   debugLog('[WS] instance_update event', parsed);

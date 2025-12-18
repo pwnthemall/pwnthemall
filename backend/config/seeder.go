@@ -23,113 +23,13 @@ const (
 	queryDemoUserPattern = "demo-user-%"
 )
 
-// getEnvWithDefault returns the environment variable value or a default if not set
-func getEnvWithDefault(key, defaultValue string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return defaultValue
-}
-
-// CTFStatus represents the current status of the CTF
-type CTFStatus string
-
-const (
-	CTFNotStarted CTFStatus = "not_started"
-	CTFActive     CTFStatus = "active"
-	CTFEnded      CTFStatus = "ended"
-	CTFNoTiming   CTFStatus = "no_timing" // When no start/end times are configured
-)
-
-// GetCTFStatus returns the current status of the CTF based on start and end times
-func GetCTFStatus() CTFStatus {
-	var startConfig, endConfig models.Config
-
-	// Get start time - create if missing
-	if err := DB.Where("key = ?", "CTF_START_TIME").First(&startConfig).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			// Create missing CTF_START_TIME config
-			startConfig = models.Config{
-				Key:    "CTF_START_TIME",
-				Value:  getEnvWithDefault("PTA_CTF_START_TIME", ""),
-				Public: true,
-			}
-			if createErr := DB.Create(&startConfig).Error; createErr != nil {
-				debug.Log("Failed to create CTF_START_TIME config: %v", createErr)
-				return CTFNoTiming
-			}
-		} else {
-			debug.Log("Database error getting CTF_START_TIME: %v", err)
-			return CTFNoTiming
-		}
-	}
-
-	// Get end time - create if missing
-	if err := DB.Where("key = ?", "CTF_END_TIME").First(&endConfig).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			// Create missing CTF_END_TIME config
-			endConfig = models.Config{
-				Key:    "CTF_END_TIME",
-				Value:  getEnvWithDefault("PTA_CTF_END_TIME", ""),
-				Public: true,
-			}
-			if createErr := DB.Create(&endConfig).Error; createErr != nil {
-				debug.Log("Failed to create CTF_END_TIME config: %v", createErr)
-				return CTFNoTiming
-			}
-		} else {
-			debug.Log("Database error getting CTF_END_TIME: %v", err)
-			return CTFNoTiming
-		}
-	}
-
-	// If either time is empty, no timing is configured
-	if startConfig.Value == "" || endConfig.Value == "" {
-		return CTFNoTiming
-	}
-
-	// Parse times (expecting RFC3339 format: 2006-01-02T15:04:05Z07:00)
-	startTime, err := time.Parse(time.RFC3339, startConfig.Value)
-	if err != nil {
-		debug.Log("Failed to parse CTF start time")
-		return CTFNoTiming
-	}
-
-	endTime, err := time.Parse(time.RFC3339, endConfig.Value)
-	if err != nil {
-		debug.Log("Failed to parse CTF end time: %v", err)
-		return CTFNoTiming
-	}
-
-	now := time.Now()
-
-	if now.Before(startTime) {
-		return CTFNotStarted
-	} else if now.After(endTime) {
-		return CTFEnded
-	} else {
-		return CTFActive
-	}
-}
-
-// IsCTFActive returns true if the CTF is currently active
-func IsCTFActive() bool {
-	status := GetCTFStatus()
-	return status == CTFActive || status == CTFNoTiming
-}
-
-// IsCTFStarted returns true if the CTF has started (active or ended)
-func IsCTFStarted() bool {
-	status := GetCTFStatus()
-	return status == CTFActive || status == CTFEnded || status == CTFNoTiming
-}
-
 func seedConfig() {
 	config := []models.Config{
 		{Key: "SITE_NAME", Value: os.Getenv("PTA_SITE_NAME"), Public: true},
-		{Key: "REGISTRATION_ENABLED", Value: getEnvWithDefault("PTA_REGISTRATION_ENABLED", "false"), Public: true},
-		{Key: "CTF_START_TIME", Value: getEnvWithDefault("PTA_CTF_START_TIME", ""), Public: true},
-		{Key: "CTF_END_TIME", Value: getEnvWithDefault("PTA_CTF_END_TIME", ""), Public: true},
+		{Key: "REGISTRATION_ENABLED", Value: GetEnvWithDefault("PTA_REGISTRATION_ENABLED", "false"), Public: true},
+		{Key: "TICKETS_ENABLED", Value: GetEnvWithDefault("PTA_TICKETS_ENABLED", "true"), Public: true},
+		{Key: "CTF_START_TIME", Value: GetEnvWithDefault("PTA_CTF_START_TIME", ""), Public: true},
+		{Key: "CTF_END_TIME", Value: GetEnvWithDefault("PTA_CTF_END_TIME", ""), Public: true},
 	}
 
 	for _, item := range config {
@@ -182,7 +82,7 @@ func seedDockerConfig() {
 	}
 
 	// Cooldown seconds between stop and next start for same team/challenge
-	cooldownEnv := getEnvWithDefault("PTA_DOCKER_INSTANCE_COOLDOWN_SECONDS", "0")
+	cooldownEnv := GetEnvWithDefault("PTA_DOCKER_INSTANCE_COOLDOWN_SECONDS", "0")
 	cooldownSeconds, err := strconv.Atoi(cooldownEnv)
 	if err != nil {
 		cooldownSeconds = 0 // Disabled by default
@@ -231,8 +131,8 @@ func seedChallengeCategory() {
 func seedChallengeType() {
 	challengeTypes := []models.ChallengeType{
 		{Name: "standard"},
-		{Name: "docker"},
-		{Name: "compose"},
+		{Name: "docker", Instance: true},
+		{Name: "compose", Instance: true},
 		{Name: "geo"},
 	}
 	for _, challengeType := range challengeTypes {
@@ -254,11 +154,11 @@ func seedChallengeType() {
 
 func seedChallengeDifficulty() {
 	challengeDifficulties := []models.ChallengeDifficulty{
-		{Name: "intro"},
-		{Name: "easy"},
-		{Name: "medium"},
-		{Name: "hard"},
-		{Name: "insane"},
+		{Name: "intro", Color: "#94a3b8"},
+		{Name: "easy", Color: "#22c55e"},
+		{Name: "medium", Color: "#f59e0b"},
+		{Name: "hard", Color: "#ef4444"},
+		{Name: "insane", Color: "#dc2626"},
 	}
 	for _, challengeDifficulty := range challengeDifficulties {
 		var existing models.ChallengeDifficulty
@@ -268,13 +168,17 @@ func seedChallengeDifficulty() {
 			continue
 		}
 		if err == nil {
+			// Update color if it's missing
+			if existing.Color == "" {
+				DB.Model(&existing).Update("color", challengeDifficulty.Color)
+			}
 			continue
 		}
 		if err := DB.Create(&challengeDifficulty).Error; err != nil {
 			debug.Log("Failed to seed challengeDifficulty %s: %v\n", challengeDifficulty.Name, err)
 		}
 	}
-	debug.Println("Seeding: challengeTypes finished")
+	debug.Println("Seeding: challengeDifficulties finished")
 }
 
 func seedDecayFormulas() {
@@ -438,62 +342,64 @@ func SeedDemoData(teamCount int, timeRangeHours int) error {
 		return fmt.Errorf("failed to fetch challenges: %w", err)
 	}
 
-	// Check for existing demo data
-	var existingDemoTeams int64
-	if err := DB.Model(&models.Team{}).Where(queryNameLike, queryDemoTeamPattern).Count(&existingDemoTeams).Error; err != nil {
-		return fmt.Errorf("failed to check existing demo teams: %w", err)
-	}
-	if existingDemoTeams > 0 {
-		debug.Log("Found %d existing demo teams - skipping creation (use clean-demo first)\n", existingDemoTeams)
-		return nil
-	}
-
 	// Calculate time range
 	now := time.Now()
 	startTime := now.Add(-time.Duration(timeRangeHours) * time.Hour)
 	timeRange := now.Sub(startTime)
 
-	// Create teams and users
-	var createdTeams []models.Team
-	demoPassword := "demo123"
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(demoPassword), bcrypt.DefaultCost)
-	if err != nil {
-		return fmt.Errorf("failed to hash demo password: %w", err)
+	// Check for existing demo data
+	var existingDemoTeams []models.Team
+	if err := DB.Where(queryNameLike, queryDemoTeamPattern).Find(&existingDemoTeams).Error; err != nil {
+		return fmt.Errorf("failed to check existing demo teams: %w", err)
 	}
 
-	for i := 1; i <= teamCount; i++ {
-		// Create user first
-		user := models.User{
-			Username: fmt.Sprintf("demo-user-%d", i),
-			Email:    fmt.Sprintf("demo%d@demo.local", i),
-			Password: string(hashedPassword),
-			Role:     "member",
-		}
-		if err := DB.Create(&user).Error; err != nil {
-			debug.Log("Failed to create demo user %d: %v\n", i, err)
-			continue
+	var createdTeams []models.Team
+
+	if len(existingDemoTeams) > 0 {
+		debug.Log("Found %d existing demo teams - using existing teams\n", len(existingDemoTeams))
+		createdTeams = existingDemoTeams
+	} else {
+		// Create teams and users
+		demoPassword := "demo123"
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(demoPassword), bcrypt.DefaultCost)
+		if err != nil {
+			return fmt.Errorf("failed to hash demo password: %w", err)
 		}
 
-		// Create team
-		team := models.Team{
-			Name:      fmt.Sprintf("Demo Team %d", i),
-			Password:  string(hashedPassword),
-			CreatorID: user.ID,
-		}
-		if err := DB.Create(&team).Error; err != nil {
-			debug.Log("Failed to create demo team %d: %v\n", i, err)
-			continue
-		}
+		for i := 1; i <= teamCount; i++ {
+			// Create user first
+			user := models.User{
+				Username: fmt.Sprintf("demo-user-%d", i),
+				Email:    fmt.Sprintf("demo%d@demo.local", i),
+				Password: string(hashedPassword),
+				Role:     "member",
+			}
+			if err := DB.Create(&user).Error; err != nil {
+				debug.Log("Failed to create demo user %d: %v\n", i, err)
+				continue
+			}
 
-		// Assign user to team
-		user.TeamID = &team.ID
-		if err := DB.Save(&user).Error; err != nil {
-			debug.Log("Failed to assign user to team %d: %v\n", i, err)
-			continue
-		}
+			// Create team
+			team := models.Team{
+				Name:      fmt.Sprintf("Demo Team %d", i),
+				Password:  string(hashedPassword),
+				CreatorID: user.ID,
+			}
+			if err := DB.Create(&team).Error; err != nil {
+				debug.Log("Failed to create demo team %d: %v\n", i, err)
+				continue
+			}
 
-		createdTeams = append(createdTeams, team)
-		debug.Log("Created Demo Team %d with user demo-user-%d\n", i, i)
+			// Assign user to team
+			user.TeamID = &team.ID
+			if err := DB.Save(&user).Error; err != nil {
+				debug.Log("Failed to assign user to team %d: %v\n", i, err)
+				continue
+			}
+
+			createdTeams = append(createdTeams, team)
+			debug.Log("Created Demo Team %d with user demo-user-%d\n", i, i)
+		}
 	}
 
 	// Create solves with spread timestamps
@@ -501,8 +407,12 @@ func SeedDemoData(teamCount int, timeRangeHours int) error {
 	challengeFirstBlood := make(map[uint]int) // Track first blood position per challenge
 
 	for _, team := range createdTeams {
-		// Each team solves 1-5 random challenges
-		solvesCount := 1 + (int(team.ID) % 5) // Deterministic but varied: 1-5 solves
+		// Each team solves 20-90% of challenges (varied based on team ID)
+		solvePercentage := 20 + (int(team.ID) % 71) // 20-90%
+		solvesCount := (len(challenges) * solvePercentage) / 100
+		if solvesCount < 1 {
+			solvesCount = 1
+		}
 
 		// Get team's user
 		var user models.User

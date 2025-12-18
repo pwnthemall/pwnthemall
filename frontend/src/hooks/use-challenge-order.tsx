@@ -24,6 +24,7 @@ export function useChallengeOrder() {
     } finally {
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const reorderChallenges = useCallback(async (categoryId: number, challengeIds: number[]) => {
@@ -44,6 +45,7 @@ export function useChallengeOrder() {
     } finally {
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {

@@ -14,7 +14,10 @@ import (
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/csrf"
 )
+
+var csrfSecret string
 
 // getClientIP extracts the real client IP from the request
 func getClientIP(c *gin.Context) string {
@@ -121,15 +124,16 @@ func SessionAuthRequired(needTeam bool) gin.HandlerFunc {
 
 func CheckPolicy(obj string, act string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		claims, errMsg := utils.GetClaimsFromCookie(c)
-		if claims == nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": errMsg})
-			return
-		}
+		claims, _ := utils.GetClaimsFromCookie(c)
 
-		sub := fmt.Sprint(claims.Role)
-		if sub == "" {
+		var sub string
+		if claims == nil {
 			sub = "anonymous"
+		} else {
+			sub = fmt.Sprint(claims.Role)
+			if sub == "" {
+				sub = "anonymous"
+			}
 		}
 
 		// Vérification Casbin
@@ -224,4 +228,108 @@ func AuthRequiredTeamOrAdmin() gin.HandlerFunc {
 		c.Set("user", &user)
 		c.Next()
 	}
+}
+
+func InitCSRFProtection() {
+	csrfSecret = os.Getenv("CSRF_SECRET")
+	if csrfSecret == "" {
+		csrfSecret, _ = utils.GenerateRandomString(32)
+		if os.Getenv("GIN_MODE") == "release" {
+			debug.Log("WARNING: CSRF_SECRET not set in production. Using random secret - tokens will invalidate on restart!")
+		} else {
+			debug.Log("INFO: CSRF_SECRET not set, using random secret for development")
+		}
+	}
+	debug.Log("CSRF protection initialized")
+}
+
+func CSRFProtection() gin.HandlerFunc {
+	csrfMiddleware := csrf.Protect(
+		[]byte(csrfSecret),
+		csrf.Secure(true),
+		csrf.HttpOnly(true),
+		csrf.SameSite(csrf.SameSiteStrictMode),
+		csrf.Path("/"),
+		csrf.ErrorHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			reason := csrf.FailureReason(r)
+			debug.Log("CSRF validation failed for %s %s: %v", r.Method, r.URL.Path, reason)
+
+			// Return structured error code based on failure reason
+			var errorCode string
+			switch reason {
+			case csrf.ErrNoToken:
+				errorCode = "csrf_token_missing"
+			case csrf.ErrBadToken:
+				errorCode = "csrf_token_invalid"
+			default:
+				errorCode = "csrf_validation_failed"
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusForbidden)
+			w.Write([]byte(`{"error":"` + errorCode + `"}`))
+		})),
+	)
+
+	return func(c *gin.Context) {
+		responseWritten := false
+		wrappedWriter := &csrfResponseWriter{
+			ResponseWriter: c.Writer,
+			onWrite: func() {
+				responseWritten = true
+			},
+		}
+
+		// Temporarily replace the writer
+		originalWriter := c.Writer
+		c.Writer = wrappedWriter
+
+		csrfMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			c.Set("csrf_token", csrf.Token(r))
+			c.Next()
+		})).ServeHTTP(c.Writer, c.Request)
+
+		// Restore original writer
+		c.Writer = originalWriter
+
+		// If CSRF middleware wrote a response (error), abort the Gin context
+		if responseWritten && c.Writer.Status() == http.StatusForbidden {
+			c.Abort()
+		}
+	}
+}
+
+type csrfResponseWriter struct {
+	gin.ResponseWriter
+	onWrite     func()
+	writeCalled bool
+}
+
+func (w *csrfResponseWriter) WriteHeader(code int) {
+	if !w.writeCalled {
+		w.writeCalled = true
+		if w.onWrite != nil {
+			w.onWrite()
+		}
+	}
+	w.ResponseWriter.WriteHeader(code)
+}
+
+func (w *csrfResponseWriter) Write(data []byte) (int, error) {
+	if !w.writeCalled {
+		w.writeCalled = true
+		if w.onWrite != nil {
+			w.onWrite()
+		}
+	}
+	return w.ResponseWriter.Write(data)
+}
+
+func GetCSRFToken(c *gin.Context) string {
+	if token, exists := c.Get("csrf_token"); exists {
+		if tokenStr, ok := token.(string); ok {
+			return tokenStr
+		}
+	}
+	return ""
 }
