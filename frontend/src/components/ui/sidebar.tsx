@@ -124,99 +124,32 @@ export const SidebarTrigger = React.forwardRef<
 })
 SidebarTrigger.displayName = "SidebarTrigger"
 
-// Resize handle component with truly instant DOM updates
+// Resize handle component — now a fixed toggle button aligned to the left (no drag-to-resize)
 const ResizeHandle = ({ onResize, onToggle }: { 
-  onResize: (width: number) => void
+  onResize?: (width: number) => void
   onToggle: () => void 
 }) => {
-  const isResizing = React.useRef(false)
-  const startX = React.useRef(0)
-  const startWidth = React.useRef(0)
-  const hasDragged = React.useRef(false)
-  const sidebarElement = React.useRef<HTMLElement | null>(null)
+  // Read sidebar open state to position the hamburger indicator correctly
+  const { open } = useSidebar()
 
-  const handleMouseDown = React.useCallback((e: React.MouseEvent) => {
-    e.preventDefault()
-    
-    // Get reference to the sidebar element
-    sidebarElement.current = e.currentTarget.parentElement as HTMLElement
-    
-    if (!sidebarElement.current) return
-    
-    // Store initial values
-    startX.current = e.clientX
-    startWidth.current = sidebarElement.current.offsetWidth
-    hasDragged.current = false
-    isResizing.current = true
-    
-    // Disable transitions during resize for instant updates
-    sidebarElement.current.style.transition = 'none'
-    
-    // Set cursor immediately
-    document.body.style.cursor = 'col-resize'
-    document.body.style.userSelect = 'none'
-
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      if (!isResizing.current || !sidebarElement.current) return
-      
-      const deltaX = moveEvent.clientX - startX.current
-      const newWidth = Math.max(200, Math.min(500, startWidth.current + deltaX))
-      
-      // Mark as dragged if moved more than 3px
-      if (Math.abs(deltaX) > 3) {
-        hasDragged.current = true
-      }
-      
-      // Apply width changes directly and immediately (no transitions, no delays)
-      sidebarElement.current.style.width = `${newWidth}px`
-      sidebarElement.current.style.minWidth = `${newWidth}px`
-    }
-
-    const handleMouseUp = () => {
-      isResizing.current = false
-      document.body.style.cursor = ''
-      document.body.style.userSelect = ''
-      
-
-      
-      if (sidebarElement.current) {
-        // Re-enable transitions
-        sidebarElement.current.style.transition = ''
-        
-        // If no significant drag occurred, treat as click to toggle
-        if (!hasDragged.current) {
-          onToggle() // This will toggle between collapse and expand
-        } else {
-          // Update React state with final width only after drag is complete
-          const finalWidth = sidebarElement.current.offsetWidth
-          onResize(finalWidth)
-        }
-      }
-      
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
-    }
-
-    document.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('mouseup', handleMouseUp)
-  }, [onResize, onToggle])
+  // Compute top offset to match screenshots (adjustable later)
+  const topOffset = open ? 22 : 44
 
   return (
     <button
       type="button"
-      aria-label="Resize sidebar"
-      className="absolute top-0 right-0 w-2 h-full cursor-col-resize hover:bg-border/50 transition-colors z-10 flex items-center justify-center group border-0 bg-transparent p-0"
-      onMouseDown={handleMouseDown}
-      onClick={(e) => {
-        // Only toggle on actual click, not during drag
-        if (e.detail === 1) {
-          onToggle?.();
-        }
-      }}
-      title="Drag to resize, click to toggle"
+      aria-label="Toggle sidebar"
+      className="absolute left-3 z-20 flex items-center justify-center w-9 h-9 rounded-md bg-transparent hover:bg-border/10 transition-colors border-0 p-1"
+      onClick={() => onToggle?.()}
+      style={{ top: topOffset }}
+      title="Toggle sidebar"
     >
-      {/* Visual indicator */}
-      <div className="w-0.5 h-8 bg-border rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+      <span className="sr-only">Toggle sidebar</span>
+      <div className="flex flex-col gap-[6px] items-center pointer-events-none">
+        <span className="block w-5 h-[2px] bg-border rounded" />
+        <span className="block w-5 h-[2px] bg-border rounded" />
+        <span className="block w-5 h-[2px] bg-border rounded" />
+      </div>
     </button>
   )
 }
