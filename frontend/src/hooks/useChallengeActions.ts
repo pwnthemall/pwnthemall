@@ -98,6 +98,7 @@ export const useChallengeActions = ({
       setLoading(false);
       setFlag("");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedChallenge, flag, geoCoords, onChallengeUpdate, t]);
 
   // Cleanup instance after successful submission

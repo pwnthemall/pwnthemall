@@ -188,11 +188,13 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
     };
 
     fetchAllInstanceStatuses();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [challenges.map(c => c.id).join(','), statusFetched, fetchInstanceStatus, isInstanceChallenge, setInstanceStatus, setConnectionInfo]);
 
   // Reset status fetched flag when challenges change
   useEffect(() => {
     setStatusFetched(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [challenges.map(c => c.id).join(',')]);
 
   // Listen to WebSocket instance updates via window events

@@ -9,4 +9,5 @@ export * from './Instance';
 export * from './NavItem';
 export * from './Notification';
 export * from './Team';
+export * from './Ticket';
 export * from './User';

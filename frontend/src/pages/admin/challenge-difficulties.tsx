@@ -20,6 +20,7 @@ export default function ChallengeDifficultiesPage() {
 
   useEffect(() => {
     checkAuth()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {

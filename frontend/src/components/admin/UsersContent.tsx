@@ -148,7 +148,7 @@ export default function UsersContent({ users, onRefresh }: UsersContentProps) {
   const totalPages = Math.max(1, Math.ceil(filteredUsers.length / pageSize))
 
   // Reset to first page when filters change
-  useMemo(() => {
+  useEffect(() => {
     setCurrentPage(0)
   }, [usernameFilter, emailFilter, teamFilter, statusFilter])
   

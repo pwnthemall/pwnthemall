@@ -37,6 +37,7 @@ export default function ChallengeOrderPage() {
 
   useEffect(() => {
     checkAuth()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -57,6 +58,7 @@ export default function ChallengeOrderPage() {
     } else if (role === "admin") {
       fetchCategories()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authChecked, loggedIn, role, router])
 
   useEffect(() => {

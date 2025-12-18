@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Home, Swords, LogIn, UserPlus, User, List, ShieldUser, Bell, Flag } from "lucide-react";
+import { Home, Swords, LogIn, UserPlus, User, List, ShieldUser, Bell, Flag, MessageSquare } from "lucide-react";
 import { useRouter } from "next/router";
 
 import { NavMain } from "@/components/nav-main";
@@ -114,27 +114,50 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         isActive: router.pathname === "/scoreboard",
       });
       }
+      
+      // Only show tickets if enabled (and not admin - admins use admin/tickets)
+      if (siteConfig.TICKETS_ENABLED !== 'false' && userData.role !== "admin") {
+        items.push({
+          title: t('tickets'),
+          url: "/tickets",
+          icon: MessageSquare,
+          isActive: router.pathname.startsWith("/tickets"),
+        });
+      }
+      
       if (userData.role === "admin") {
+        // Build admin sub-items dynamically
+        const adminSubItems = [
+          { title: t('dashboard'), url: "/admin/dashboard" },
+          { title: t('users'), url: "/admin/users" },
+          { title: t('instances'), url: "/admin/instances" },
+          { title: t('admin.submissions'), url: "/admin/submissions" },
+        ];
+        
+        // Add tickets management if enabled
+        if (siteConfig.TICKETS_ENABLED !== 'false') {
+          adminSubItems.push({ title: t('admin.tickets'), url: "/admin/tickets" });
+        }
+        
+        adminSubItems.push(
+          { title: 'Categories & Difficulties', url: "/admin/challenge-categories" },
+          { title: 'Challenges', url: "/admin/challenges" },
+          { title: t('challenge_order_management'), url: "/admin/challenge-order" },
+          { title: t('configuration'), url: "/admin/configuration" },
+          { title: 'Notifications', url: "/admin/notifications" }
+        );
+        
         items.push({
           title: t('administration'),
           url: "/admin",
           icon: ShieldUser,
-          items: [
-            { title: t('dashboard'), url: "/admin/dashboard" },
-            { title: t('users'), url: "/admin/users" },
-            { title: t('instances'), url: "/admin/instances" },
-            { title: t('admin.submissions'), url: "/admin/submissions" },
-            { title: 'Categories & Difficulties', url: "/admin/challenge-categories" },
-            { title: 'Challenges', url: "/admin/challenges" },
-            { title: t('challenge_order_management'), url: "/admin/challenge-order" },
-            { title: t('configuration'), url: "/admin/configuration" },
-            { title: 'Notifications', url: "/admin/notifications" },
-          ],
+          items: adminSubItems,
           isActive:
             router.pathname === "/admin/dashboard" ||
             router.pathname === "/admin/users" ||
             router.pathname === "/admin/instances" ||
             router.pathname === "/admin/submissions" ||
+            router.pathname === "/admin/tickets" ||
             router.pathname === "/admin/challenge-categories" ||
             router.pathname === "/admin/challenges" ||
             router.pathname === "/admin/challenge-order" ||
@@ -146,7 +169,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       // Not logged in
     }
     return items;
-  }, [authChecked, loggedIn, router.pathname, userData.role, t, siteConfig.REGISTRATION_ENABLED, ctfLoading, ctfStatus.status]);
+  }, [authChecked, loggedIn, router.pathname, userData.role, t, siteConfig.TICKETS_ENABLED, ctfLoading, ctfStatus.status]);
 
   return (
     <Sidebar
@@ -160,10 +183,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             <Image
               src={getThemeLogo(theme)}
               alt={getSiteName()}
-              width={isMobile ? 150 : 150}
-              height={isMobile ? 150 : 150}
+              width={150}
+              height={150}
+              style={{ width: '150px', height: 'auto' }}
               className="mx-auto pt-2"
-            ></Image>
+            />
           </Link>
         </SidebarHeader>
         {authChecked && (
