@@ -40,4 +40,8 @@ p, member, /notifications/read-all, write
 p, member, /ws/notifications, read
 
 p, admin, /admin/submissions, read
+p, admin, /admin/pages, read
+p, admin, /admin/pages, write
+p, admin, /admin/pages/:id, read
+p, admin, /admin/pages/:id, write
 p, admin, /*, *
