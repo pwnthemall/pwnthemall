@@ -668,7 +668,10 @@
     "no_teams_yet": "No teams have scored yet",
     "showing_teams": "Showing {count} team",
     "showing_teams_plural": "Showing {count} teams",
-    "no_badges_yet": "No badges yet"
+    "no_badges_yet": "No badges yet",
+    "export": "Export",
+    "export_csv": "Export as CSV",
+    "more_formats_coming": "More formats coming soon"
   },
   "tickets": {
     "tickets": "Tickets",
