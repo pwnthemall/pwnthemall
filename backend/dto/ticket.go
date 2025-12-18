@@ -46,7 +46,18 @@ type TicketResponse struct {
 // TicketDetailResponse includes messages for the detail view
 type TicketDetailResponse struct {
 	TicketResponse
-	Messages []TicketMessageResponse `json:"messages"`
+	Messages      []TicketMessageResponse `json:"messages"`
+	HasMore       bool                    `json:"hasMore"`
+	NextCursor    *uint                   `json:"nextCursor,omitempty"`
+	TotalMessages int                     `json:"totalMessages"`
+}
+
+// TicketMessagesResponse for paginated message loading
+type TicketMessagesResponse struct {
+	Messages   []TicketMessageResponse `json:"messages"`
+	HasMore    bool                    `json:"hasMore"`
+	NextCursor *uint                   `json:"nextCursor,omitempty"`
+	Total      int                     `json:"total"`
 }
 
 // TicketMessageResponse represents a message in API responses

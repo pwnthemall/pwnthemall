@@ -7,7 +7,7 @@ import (
 )
 
 func RegisterChallengeDifficultyRoutes(router *gin.Engine) {
-	difficulties := router.Group("/challenge-difficulties", middleware.AuthRequired(false))
+	difficulties := router.Group("/challenge-difficulties", middleware.AuthRequired(false), middleware.CSRFProtection())
 	{
 		difficulties.GET("", middleware.CheckPolicy("/challenge-difficulties", "read"), controllers.GetChallengeDifficulties)
 

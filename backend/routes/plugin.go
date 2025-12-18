@@ -7,8 +7,8 @@ import (
 )
 
 func RegisterPluginRoutes(router *gin.Engine) {
-	plugins := router.Group("/plugins", middleware.AuthRequired(false))
+	plugins := router.Group("/plugins", middleware.AuthRequired(false), middleware.CSRFProtection())
 	{
-		plugins.GET("", middleware.AuthRequired(false), middleware.CheckPolicy("/plugins", "read"), controllers.GetLoadedPlugins)
+		plugins.GET("", middleware.CheckPolicy("/plugins", "read"), controllers.GetLoadedPlugins)
 	}
 }
