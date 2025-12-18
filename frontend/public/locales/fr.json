@@ -668,7 +668,10 @@
     "no_teams_yet": "Aucune équipe n'a encore marqué de points",
     "showing_teams": "Affichage de {count} équipe",
     "showing_teams_plural": "Affichage de {count} équipes",
-    "no_badges_yet": "Aucun badge pour le moment"
+    "no_badges_yet": "Aucun badge pour le moment",
+    "export": "Exporter",
+    "export_csv": "Exporter en CSV",
+    "more_formats_coming": "D'autres formats bientôt disponibles"
   },
   "tickets": {
     "tickets": "Tickets",
