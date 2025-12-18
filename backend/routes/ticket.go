@@ -9,7 +9,7 @@ import (
 // RegisterTicketRoutes registers all ticket-related routes
 func RegisterTicketRoutes(router *gin.Engine) {
 	// User ticket endpoints
-	tickets := router.Group("/tickets", middleware.TicketsEnabled, middleware.AuthRequired(false))
+	tickets := router.Group("/tickets", middleware.TicketsEnabled, middleware.AuthRequired(false), middleware.CSRFProtection())
 	{
 		tickets.POST("", middleware.RateLimit(2), middleware.CheckPolicy("/tickets", "write"), controllers.CreateTicket)
 		tickets.GET("", middleware.RateLimit(10), middleware.CheckPolicy("/tickets", "read"), controllers.GetUserTickets)
@@ -21,7 +21,7 @@ func RegisterTicketRoutes(router *gin.Engine) {
 	}
 
 	// Admin ticket endpoints
-	adminTickets := router.Group("/admin/tickets", middleware.TicketsEnabled, middleware.AuthRequired(false))
+	adminTickets := router.Group("/admin/tickets", middleware.TicketsEnabled, middleware.AuthRequired(false), middleware.CSRFProtection())
 	{
 		adminTickets.GET("", middleware.CheckPolicy("/admin/tickets", "read"), controllers.GetAllTickets)
 		adminTickets.GET("/:id", middleware.CheckPolicy("/admin/tickets/:id", "read"), controllers.GetAdminTicket)

@@ -456,7 +456,10 @@
     "challenge_not_found": "Challenge introuvable",
     "file_not_found": "Fichier introuvable",
     "invalid_file_path": "Chemin de fichier invalide",
-    "file_download_failed": "Échec du téléchargement du fichier."
+    "file_download_failed": "Échec du téléchargement du fichier.",
+    "csrf_token_missing": "La vérification de sécurité a échoué. Veuillez actualiser la page et réessayer.",
+    "csrf_token_invalid": "Votre session a expiré. Veuillez actualiser la page pour continuer.",
+    "csrf_validation_failed": "Échec de la vérification de sécurité. Actualisation automatique..."
   },
   "flag": {
     "enter_your_flag": "Entrez votre flag",
@@ -774,6 +777,7 @@
     "no_team_hint": "Les tickets d'équipe sont désactivés."
   },
   "team": {
+    "create": "Créer",
     "create_team": "Créer une équipe",
     "disband_team": "Dissoudre l'équipe",
     "join_or_create_team": "Rejoindre ou créer une équipe",

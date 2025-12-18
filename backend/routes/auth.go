@@ -9,16 +9,19 @@ import (
 func RegisterAuthRoutes(router *gin.Engine) {
 	auth := router.Group("/")
 	{
-		auth.POST("login", middleware.RateLimitLogin(), controllers.Login)
+		auth.POST("login", middleware.RateLimitLogin(), middleware.CSRFProtection(), controllers.Login)
+		auth.POST("register", middleware.CSRFProtection(), controllers.Register)
+		auth.POST("logout", middleware.AuthRequired(false), middleware.CSRFProtection(), controllers.Logout)
+
 		auth.POST("refresh", controllers.Refresh)
-		auth.POST("register", controllers.Register)
-		auth.POST("logout", middleware.AuthRequired(false), controllers.Logout)
 		auth.GET("me", middleware.AuthRequired(false), controllers.GetCurrentUser)
-		auth.PATCH("me", middleware.AuthRequired(false), controllers.UpdateCurrentUser)
-		auth.PUT("me/password", middleware.AuthRequired(false), controllers.UpdateCurrentUserPassword)
-		auth.DELETE("me", middleware.AuthRequired(false), controllers.DeleteCurrentUser)
+		auth.GET("csrf-token", middleware.RateLimit(30), middleware.CSRFProtection(), controllers.GetCSRFToken)
 		auth.GET("pwn", middleware.AuthRequired(false), func(c *gin.Context) {
 			c.JSON(200, gin.H{"success": "true"})
 		})
+
+		auth.PATCH("me", middleware.AuthRequired(false), middleware.CSRFProtection(), controllers.UpdateCurrentUser)
+		auth.PUT("me/password", middleware.AuthRequired(false), middleware.CSRFProtection(), controllers.UpdateCurrentUserPassword)
+		auth.DELETE("me", middleware.AuthRequired(false), middleware.CSRFProtection(), controllers.DeleteCurrentUser)
 	}
 }

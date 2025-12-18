@@ -23,12 +23,12 @@ func RegisterTeamRoutes(router *gin.Engine) {
 		publicTeams.GET("/timeline", middleware.CheckPolicy("/teams/timeline", actionRead), controllers.GetTeamTimeline)
 	}
 
-	// Authenticated routes
-	teams := router.Group(pathTeams, middleware.AuthRequired(false))
+	teams := router.Group(pathTeams, middleware.AuthRequired(false), middleware.CSRFProtection())
 	{
 		teams.GET("", middleware.CheckPolicy(pathTeams, actionRead), controllers.GetTeams)
 		teams.GET("/:id", middleware.CheckPolicy(pathTeamsID, actionRead), controllers.GetTeam)
 		teams.GET("/score", middleware.CheckPolicy("/teams/score", actionRead), controllers.GetTeamScore)
+
 		teams.POST("", middleware.CheckPolicy(pathTeams, actionWrite), controllers.CreateTeam)
 		teams.POST("/join", middleware.CheckPolicy("/teams/join", actionWrite), middleware.RateLimitJoinTeam(), controllers.JoinTeam)
 		teams.POST("/leave", middleware.CheckPolicy("/teams/leave", actionWrite), controllers.LeaveTeam)

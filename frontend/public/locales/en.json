@@ -456,7 +456,10 @@
     "challenge_not_found": "Challenge not found",
     "file_not_found": "File not found",
     "invalid_file_path": "Invalid file path",
-    "file_download_failed": "Failed to download file"
+    "file_download_failed": "Failed to download file",
+    "csrf_token_missing": "Security verification failed. Please refresh the page and try again.",
+    "csrf_token_invalid": "Your session has expired. Please refresh the page to continue.",
+    "csrf_validation_failed": "Security check failed. Refreshing automatically..."
   },
   "flag": {
     "enter_your_flag": "Enter your flag",
@@ -774,6 +777,7 @@
     "no_team_hint": "Team tickets are disabled."
   },
   "team": {
+    "create": "Create",
     "create_team": "Create a team",
     "disband_team": "Disband team",
     "join_or_create_team": "Join or create a team",

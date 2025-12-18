@@ -103,11 +103,11 @@ export function NavUser({
         </Link>
       ) : (
         <AlertDialog >
-          <DropdownMenu>
+          <DropdownMenu >
             <DropdownMenuTrigger asChild>
-              <button
+              <Button variant="ghost"
                 className={cn(
-                  "flex w-full items-center rounded-lg p-2 text-left text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground transition-all duration-200",
+                  "flex w-full items-center rounded-lg p-2 py-4 text-left text-smtransition-all duration-200",
                   open ? "gap-2" : "justify-center"
                 )}
               >
@@ -122,7 +122,7 @@ export function NavUser({
                     </div>
                   </>
                 )}
-              </button>
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
               className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"

@@ -16,7 +16,6 @@ import (
 	"github.com/pwnthemall/pwnthemall/backend/dto"
 	"github.com/pwnthemall/pwnthemall/backend/models"
 	"github.com/pwnthemall/pwnthemall/backend/utils"
-	"gorm.io/gorm"
 )
 
 // ticketToResponse converts a Ticket model to TicketResponse DTO
@@ -93,24 +92,61 @@ func messageToResponse(msg models.TicketMessage) dto.TicketMessageResponse {
 	return response
 }
 
-// sendTicketWebSocketEvent sends a ticket event via WebSocket
-func sendTicketWebSocketEvent(event dto.TicketWebSocketEvent, targetUserID *uint, targetTeamID *uint, excludeUserID uint) {
+// sendTicketWebSocketEvent sends a ticket event via WebSocket to authorized users only
+func sendTicketWebSocketEvent(event dto.TicketWebSocketEvent, ticket *models.Ticket, excludeUserID uint) {
 	messageBytes, err := json.Marshal(event)
 	if err != nil {
 		debug.Log("Failed to marshal ticket WebSocket event: %v", err)
 		return
 	}
 
-	// Use UpdatesHub for real-time ticket updates (not WebSocketHub which is for notifications)
 	if utils.UpdatesHub == nil {
 		debug.Log("UpdatesHub not initialized, cannot send ticket WebSocket event")
 		return
 	}
 
-	// Always broadcast to all users (including admins) so everyone sees updates
-	// Frontend will filter based on relevance
-	debug.Log("Broadcasting ticket WebSocket event: %s for ticket %d to all users (excluding %d)", event.Event, event.TicketID, excludeUserID)
-	utils.UpdatesHub.SendToAllExcept(messageBytes, excludeUserID)
+	// Collect authorized user IDs: ticket owner + team members (if team ticket) + all admins
+	authorizedUserIDs := make(map[uint]bool)
+
+	// Add ticket owner
+	if ticket != nil {
+		authorizedUserIDs[ticket.UserID] = true
+
+		// Add team members if it's a team ticket
+		if ticket.TeamID != nil {
+			var teamMemberIDs []uint
+			if err := config.DB.Model(&models.User{}).
+				Where("team_id = ?", *ticket.TeamID).
+				Pluck("id", &teamMemberIDs).Error; err == nil {
+				for _, userID := range teamMemberIDs {
+					authorizedUserIDs[userID] = true
+				}
+			}
+		}
+	}
+
+	// Add all admins
+	var adminIDs []uint
+	if err := config.DB.Model(&models.User{}).
+		Where("role = ?", "admin").
+		Pluck("id", &adminIDs).Error; err == nil {
+		for _, adminID := range adminIDs {
+			authorizedUserIDs[adminID] = true
+		}
+	}
+
+	// Remove excluded user if specified
+	if excludeUserID > 0 {
+		delete(authorizedUserIDs, excludeUserID)
+	}
+
+	// Send to each authorized user
+	debug.Log("Sending ticket WebSocket event: %s for ticket %d to %d authorized users (excluding %d)",
+		event.Event, event.TicketID, len(authorizedUserIDs), excludeUserID)
+
+	for userID := range authorizedUserIDs {
+		utils.UpdatesHub.SendToUser(userID, messageBytes)
+	}
 }
 
 // ============================================================================
@@ -144,10 +180,14 @@ func CreateTicket(c *gin.Context) {
 		input.TeamID = user.TeamID
 	}
 
+	// Sanitize input to prevent XSS attacks
+	sanitizedSubject := utils.SanitizeStrict(input.Subject)
+	sanitizedDescription := utils.SanitizeUGC(input.Description)
+
 	// Create ticket
 	ticket := models.Ticket{
-		Subject:     input.Subject,
-		Description: input.Description,
+		Subject:     sanitizedSubject,
+		Description: sanitizedDescription,
 		Status:      models.TicketStatusOpen,
 		TicketType:  models.TicketType(input.TicketType),
 		UserID:      userID,
@@ -165,7 +205,7 @@ func CreateTicket(c *gin.Context) {
 	// Load relations for response
 	config.DB.Preload("User").Preload("Team").Preload("Challenge").First(&ticket, ticket.ID)
 
-	// Send WebSocket notification to admins
+	// Send WebSocket notification to authorized users (admins + team members)
 	event := dto.TicketWebSocketEvent{
 		Event:    "ticket_created",
 		TicketID: ticket.ID,
@@ -174,7 +214,7 @@ func CreateTicket(c *gin.Context) {
 		Username: user.Username,
 		TeamID:   ticket.TeamID,
 	}
-	sendTicketWebSocketEvent(event, nil, nil, userID)
+	sendTicketWebSocketEvent(event, &ticket, userID)
 
 	utils.CreatedResponse(c, ticketToResponse(ticket))
 }
@@ -245,10 +285,14 @@ func GetUserTickets(c *gin.Context) {
 	})
 }
 
-// GetTicket retrieves a specific ticket with messages
+// GetTicket retrieves a specific ticket with paginated messages
 func GetTicket(c *gin.Context) {
 	userID := c.GetUint("user_id")
 	ticketID := c.Param("id")
+
+	// Parse pagination parameters
+	limit := 50                 // Max 50 messages per page
+	cursor := c.Query("cursor") // Message ID to start from
 
 	// Get user to check team
 	var user models.User
@@ -263,9 +307,6 @@ func GetTicket(c *gin.Context) {
 		Preload("Team").
 		Preload("Challenge").
 		Preload("ClaimedBy").
-		Preload("Messages", func(db *gorm.DB) *gorm.DB {
-			return db.Order("created_at ASC").Preload("User")
-		}).
 		First(&ticket, ticketID)
 
 	if result.Error != nil {
@@ -284,15 +325,48 @@ func GetTicket(c *gin.Context) {
 		return
 	}
 
+	// Get total message count
+	var totalMessages int64
+	config.DB.Model(&models.TicketMessage{}).Where("ticket_id = ?", ticket.ID).Count(&totalMessages)
+
+	// Build paginated message query
+	messagesQuery := config.DB.
+		Model(&models.TicketMessage{}).
+		Where("ticket_id = ?", ticket.ID).
+		Preload("User").
+		Order("id ASC")
+
+	// Apply cursor if provided
+	if cursor != "" {
+		messagesQuery = messagesQuery.Where("id > ?", cursor)
+	}
+
+	// Fetch limit + 1 to check if there are more messages
+	var messages []models.TicketMessage
+	messagesQuery.Limit(limit + 1).Find(&messages)
+
+	// Determine if there are more messages
+	hasMore := len(messages) > limit
+	var nextCursor *uint
+	if hasMore {
+		// Remove the extra message used for pagination detection
+		messages = messages[:limit]
+		lastID := messages[len(messages)-1].ID
+		nextCursor = &lastID
+	}
+
 	// Convert messages
-	messages := make([]dto.TicketMessageResponse, len(ticket.Messages))
-	for i, msg := range ticket.Messages {
-		messages[i] = messageToResponse(msg)
+	messageResponses := make([]dto.TicketMessageResponse, len(messages))
+	for i, msg := range messages {
+		messageResponses[i] = messageToResponse(msg)
 	}
 
 	response := dto.TicketDetailResponse{
 		TicketResponse: ticketToResponse(ticket),
-		Messages:       messages,
+		Messages:       messageResponses,
+		HasMore:        hasMore,
+		NextCursor:     nextCursor,
+		TotalMessages:  int(totalMessages),
 	}
 
 	utils.OKResponse(c, response)
@@ -340,11 +414,14 @@ func SendTicketMessage(c *gin.Context) {
 		return
 	}
 
+	// Sanitize message content to prevent XSS
+	sanitizedMessage := utils.SanitizeUGC(input.Message)
+
 	// Create message
 	message := models.TicketMessage{
 		TicketID:    ticket.ID,
 		UserID:      userID,
-		Message:     input.Message,
+		Message:     sanitizedMessage,
 		IsAdmin:     false,
 		Attachments: input.Attachments,
 	}
@@ -360,19 +437,19 @@ func SendTicketMessage(c *gin.Context) {
 	// Load user for response
 	config.DB.Preload("User").First(&message, message.ID)
 
-	// Send WebSocket notification to admins
+	// Send WebSocket notification to authorized users
 	event := dto.TicketWebSocketEvent{
 		Event:       "ticket_message",
 		TicketID:    ticket.ID,
 		MessageID:   message.ID,
 		UserID:      userID,
 		Username:    user.Username,
-		Message:     input.Message,
+		Message:     sanitizedMessage,
 		Attachments: message.Attachments,
 		CreatedAt:   message.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 		IsAdmin:     false,
 	}
-	sendTicketWebSocketEvent(event, nil, nil, userID)
+	sendTicketWebSocketEvent(event, &ticket, userID)
 
 	utils.CreatedResponse(c, messageToResponse(message))
 }
@@ -403,16 +480,13 @@ func CloseTicket(c *gin.Context) {
 		return
 	}
 
-	// Send WebSocket notification to all (including the user who closed it, so their UI updates)
+	// Send WebSocket notification to authorized users (including the one who closed it)
 	event := dto.TicketWebSocketEvent{
 		Event:    "ticket_resolved",
 		TicketID: ticket.ID,
 		UserID:   userID,
 	}
-	// Send to the user who owns the ticket (so their detail page refreshes)
-	sendTicketWebSocketEvent(event, &ticket.UserID, ticket.TeamID, 0)
-	// Also broadcast to admins
-	sendTicketWebSocketEvent(event, nil, nil, userID)
+	sendTicketWebSocketEvent(event, &ticket, 0) // Don't exclude anyone, everyone needs to see the status change
 
 	utils.OKResponse(c, gin.H{"message": "ticket_closed"})
 }
@@ -493,6 +567,13 @@ func GetTicketAttachment(c *gin.Context) {
 	ticketID := c.Param("id")
 	filename := c.Param("filename")
 
+	// Validate filename to prevent path traversal attacks
+	// Allow only alphanumeric, underscore, hyphen, dot
+	if !utils.IsValidFilename(filename) {
+		utils.BadRequestError(c, "invalid_filename")
+		return
+	}
+
 	// Get user
 	var user models.User
 	if err := config.DB.First(&user, userID).Error; err != nil {
@@ -518,8 +599,42 @@ func GetTicketAttachment(c *gin.Context) {
 		return
 	}
 
-	// Get file from MinIO
+	// Verify the attachment belongs to this ticket
 	objectPath := fmt.Sprintf("attachments/%s", filename)
+	attachmentBelongsToTicket := false
+
+	// Check ticket attachments
+	for _, att := range ticket.Attachments {
+		if att == objectPath {
+			attachmentBelongsToTicket = true
+			break
+		}
+	}
+
+	// Check message attachments if not found in ticket
+	if !attachmentBelongsToTicket {
+		var messages []models.TicketMessage
+		if err := config.DB.Where("ticket_id = ?", ticket.ID).Find(&messages).Error; err == nil {
+			for _, msg := range messages {
+				for _, att := range msg.Attachments {
+					if att == objectPath {
+						attachmentBelongsToTicket = true
+						break
+					}
+				}
+				if attachmentBelongsToTicket {
+					break
+				}
+			}
+		}
+	}
+
+	if !attachmentBelongsToTicket {
+		utils.ForbiddenError(c, "attachment_not_found_in_ticket")
+		return
+	}
+
+	// Get file from MinIO
 	object, err := config.FS.GetObject(context.Background(), "tickets", objectPath, minio.GetObjectOptions{})
 	if err != nil {
 		utils.NotFoundError(c, "file_not_found")
@@ -612,9 +727,13 @@ func GetAllTickets(c *gin.Context) {
 	})
 }
 
-// GetAdminTicket retrieves a specific ticket for admin
+// GetAdminTicket retrieves a specific ticket for admin with paginated messages
 func GetAdminTicket(c *gin.Context) {
 	ticketID := c.Param("id")
+
+	// Parse pagination parameters
+	limit := 50                 // Max 50 messages per page
+	cursor := c.Query("cursor") // Message ID to start from
 
 	var ticket models.Ticket
 	result := config.DB.
@@ -622,9 +741,6 @@ func GetAdminTicket(c *gin.Context) {
 		Preload("Team").
 		Preload("Challenge").
 		Preload("ClaimedBy").
-		Preload("Messages", func(db *gorm.DB) *gorm.DB {
-			return db.Order("created_at ASC").Preload("User")
-		}).
 		First(&ticket, ticketID)
 
 	if result.Error != nil {
@@ -632,15 +748,48 @@ func GetAdminTicket(c *gin.Context) {
 		return
 	}
 
+	// Get total message count
+	var totalMessages int64
+	config.DB.Model(&models.TicketMessage{}).Where("ticket_id = ?", ticket.ID).Count(&totalMessages)
+
+	// Build paginated message query
+	messagesQuery := config.DB.
+		Model(&models.TicketMessage{}).
+		Where("ticket_id = ?", ticket.ID).
+		Preload("User").
+		Order("id ASC")
+
+	// Apply cursor if provided
+	if cursor != "" {
+		messagesQuery = messagesQuery.Where("id > ?", cursor)
+	}
+
+	// Fetch limit + 1 to check if there are more messages
+	var messages []models.TicketMessage
+	messagesQuery.Limit(limit + 1).Find(&messages)
+
+	// Determine if there are more messages
+	hasMore := len(messages) > limit
+	var nextCursor *uint
+	if hasMore {
+		// Remove the extra message used for pagination detection
+		messages = messages[:limit]
+		lastID := messages[len(messages)-1].ID
+		nextCursor = &lastID
+	}
+
 	// Convert messages
-	messages := make([]dto.TicketMessageResponse, len(ticket.Messages))
-	for i, msg := range ticket.Messages {
-		messages[i] = messageToResponse(msg)
+	messageResponses := make([]dto.TicketMessageResponse, len(messages))
+	for i, msg := range messages {
+		messageResponses[i] = messageToResponse(msg)
 	}
 
 	response := dto.TicketDetailResponse{
 		TicketResponse: ticketToResponse(ticket),
-		Messages:       messages,
+		Messages:       messageResponses,
+		HasMore:        hasMore,
+		NextCursor:     nextCursor,
+		TotalMessages:  int(totalMessages),
 	}
 
 	utils.OKResponse(c, response)
@@ -665,13 +814,13 @@ func ResolveTicket(c *gin.Context) {
 		return
 	}
 
-	// Send WebSocket notification to ticket owner and admins (including the one who resolved)
+	// Send WebSocket notification to authorized users (including the admin who resolved)
 	event := dto.TicketWebSocketEvent{
 		Event:    "ticket_resolved",
 		TicketID: ticket.ID,
 	}
 	debug.Log("Sending ticket_resolved WebSocket event for ticket %d", ticket.ID)
-	sendTicketWebSocketEvent(event, &ticket.UserID, ticket.TeamID, 0) // Don't exclude anyone
+	sendTicketWebSocketEvent(event, &ticket, 0) // Don't exclude anyone
 
 	utils.OKResponse(c, gin.H{"message": "ticket_resolved"})
 }
@@ -701,11 +850,14 @@ func AdminReplyTicket(c *gin.Context) {
 		return
 	}
 
+	// Sanitize message content to prevent XSS
+	sanitizedMessage := utils.SanitizeUGC(input.Message)
+
 	// Create message
 	message := models.TicketMessage{
 		TicketID:    ticket.ID,
 		UserID:      adminID,
-		Message:     input.Message,
+		Message:     sanitizedMessage,
 		IsAdmin:     true,
 		Attachments: input.Attachments,
 	}
@@ -721,19 +873,19 @@ func AdminReplyTicket(c *gin.Context) {
 	// Load user for response
 	config.DB.Preload("User").First(&message, message.ID)
 
-	// Send WebSocket notification to ticket owner
+	// Send WebSocket notification to authorized users
 	event := dto.TicketWebSocketEvent{
 		Event:       "ticket_message",
 		TicketID:    ticket.ID,
 		MessageID:   message.ID,
 		UserID:      adminID,
 		Username:    admin.Username,
-		Message:     input.Message,
+		Message:     sanitizedMessage,
 		Attachments: message.Attachments,
 		CreatedAt:   message.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 		IsAdmin:     true,
 	}
-	sendTicketWebSocketEvent(event, &ticket.UserID, ticket.TeamID, adminID)
+	sendTicketWebSocketEvent(event, &ticket, adminID)
 
 	utils.CreatedResponse(c, messageToResponse(message))
 }
