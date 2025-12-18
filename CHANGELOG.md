@@ -1,5 +1,56 @@
 # 🚀 Changelog
 
+## [0.4.0](https://github.com/pwnthemall/pwnthemall/compare/v0.3.2...v0.4.0) (2025-12-18)
+
+
+### 🧩 Features
+
+* **admin:** Geoint challenge -&gt; you'll be able to create one using a map ( place pin ) ([c8f1498](https://github.com/pwnthemall/pwnthemall/commit/c8f1498d4875f3b392893f9f4eba968a8ba471e5))
+* **admin:** You can now access users public profile by clicking the users on solves tab and leaderboard ([ccc35da](https://github.com/pwnthemall/pwnthemall/commit/ccc35da04ad05a2494a4b5fd4370138a86afa4bf))
+* **admin:** You can now add a cover+replace it when creating a challenge through the admin interface ([2bf8387](https://github.com/pwnthemall/pwnthemall/commit/2bf8387f082018df1bd6e8b1583be19f887265f2))
+* **admin:** You can now create standard and geoint challenges through the admin interface ([2161e9f](https://github.com/pwnthemall/pwnthemall/commit/2161e9f37acb2b96909df48eda6c427fc4c001f6))
+* **admin:** You can now export challenges as zip ( not the flag ), made for challenges created from the interface but you can use it for every challenges ([a533ff8](https://github.com/pwnthemall/pwnthemall/commit/a533ff89fb7fbe606f05fe281c6d070cc0f09883))
+* **auth:** Add theme-based logo and glow effect configuration ([dd1be80](https://github.com/pwnthemall/pwnthemall/commit/dd1be802d699e4f54191ced21506929f64fc62b9))
+* **csrf-protection:** Protection implemented in backend + frontend; … ([6b81caa](https://github.com/pwnthemall/pwnthemall/commit/6b81caa811001f2033abaf44ee741f6fed8a3a7a))
+* **csrf-protection:** Protection implemented in backend + frontend; translations & theme fix ([0558cc7](https://github.com/pwnthemall/pwnthemall/commit/0558cc75a9335fbf54429cf3ac2e9e31ce71f8c7))
+* **export-data:** Add scoreboard export button and CSV/HTML options ([18fe916](https://github.com/pwnthemall/pwnthemall/commit/18fe916192bff5870cd0342a654a913c7d16fa5e))
+* **live-view:** You can access it through /live/classic (or top right of the leaderboard page). auto switch between individual and teams, smooth or instant trnasition etc ([90a6aee](https://github.com/pwnthemall/pwnthemall/commit/90a6aee7354b3174e38591659a9ea9dc9a6200ed))
+* **plugins:** Backend upgrade on challenge_bridge & plugin system ([c42d501](https://github.com/pwnthemall/pwnthemall/commit/c42d501a7d44a831e5d2fc701925ce4823244b2f))
+* **plugins:** Multiple fix in pluginsystem + dynamic challenge type fix ([911e8a8](https://github.com/pwnthemall/pwnthemall/commit/911e8a8a76c670e160671466e58a6fd903d73473))
+* **scoreboard:** Convert to line chart&dots ( like live view ) and add settings controls for animation and auto-switch ([c4e1e26](https://github.com/pwnthemall/pwnthemall/commit/c4e1e269ba0794f718f351420480076968704539))
+* **tickets:** Add complete backend ticket system with models, controllers, and feature toggle ([3e0e396](https://github.com/pwnthemall/pwnthemall/commit/3e0e396478a88921ff975040e9e1a7fd9a3812df))
+* **tickets:** Add ticket models, hooks, and UI components ([c7effea](https://github.com/pwnthemall/pwnthemall/commit/c7effead7690ed507993752683949a0711a63191))
+* **tickets:** Add user/admin ticket pages and sidebar integration ([f36b66d](https://github.com/pwnthemall/pwnthemall/commit/f36b66dad702c4be5fa35bb96298805f52ed4397))
+* **tickets:** Extend webSocket for ticket events and fix notification paths ([391bc1b](https://github.com/pwnthemall/pwnthemall/commit/391bc1bd4b1da7cfa1c28d9d00c42c10b3517336))
+
+
+### 🐛 Bug fixes
+
+* **admin:** Casbin fix ([1f439e2](https://github.com/pwnthemall/pwnthemall/commit/1f439e25d34f08983b88009abcace6778c79438c))
+* **admin:** Download feature not downloading everything ([0b0f9c4](https://github.com/pwnthemall/pwnthemall/commit/0b0f9c4228665a6ac12a414761d273ece454264d))
+* **admin:** Hints are now synced when creatign a challenge through the admin inetrface ([345bb98](https://github.com/pwnthemall/pwnthemall/commit/345bb98d24b2c1b1a68575421628862444808acb))
+* **admin:** Moved exprot chall feature to utils ([c8a698d](https://github.com/pwnthemall/pwnthemall/commit/c8a698d3cd638bb3da121b6733200559aa5f1fe1))
+* **admin:** Public profiels are now accessible only when auth-ed ([326292f](https://github.com/pwnthemall/pwnthemall/commit/326292f993cf4911c59eab408545fe22b0dd0b04))
+* **auth:** Add skeleton loading state to prevent logo stretching on reg/log page ([d66b5e6](https://github.com/pwnthemall/pwnthemall/commit/d66b5e6f4cf4a4c134727668353edc08c7bb46bc))
+* **auth:** Suppress 401/403 console errors for unauthenticated users ([39cfa84](https://github.com/pwnthemall/pwnthemall/commit/39cfa84513c61d173b56194ee83fba86eb4556ff))
+* **backend/gin:** Gin mode now depends on PTA_DEBUG_ENABLED ([6a89acb](https://github.com/pwnthemall/pwnthemall/commit/6a89acb64102a42bb1f1cbdd8bbfb536642a004d))
+* **backend/gin:** Gin mode now depends on PTA_DEBUG_ENABLED ([2ba490e](https://github.com/pwnthemall/pwnthemall/commit/2ba490e66ac30d4946e7df7d776fa192a57d73d4))
+* **casbin:** Wrong route check on admin challenge route ([903f401](https://github.com/pwnthemall/pwnthemall/commit/903f4014d0f72b4dd333218deee970ef6e816ae5))
+* **docker-compose:** Adding new volume for libvirt-worker ([53087a8](https://github.com/pwnthemall/pwnthemall/commit/53087a8d604554dd56cf80ad0397646a118bcbdd))
+* **frontend:** Resolve all ESLint warnings ([fc632bd](https://github.com/pwnthemall/pwnthemall/commit/fc632bddc343ff4750e641c27cead0780f9f40b2))
+* **hints:** Hints now uses websockets to avoid having to do an f5 ([33a11da](https://github.com/pwnthemall/pwnthemall/commit/33a11da7abfe2337d2467d043c3d05aea53b7554))
+* **misc:** Misc changes ([484f08e](https://github.com/pwnthemall/pwnthemall/commit/484f08e42ee92bc54591c310e34644e3f66e3c37))
+* **profile:** Backend route fix ([6313e26](https://github.com/pwnthemall/pwnthemall/commit/6313e26a9ed0e3dcc6e32a2ccd1a2856138f9782))
+* **profile:** Bruno + fixes ([703b734](https://github.com/pwnthemall/pwnthemall/commit/703b7348a574c52463193ee6da9be281346975f5))
+* **security:** Fixed being able to see hints in the /api/challenges endpoint ([af26bc3](https://github.com/pwnthemall/pwnthemall/commit/af26bc37ebfc689e5bd3a6b2766fcc311aab8297))
+* **seeder:** Demo data seeding now reuses existing teams and creates realistic solving dtata ([05a719e](https://github.com/pwnthemall/pwnthemall/commit/05a719e06d572388a55468e5faf52f3cc8cb0ad9))
+* **ui:** Convert img to Next.js Image and fix button nesting errors ([325226a](https://github.com/pwnthemall/pwnthemall/commit/325226a22468d4fe7657b65ca84dc5ba9c8dde12))
+
+
+### 📝 Documentation
+
+* **bruno:** New routes added to collection ([e6ab755](https://github.com/pwnthemall/pwnthemall/commit/e6ab7558fe10e406374d5829b0af19e359d43d3a))
+
 ## [0.3.2](https://github.com/pwnthemall/pwnthemall/compare/v0.3.1...v0.3.2) (2025-12-08)
 
 
