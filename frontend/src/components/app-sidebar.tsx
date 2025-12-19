@@ -186,7 +186,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               width={150}
               height={150}
               style={{ width: '150px', height: 'auto' }}
-              className="mx-auto pt-2"
+              className="pt-2"
             />
           </Link>
         </SidebarHeader>

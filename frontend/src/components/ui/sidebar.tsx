@@ -35,7 +35,7 @@ export const SidebarProvider = React.forwardRef<
 >(({ defaultOpen = true, defaultWidth = 256, children, ...props }, ref) => {
   const [open, setOpen] = React.useState(defaultOpen)
   const [isMobile, setIsMobile] = React.useState(false)
-  // Initialize width from localStorage immediately to prevent flash
+  
   const [width, setWidth] = React.useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('sidebarWidth')
@@ -51,9 +51,6 @@ export const SidebarProvider = React.forwardRef<
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-  // Width is now initialized synchronously above, no need for this effect
-
-  // Save width to localStorage
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('sidebarWidth', String(width))
@@ -64,8 +61,7 @@ export const SidebarProvider = React.forwardRef<
     setOpen(!open)
   }, [open])
 
-  // Add keyboard shortcut for Ctrl+B
-    React.useEffect(() => {
+  React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.ctrlKey && event.key === 'b') {
         event.preventDefault()
@@ -77,26 +73,26 @@ export const SidebarProvider = React.forwardRef<
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [toggleSidebar])
 
-    const contextValue = React.useMemo<SidebarContextProps>(
-      () => ({
+  const contextValue = React.useMemo<SidebarContextProps>(
+    () => ({
       state: open ? "expanded" : "collapsed",
-        open,
-        setOpen,
-        isMobile,
-        toggleSidebar,
+      open,
+      setOpen,
+      isMobile,
+      toggleSidebar,
       width,
       setWidth,
-      }),
+    }),
     [open, setOpen, isMobile, toggleSidebar, width, setWidth]
-    )
+  )
 
-    return (
-      <SidebarContext.Provider value={contextValue}>
+  return (
+    <SidebarContext.Provider value={contextValue}>
       <div ref={ref} className="flex h-screen w-full" {...props}>
-            {children}
-          </div>
-      </SidebarContext.Provider>
-    )
+        {children}
+      </div>
+    </SidebarContext.Provider>
+  )
 })
 SidebarProvider.displayName = "SidebarProvider"
 
@@ -124,24 +120,22 @@ export const SidebarTrigger = React.forwardRef<
 })
 SidebarTrigger.displayName = "SidebarTrigger"
 
-// Resize handle component — now a fixed toggle button aligned to the left (no drag-to-resize)
-const ResizeHandle = ({ onResize, onToggle }: { 
+// Resize handle component
+const ResizeHandle = ({ onToggle }: { 
   onResize?: (width: number) => void
   onToggle: () => void 
 }) => {
-  // Read sidebar open state to position the hamburger indicator correctly
   const { open } = useSidebar()
-
-  // Compute top offset to match screenshots (adjustable later)
-  const topOffset = open ? 22 : 44
 
   return (
     <button
       type="button"
       aria-label="Toggle sidebar"
-      className="absolute left-3 z-20 flex items-center justify-center w-9 h-9 rounded-md bg-transparent hover:bg-border/10 transition-colors border-0 p-1"
+      className={cn(
+        "absolute z-50 flex items-center justify-center w-9 h-9 rounded-md hover:bg-border/10 transition-colors border-0 p-1",
+        open ? "right-14 top-2" : "left-1/2 -translate-x-1/2 top-4"
+      )}
       onClick={() => onToggle?.()}
-      style={{ top: topOffset }}
       title="Toggle sidebar"
     >
       <span className="sr-only">Toggle sidebar</span>
@@ -154,7 +148,7 @@ const ResizeHandle = ({ onResize, onToggle }: {
   )
 }
 
-// Main sidebar component with proper scrolling and resize
+// Main sidebar component
 export const Sidebar = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
@@ -164,15 +158,15 @@ export const Sidebar = React.forwardRef<
   const { open, isMobile, width, setWidth, setOpen } = useSidebar()
 
   if (isMobile) {
-  return (
+    return (
       <div
         ref={ref}
-      className={cn(
+        className={cn(
           "fixed inset-y-0 left-0 z-50 w-64 bg-sidebar text-sidebar-foreground transform transition-transform duration-300 ease-in-out",
           open ? "translate-x-0" : "-translate-x-full",
-        className
-      )}
-      {...props}
+          className
+        )}
+        {...props}
       >
         <div className="flex flex-col h-full">
           {children}
@@ -191,7 +185,6 @@ export const Sidebar = React.forwardRef<
       ref={ref}
       className={cn(
         "relative flex flex-col bg-sidebar text-sidebar-foreground",
-        // Only apply transitions when not resizing (will be controlled by JS)
         "transition-all duration-300 ease-in-out",
         className
       )}
@@ -201,10 +194,7 @@ export const Sidebar = React.forwardRef<
       <div className="flex flex-col h-full">
         {children}
       </div>
-      {open && collapsible !== "none" && (
-        <ResizeHandle onResize={setWidth} onToggle={() => setOpen(!open)} />
-      )}
-      {!open && collapsible === "icon" && (
+      {collapsible !== "none" && (
         <ResizeHandle onResize={setWidth} onToggle={() => setOpen(!open)} />
       )}
     </div>
@@ -212,7 +202,7 @@ export const Sidebar = React.forwardRef<
 })
 Sidebar.displayName = "Sidebar"
 
-// Sidebar header
+// Sidebar header - MODIFIÉ POUR L'ALIGNEMENT
 export const SidebarHeader = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div">
@@ -223,8 +213,9 @@ export const SidebarHeader = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "flex flex-col gap-2 p-2",
-        !open && "items-center",
+        "flex flex-col gap-1 px-3 py-2 items-start text-left",
+        // Masquage propre quand fermé
+        !open && "items-center opacity-0 pointer-events-none h-0 p-0 overflow-hidden", 
         className
       )}
       {...props}
@@ -233,22 +224,27 @@ export const SidebarHeader = React.forwardRef<
 })
 SidebarHeader.displayName = "SidebarHeader"
 
-// Sidebar content with proper scrolling
+// Sidebar content
 export const SidebarContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div">
->(({ className, ...props }, ref) => (
+>(({ className, ...props }, ref) => {
+  const { open } = useSidebar()
+
+  return (
     <div
-    ref={ref}
+      ref={ref}
       className={cn(
-      "flex-1 p-2 overflow-y-auto overflow-x-hidden",
-      // Ensure scrollbar is visible when needed
-      "scrollbar-thin scrollbar-track-sidebar scrollbar-thumb-sidebar-accent hover:scrollbar-thumb-sidebar-accent/80",
+        "flex-1 p-2 overflow-y-auto overflow-x-hidden",
+        "scrollbar-thin scrollbar-track-sidebar scrollbar-thumb-sidebar-accent hover:scrollbar-thumb-sidebar-accent/80",
+        // Marge quand fermé pour pousser les icônes sous le toggle
+        !open && "pt-14 mt-2", 
         className
       )}
       {...props}
     />
-))
+  )
+})
 SidebarContent.displayName = "SidebarContent"
 
 // Sidebar footer
@@ -281,7 +277,6 @@ export const SidebarInset = React.forwardRef<
     ref={ref}
     className={cn(
       "flex-1 overflow-y-auto overflow-x-hidden h-screen",
-      // Apply custom scrollbar to main content
       "scrollbar-thin scrollbar-track-background scrollbar-thumb-border hover:scrollbar-thumb-border/80",
       className
     )}
@@ -340,5 +335,4 @@ export const SidebarMenuButton = React.forwardRef<
 })
 SidebarMenuButton.displayName = "SidebarMenuButton"
 
-// Export cookie name for compatibility
 export const SIDEBAR_COOKIE_NAME = "sidebar_state"
