@@ -108,7 +108,7 @@ export const SidebarTrigger = React.forwardRef<
       ref={ref}
       onClick={toggleSidebar}
       className={cn(
-        "inline-flex items-center justify-center rounded-md p-2 hover:bg-accent hover:text-accent-foreground transition-colors",
+        "sidebar-trigger inline-flex items-center justify-center rounded-md p-2 hover:bg-accent hover:text-accent-foreground transition-colors",
         className
       )}
       {...props}
@@ -121,6 +121,7 @@ export const SidebarTrigger = React.forwardRef<
 SidebarTrigger.displayName = "SidebarTrigger"
 
 // Resize handle component
+// Burger menu
 const ResizeHandle = ({ onToggle }: { 
   onResize?: (width: number) => void
   onToggle: () => void 
@@ -132,7 +133,7 @@ const ResizeHandle = ({ onToggle }: {
       type="button"
       aria-label="Toggle sidebar"
       className={cn(
-        "absolute z-50 flex items-center justify-center w-9 h-9 rounded-md hover:bg-border/10 transition-colors border-0 p-1",
+        "sidebar-burger absolute z-50 flex items-center justify-center w-9 h-9 rounded-md hover:bg-border/10 transition-colors border-0 p-1",
         open ? "right-14 top-2" : "left-1/2 -translate-x-1/2 top-4"
       )}
       onClick={() => onToggle?.()}
@@ -140,9 +141,9 @@ const ResizeHandle = ({ onToggle }: {
     >
       <span className="sr-only">Toggle sidebar</span>
       <div className="flex flex-col gap-[6px] items-center pointer-events-none">
-        <span className="block w-5 h-[2px] bg-border rounded" />
-        <span className="block w-5 h-[2px] bg-border rounded" />
-        <span className="block w-5 h-[2px] bg-border rounded" />
+        <span className="burger-bar block w-5 h-[2px] bg-border rounded" />
+        <span className="burger-bar block w-5 h-[2px] bg-border rounded" />
+        <span className="burger-bar block w-5 h-[2px] bg-border rounded" />
       </div>
     </button>
   )
