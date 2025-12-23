@@ -1,5 +1,30 @@
 # 🚀 Changelog
 
+## [0.5.0](https://github.com/pwnthemall/pwnthemall/compare/v0.4.0...v0.5.0) (2025-12-23)
+
+
+### 🧩 Features
+
+* **button-toggle-sidebar:** Add button on toggle sidebar ([e0128d0](https://github.com/pwnthemall/pwnthemall/commit/e0128d02f5a844eb33791035af53a3d3b2e2536c))
+* **discreet-button-menu:** Add button menu above home button ([b0b5dc9](https://github.com/pwnthemall/pwnthemall/commit/b0b5dc944b738df44c191adae46274b0fac11a92))
+
+
+### 🐛 Bug fixes
+
+* **admin:** Fixed challenge order manageent not picking up challenges ([a38903f](https://github.com/pwnthemall/pwnthemall/commit/a38903fdcb2cd5034ef39eb19ea5f69270f2013a))
+* **admin:** Fixed challenge order manageent not picking up challenges ([dc013c0](https://github.com/pwnthemall/pwnthemall/commit/dc013c04283d5e4cb2b501e911c832c518b77b9e))
+* **build:** Fixed multiple front issues ([fe59310](https://github.com/pwnthemall/pwnthemall/commit/fe59310dc1eddd6ed3e46cf96210110760288fd4))
+* **frontend-sidebar:** Using lucid react for burger Menu & SidebarBurger component exported to be used in app-sidebar ([7def4db](https://github.com/pwnthemall/pwnthemall/commit/7def4db06eca3c335985f19e5a2758aaf4d5ad29))
+* **frontend:** Compilation error on prod env ([9f7132d](https://github.com/pwnthemall/pwnthemall/commit/9f7132da01e24b25d502eca71edf35a586c3da61))
+* **frontend:** Wrong axios object use in useChallengeActions hook (causing CSRF check fail) ([d83de60](https://github.com/pwnthemall/pwnthemall/commit/d83de608cc11ef8a423e8004b2b59ea68cc42de8))
+* **front:** Fix build issues and misc changes ([cb8a076](https://github.com/pwnthemall/pwnthemall/commit/cb8a076ddd5fb4f378a3b8653134dcb74dae3f45))
+
+
+### 📝 Documentation
+
+* **bruno:** API spec fix ([e549ff6](https://github.com/pwnthemall/pwnthemall/commit/e549ff6b9d500b2994968503a270076309b97500))
+* **bruno:** Collection organization fix ([2627944](https://github.com/pwnthemall/pwnthemall/commit/262794487477e35951baf388cebe17fd6561e3c4))
+
 ## [0.4.0](https://github.com/pwnthemall/pwnthemall/compare/v0.3.2...v0.4.0) (2025-12-18)
 
 
