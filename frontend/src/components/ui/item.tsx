@@ -62,7 +62,7 @@ const Item = React.forwardRef<
   asChild = false,
   ...props
 }: React.ComponentPropsWithoutRef<"div"> &
-  VariantProps<typeof itemVariants> & { asChild?: boolean }) {
+  VariantProps<typeof itemVariants> & { asChild?: boolean }, ref) => {
   const Comp = asChild ? Slot : "div"
   return (
     <Comp
