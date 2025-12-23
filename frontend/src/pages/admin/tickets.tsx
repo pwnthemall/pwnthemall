@@ -106,18 +106,18 @@ export default function AdminTicketsPage() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">{t('admin.tickets')}</h1>
             <p className="text-muted-foreground mt-2">
-              {t('ticket_system_disabled_admin', 'The ticket system is currently disabled. Enable it in the configuration page.')}
+              {t('ticket_system_disabled_admin')}
             </p>
           </div>
           <Card>
             <CardContent className="p-8 text-center">
               <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">{t('ticket_system_disabled', 'Ticket System Disabled')}</h3>
+              <h3 className="text-lg font-semibold mb-2">{t('ticket_system_disabled')}</h3>
               <p className="text-muted-foreground mb-4">
-                {t('ticket_system_disabled_description', 'The ticket system is currently disabled. You can enable it in the configuration page.')}
+                {t('ticket_system_disabled_description')}
               </p>
               <Button onClick={() => window.location.href = '/admin/configuration'}>
-                {t('go_to_configuration', 'Go to Configuration')}
+                {t('go_to_configuration')}
               </Button>
             </CardContent>
           </Card>

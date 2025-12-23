@@ -1,5 +1,5 @@
 import Head from "next/head"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { useLanguage } from "@/context/LanguageContext"
 import { useSiteConfig } from "@/context/SiteConfigContext"
 import { Button } from "@/components/ui/button"

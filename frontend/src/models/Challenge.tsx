@@ -10,14 +10,11 @@ export interface Challenge {
   name: string
   description: string
   challengeDifficulty: ChallengeDifficulty
-  challengeDifficultyId?: number
-  difficultyId?: number
+  challengeDifficultyId: number
   challengeType: ChallengeType
-  challengeTypeId?: number
-  challenge_type_id?: number
+  challengeTypeId: number
   challengeCategory: ChallengeCategory
-  challengeCategoryId?: number
-  categoryId?: number
+  challengeCategoryId: number
   createdAt?: string
   updatedAt?: string
   solvers?: User[]

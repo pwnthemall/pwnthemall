@@ -13,9 +13,7 @@ export function useChallengeOrder() {
     setLoading(true);
     try {
       const response = await axios.get<Challenge[]>(`/api/admin/challenges`);
-      const filtered = response.data.filter(c => 
-        (c as any).categoryId === categoryId || c.challengeCategoryId === categoryId
-      );
+      const filtered = response.data.filter(c => c.challengeCategoryId === categoryId);
       // Sort by order field
       filtered.sort((a, b) => (a.order || 0) - (b.order || 0));
       setChallenges(filtered);
