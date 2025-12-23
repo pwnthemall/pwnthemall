@@ -486,19 +486,21 @@ export default function ChallengesContent({ challenges, onRefresh }: ChallengesC
         </Card>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            <DialogHeader className="flex-shrink-0">
               <DialogTitle>{t('admin_challenges.edit_challenge_configuration')}</DialogTitle>
               <DialogDescription>
                 {t('admin_challenges.configure_challenge_description')}
               </DialogDescription>
             </DialogHeader>
-            {selectedChallenge && (
-              <ChallengeAdminForm
-                challenge={selectedChallenge}
-                onClose={handleClose}
-              />
-            )}
+            <div className="flex-1 overflow-y-auto min-h-0">
+              {selectedChallenge && (
+                <ChallengeAdminForm
+                  challenge={selectedChallenge}
+                  onClose={handleClose}
+                />
+              )}
+            </div>
           </DialogContent>
         </Dialog>
 
