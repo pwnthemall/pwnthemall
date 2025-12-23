@@ -1223,3 +1223,35 @@ html, body {
     transform: rotate(360deg);
   }
 }
+
+/* Burger Menu */
+.light .sidebar-burger .burger-bar {
+  background-color: #020817 !important;
+}
+
+.emerald .sidebar-burger .burger-bar {
+  background-color: #5fbb82 !important;
+}
+
+.violet .sidebar-burger .burger-bar {
+  background-color: #9c6dff !important;
+}
+
+.dark .sidebar-burger .burger-bar {
+  background-color: #d3d6db !important;
+}
+
+.macchiato .sidebar-burger .burger-bar {
+  background-color: #ccd4f5 !important;
+}
+
+.mocha .sidebar-burger .burger-bar {
+  background-color: #89b5fa !important;
+}
+
+.sidebar-burger:hover .burger-bar,
+.sidebar-burger:active .burger-bar {
+  opacity: 0.95;
+  transform: translateY(-1px);
+  transition: transform 120ms ease, opacity 120ms ease;
+}
