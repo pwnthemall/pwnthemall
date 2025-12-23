@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
-import { PanelLeft } from "lucide-react"
+import { PanelLeft, Menu } from "lucide-react"
 
 // Sidebar context with proper functionality
 type SidebarContextProps = {
@@ -120,34 +120,32 @@ export const SidebarTrigger = React.forwardRef<
 })
 SidebarTrigger.displayName = "SidebarTrigger"
 
-// Resize handle component
-// Burger menu
-const ResizeHandle = ({ onToggle }: { 
-  onResize?: (width: number) => void
-  onToggle: () => void 
-}) => {
-  const { open } = useSidebar()
+// Burger menu button component (exported for use in app-sidebar)
+export const SidebarBurger = React.forwardRef<
+  HTMLButtonElement,
+  React.ComponentProps<"button">
+>(({ className, ...props }, ref) => {
+  const { toggleSidebar } = useSidebar()
 
   return (
     <button
+      ref={ref}
       type="button"
       aria-label="Toggle sidebar"
       className={cn(
-        "sidebar-burger absolute z-50 flex items-center justify-center w-9 h-9 rounded-md hover:bg-border/10 transition-colors border-0 p-1",
-        open ? "right-14 top-2" : "left-1/2 -translate-x-1/2 top-4"
+        "sidebar-burger flex items-center justify-center w-7 h-7 rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors border-0 p-1 flex-shrink-0",
+        className
       )}
-      onClick={() => onToggle?.()}
+      onClick={toggleSidebar}
       title="Toggle sidebar"
+      {...props}
     >
+      <Menu className="h-5 w-5" />
       <span className="sr-only">Toggle sidebar</span>
-      <div className="flex flex-col gap-[6px] items-center pointer-events-none">
-        <span className="burger-bar block w-5 h-[2px] bg-border rounded" />
-        <span className="burger-bar block w-5 h-[2px] bg-border rounded" />
-        <span className="burger-bar block w-5 h-[2px] bg-border rounded" />
-      </div>
     </button>
   )
-}
+})
+SidebarBurger.displayName = "SidebarBurger"
 
 // Main sidebar component
 export const Sidebar = React.forwardRef<
@@ -185,38 +183,29 @@ export const Sidebar = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "relative flex flex-col bg-sidebar text-sidebar-foreground",
+        "flex flex-col bg-sidebar text-sidebar-foreground",
         "transition-all duration-300 ease-in-out",
         className
       )}
       style={{ width: sidebarWidth, minWidth: sidebarWidth }}
       {...props}
     >
-      <div className="flex flex-col h-full">
-        {children}
-      </div>
-      {collapsible !== "none" && (
-        <ResizeHandle onResize={setWidth} onToggle={() => setOpen(!open)} />
-      )}
+      {children}
     </div>
   )
 })
 Sidebar.displayName = "Sidebar"
 
-// Sidebar header - MODIFIÉ POUR L'ALIGNEMENT
+// Sidebar header
 export const SidebarHeader = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div">
 >(({ className, ...props }, ref) => {
-  const { open } = useSidebar()
-  
   return (
     <div
       ref={ref}
       className={cn(
-        "flex flex-col gap-1 px-3 py-2 items-start text-left",
-        // Masquage propre quand fermé
-        !open && "items-center opacity-0 pointer-events-none h-0 p-0 overflow-hidden", 
+        "flex flex-col gap-1 px-3 py-2",
         className
       )}
       {...props}
@@ -238,8 +227,6 @@ export const SidebarContent = React.forwardRef<
       className={cn(
         "flex-1 p-2 overflow-y-auto overflow-x-hidden",
         "scrollbar-thin scrollbar-track-sidebar scrollbar-thumb-sidebar-accent hover:scrollbar-thumb-sidebar-accent/80",
-        // Marge quand fermé pour pousser les icônes sous le toggle
-        !open && "pt-14 mt-2", 
         className
       )}
       {...props}
