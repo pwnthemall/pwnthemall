@@ -1,0 +1,46 @@
+meta {
+  name: csrf-token
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{URL}}/api/csrf-token
+  body: none
+  auth: inherit
+}
+
+headers {
+  ~X-CSRF-Token: {{X-CSRF-Token}}
+}
+
+docs {
+  Récupère le jeton CSRF nécessaire pour toutes les requêtes POST/PUT/PATCH/DELETE.
+  
+  Le jeton est automatiquement stocké dans la variable `X-CSRF-Token` et sera inclus dans les headers de toutes les requêtes suivantes.
+  
+  **Important:** 
+  - Ce jeton doit être récupéré EN PREMIER avant toute autre requête
+  - La première requête établit la session CSRF (cookie _gorilla_csrf)
+  - Ensuite, utilisez le jeton pour login et autres opérations
+  
+  **Workflow:**
+  1. Exécuter cette requête (csrf-token) EN PREMIER
+  2. Puis exécuter login/register
+  3. Les autres requêtes utiliseront automatiquement le jeton
+}
+
+script:post-response {
+  function onResponse(res) {
+    if (res.getStatus() === 200) {
+      let data = res.getBody();
+      bru.setVar("X-CSRF-Token", data.csrfToken);
+      console.log("✓ CSRF token stored:", data.csrfToken.substring(0, 20) + "...");
+      console.log("✓ You can now login or make other requests");
+    } else {
+      console.error("✗ Failed to fetch CSRF token:", res.getStatus(), res.getBody());
+    }
+  }
+  
+  onResponse(res);
+}

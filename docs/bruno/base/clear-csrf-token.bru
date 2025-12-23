@@ -1,0 +1,60 @@
+meta {
+  name: clear-csrf-token
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{URL}}/api/me
+  body: none
+  auth: inherit
+}
+
+script:post-response {
+  function onResponse(res) {
+    console.log("=== Clear CSRF Token ===");
+    
+    // Clear the CSRF token
+    bru.setVar("X-CSRF-Token", "");
+    
+    console.log("✓ CSRF token cleared from collection variables");
+    console.log("");
+    console.log("To restore CSRF protection:");
+    console.log("  1. Execute: auth/csrf-token (manual fetch)");
+    console.log("  2. OR execute: auth/login (auto-fetch)");
+    console.log("");
+    console.log("Current auth status:", res.getStatus() === 200 ? "✓ Logged in" : "✗ Not logged in");
+    console.log("========================");
+  }
+  
+  onResponse(res);
+}
+
+docs {
+  # Clear CSRF Token (Testing Helper)
+  
+  This request clears the CSRF token from collection variables.
+  Useful for testing CSRF protection by forcing requests to fail.
+  
+  ## Use Cases:
+  
+  1. **Test CSRF protection is working:**
+     - Execute this to clear the token
+     - Try a POST request (e.g., challenges/submit)
+     - Should receive: {"error":"csrf_token_missing"}
+  
+  2. **Force token refresh:**
+     - Execute this to clear old token
+     - Execute auth/csrf-token to get fresh token
+  
+  3. **Debug token issues:**
+     - Clear token and fetch new one to rule out stale token problems
+  
+  ## After clearing:
+  
+  To restore CSRF protection:
+  - Execute `auth/csrf-token` (manual fetch)
+  - OR execute `auth/login` (auto-fetches token)
+  
+  **Note:** This request uses GET /api/me as a dummy request just to trigger the post-response script.
+}
