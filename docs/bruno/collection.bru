@@ -1,3 +1,8 @@
+headers {
+  X-CSRF-Token: {{X-CSRF-Token}}
+  Referer: {{URL}}
+}
+
 vars:pre-request {
   BASE_URL: pwnthemall.local
   PROTOCOL: https
@@ -9,9 +14,39 @@ docs {
   
   ## Organisation de la collection
   
-  Chaque dossier représente un groupe API gin. Lorsque les routes n'appartiennent à aucun groupe, elles sont placées dans le dossier `auth`
+  Chaque dossier représente un groupe API gin. Lorsque les routes n'appartiennent à aucun groupe, elles sont placées dans le dossier `base`
   
   ## Variables
   
   Des variables d'environnements sont définies & doivent être utilisées pour faciliter la création & maintenir la stabilité des requêtes
+  
+  ## CSRF Protection
+  
+  Cette collection utilise le système de protection CSRF. Le jeton CSRF doit être récupéré avant d'effectuer des requêtes POST/PUT/PATCH/DELETE.
+  
+  ### ⚠️ WORKFLOW OBLIGATOIRE:
+  
+  **AVANT TOUTE CHOSE, vous DEVEZ exécuter:**
+  
+  1. **ÉTAPE 1 (OBLIGATOIRE):** `base/csrf-token`
+     - Cette requête établit la session CSRF
+     - Le jeton est automatiquement stocké dans la variable `X-CSRF-Token`
+  
+  2. **ÉTAPE 2:** `auth/login` ou `auth/loginAdmin`
+     - Maintenant que le jeton CSRF est présent, vous pouvez vous authentifier
+  
+  3. **ÉTAPE 3:** Faire d'autres requêtes
+     - Toutes les requêtes POST/PUT/PATCH/DELETE incluront automatiquement le header `X-CSRF-Token`
+  
+  ### 🔴 Erreur commune:
+  
+  Si vous obtenez `{"error":"csrf_validation_failed"}`, c'est que vous n'avez pas exécuté `auth/csrf-token` en premier
+  
+  ### 📝 Résumé:
+  
+  ```
+  1. /csrf-token  ← En premier
+  2. /login       ← Ensuite
+  3. /challenges/:id/submit      ← Puis vos requêtes
+  ```
 }

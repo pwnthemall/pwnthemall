@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
-import { PanelLeft } from "lucide-react"
+import { PanelLeft, Menu } from "lucide-react"
 
 // Sidebar context with proper functionality
 type SidebarContextProps = {
@@ -35,7 +35,7 @@ export const SidebarProvider = React.forwardRef<
 >(({ defaultOpen = true, defaultWidth = 256, children, ...props }, ref) => {
   const [open, setOpen] = React.useState(defaultOpen)
   const [isMobile, setIsMobile] = React.useState(false)
-  // Initialize width from localStorage immediately to prevent flash
+  
   const [width, setWidth] = React.useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('sidebarWidth')
@@ -51,9 +51,6 @@ export const SidebarProvider = React.forwardRef<
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-  // Width is now initialized synchronously above, no need for this effect
-
-  // Save width to localStorage
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('sidebarWidth', String(width))
@@ -64,8 +61,7 @@ export const SidebarProvider = React.forwardRef<
     setOpen(!open)
   }, [open])
 
-  // Add keyboard shortcut for Ctrl+B
-    React.useEffect(() => {
+  React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.ctrlKey && event.key === 'b') {
         event.preventDefault()
@@ -77,26 +73,26 @@ export const SidebarProvider = React.forwardRef<
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [toggleSidebar])
 
-    const contextValue = React.useMemo<SidebarContextProps>(
-      () => ({
+  const contextValue = React.useMemo<SidebarContextProps>(
+    () => ({
       state: open ? "expanded" : "collapsed",
-        open,
-        setOpen,
-        isMobile,
-        toggleSidebar,
+      open,
+      setOpen,
+      isMobile,
+      toggleSidebar,
       width,
       setWidth,
-      }),
+    }),
     [open, setOpen, isMobile, toggleSidebar, width, setWidth]
-    )
+  )
 
-    return (
-      <SidebarContext.Provider value={contextValue}>
+  return (
+    <SidebarContext.Provider value={contextValue}>
       <div ref={ref} className="flex h-screen w-full" {...props}>
-            {children}
-          </div>
-      </SidebarContext.Provider>
-    )
+        {children}
+      </div>
+    </SidebarContext.Provider>
+  )
 })
 SidebarProvider.displayName = "SidebarProvider"
 
@@ -112,7 +108,7 @@ export const SidebarTrigger = React.forwardRef<
       ref={ref}
       onClick={toggleSidebar}
       className={cn(
-        "inline-flex items-center justify-center rounded-md p-2 hover:bg-accent hover:text-accent-foreground transition-colors",
+        "sidebar-trigger inline-flex items-center justify-center rounded-md p-2 hover:bg-accent hover:text-accent-foreground transition-colors",
         className
       )}
       {...props}
@@ -124,104 +120,34 @@ export const SidebarTrigger = React.forwardRef<
 })
 SidebarTrigger.displayName = "SidebarTrigger"
 
-// Resize handle component with truly instant DOM updates
-const ResizeHandle = ({ onResize, onToggle }: { 
-  onResize: (width: number) => void
-  onToggle: () => void 
-}) => {
-  const isResizing = React.useRef(false)
-  const startX = React.useRef(0)
-  const startWidth = React.useRef(0)
-  const hasDragged = React.useRef(false)
-  const sidebarElement = React.useRef<HTMLElement | null>(null)
-
-  const handleMouseDown = React.useCallback((e: React.MouseEvent) => {
-    e.preventDefault()
-    
-    // Get reference to the sidebar element
-    sidebarElement.current = e.currentTarget.parentElement as HTMLElement
-    
-    if (!sidebarElement.current) return
-    
-    // Store initial values
-    startX.current = e.clientX
-    startWidth.current = sidebarElement.current.offsetWidth
-    hasDragged.current = false
-    isResizing.current = true
-    
-    // Disable transitions during resize for instant updates
-    sidebarElement.current.style.transition = 'none'
-    
-    // Set cursor immediately
-    document.body.style.cursor = 'col-resize'
-    document.body.style.userSelect = 'none'
-
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      if (!isResizing.current || !sidebarElement.current) return
-      
-      const deltaX = moveEvent.clientX - startX.current
-      const newWidth = Math.max(200, Math.min(500, startWidth.current + deltaX))
-      
-      // Mark as dragged if moved more than 3px
-      if (Math.abs(deltaX) > 3) {
-        hasDragged.current = true
-      }
-      
-      // Apply width changes directly and immediately (no transitions, no delays)
-      sidebarElement.current.style.width = `${newWidth}px`
-      sidebarElement.current.style.minWidth = `${newWidth}px`
-    }
-
-    const handleMouseUp = () => {
-      isResizing.current = false
-      document.body.style.cursor = ''
-      document.body.style.userSelect = ''
-      
-
-      
-      if (sidebarElement.current) {
-        // Re-enable transitions
-        sidebarElement.current.style.transition = ''
-        
-        // If no significant drag occurred, treat as click to toggle
-        if (!hasDragged.current) {
-          onToggle() // This will toggle between collapse and expand
-        } else {
-          // Update React state with final width only after drag is complete
-          const finalWidth = sidebarElement.current.offsetWidth
-          onResize(finalWidth)
-        }
-      }
-      
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
-    }
-
-    document.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('mouseup', handleMouseUp)
-  }, [onResize, onToggle])
+// Burger menu button component (exported for use in app-sidebar)
+export const SidebarBurger = React.forwardRef<
+  HTMLButtonElement,
+  React.ComponentProps<"button">
+>(({ className, ...props }, ref) => {
+  const { toggleSidebar } = useSidebar()
 
   return (
     <button
+      ref={ref}
       type="button"
-      aria-label="Resize sidebar"
-      className="absolute top-0 right-0 w-2 h-full cursor-col-resize hover:bg-border/50 transition-colors z-10 flex items-center justify-center group border-0 bg-transparent p-0"
-      onMouseDown={handleMouseDown}
-      onClick={(e) => {
-        // Only toggle on actual click, not during drag
-        if (e.detail === 1) {
-          onToggle?.();
-        }
-      }}
-      title="Drag to resize, click to toggle"
+      aria-label="Toggle sidebar"
+      className={cn(
+        "sidebar-burger flex items-center justify-center w-7 h-7 rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors border-0 p-1 flex-shrink-0",
+        className
+      )}
+      onClick={toggleSidebar}
+      title="Toggle sidebar"
+      {...props}
     >
-      {/* Visual indicator */}
-      <div className="w-0.5 h-8 bg-border rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+      <Menu className="h-5 w-5" />
+      <span className="sr-only">Toggle sidebar</span>
     </button>
   )
-}
+})
+SidebarBurger.displayName = "SidebarBurger"
 
-// Main sidebar component with proper scrolling and resize
+// Main sidebar component
 export const Sidebar = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
@@ -231,15 +157,15 @@ export const Sidebar = React.forwardRef<
   const { open, isMobile, width, setWidth, setOpen } = useSidebar()
 
   if (isMobile) {
-  return (
+    return (
       <div
         ref={ref}
-      className={cn(
+        className={cn(
           "fixed inset-y-0 left-0 z-50 w-64 bg-sidebar text-sidebar-foreground transform transition-transform duration-300 ease-in-out",
           open ? "translate-x-0" : "-translate-x-full",
-        className
-      )}
-      {...props}
+          className
+        )}
+        {...props}
       >
         <div className="flex flex-col h-full">
           {children}
@@ -257,23 +183,14 @@ export const Sidebar = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "relative flex flex-col bg-sidebar text-sidebar-foreground",
-        // Only apply transitions when not resizing (will be controlled by JS)
+        "flex flex-col bg-sidebar text-sidebar-foreground",
         "transition-all duration-300 ease-in-out",
         className
       )}
       style={{ width: sidebarWidth, minWidth: sidebarWidth }}
       {...props}
     >
-      <div className="flex flex-col h-full">
-        {children}
-      </div>
-      {open && collapsible !== "none" && (
-        <ResizeHandle onResize={setWidth} onToggle={() => setOpen(!open)} />
-      )}
-      {!open && collapsible === "icon" && (
-        <ResizeHandle onResize={setWidth} onToggle={() => setOpen(!open)} />
-      )}
+      {children}
     </div>
   )
 })
@@ -284,14 +201,11 @@ export const SidebarHeader = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div">
 >(({ className, ...props }, ref) => {
-  const { open } = useSidebar()
-  
   return (
     <div
       ref={ref}
       className={cn(
-        "flex flex-col gap-2 p-2",
-        !open && "items-center",
+        "flex flex-col gap-1 px-3 py-2",
         className
       )}
       {...props}
@@ -300,22 +214,25 @@ export const SidebarHeader = React.forwardRef<
 })
 SidebarHeader.displayName = "SidebarHeader"
 
-// Sidebar content with proper scrolling
+// Sidebar content
 export const SidebarContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div">
->(({ className, ...props }, ref) => (
+>(({ className, ...props }, ref) => {
+  const { open } = useSidebar()
+
+  return (
     <div
-    ref={ref}
+      ref={ref}
       className={cn(
-      "flex-1 p-2 overflow-y-auto overflow-x-hidden",
-      // Ensure scrollbar is visible when needed
-      "scrollbar-thin scrollbar-track-sidebar scrollbar-thumb-sidebar-accent hover:scrollbar-thumb-sidebar-accent/80",
+        "flex-1 p-2 overflow-y-auto overflow-x-hidden",
+        "scrollbar-thin scrollbar-track-sidebar scrollbar-thumb-sidebar-accent hover:scrollbar-thumb-sidebar-accent/80",
         className
       )}
       {...props}
     />
-))
+  )
+})
 SidebarContent.displayName = "SidebarContent"
 
 // Sidebar footer
@@ -348,7 +265,6 @@ export const SidebarInset = React.forwardRef<
     ref={ref}
     className={cn(
       "flex-1 overflow-y-auto overflow-x-hidden h-screen",
-      // Apply custom scrollbar to main content
       "scrollbar-thin scrollbar-track-background scrollbar-thumb-border hover:scrollbar-thumb-border/80",
       className
     )}
@@ -407,5 +323,4 @@ export const SidebarMenuButton = React.forwardRef<
 })
 SidebarMenuButton.displayName = "SidebarMenuButton"
 
-// Export cookie name for compatibility
 export const SIDEBAR_COOKIE_NAME = "sidebar_state"

@@ -1,0 +1,103 @@
+meta {
+  name: test:csrf-token
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{URL}}/api/csrf-token
+  body: none
+  auth: inherit
+}
+
+script:post-response {
+  function onResponse(res) {
+    console.log("=== CSRF Token Test ===");
+    
+    if (res.getStatus() === 200) {
+      let data = res.getBody();
+      
+      if (data.csrfToken) {
+        bru.setVar("X-CSRF-Token", data.csrfToken);
+        console.log("✓ SUCCESS: CSRF token fetched and stored");
+        console.log("Token preview:", data.csrfToken.substring(0, 30) + "...");
+        console.log("Token length:", data.csrfToken.length);
+        
+        // Verify the token is actually set
+        const storedToken = bru.getVar("X-CSRF-Token");
+        if (storedToken === data.csrfToken) {
+          console.log("✓ VERIFIED: Token correctly stored in collection variable");
+        } else {
+          console.error("✗ ERROR: Token not properly stored!");
+        }
+      } else {
+        console.error("✗ ERROR: No csrfToken in response body");
+        console.log("Response:", data);
+      }
+    } else if (res.getStatus() === 401) {
+      console.error("✗ ERROR: Unauthorized - You need to login first!");
+      console.log("Execute auth/login or auth/loginAdmin first");
+    } else {
+      console.error("✗ ERROR: Failed to fetch CSRF token");
+      console.log("Status:", res.getStatus());
+      console.log("Response:", res.getBody());
+    }
+    
+    console.log("======================");
+  }
+  
+  onResponse(res);
+}
+
+tests {
+  test("should return 200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should return csrfToken in response", function() {
+    const data = res.getBody();
+    expect(data).to.have.property('csrfToken');
+    expect(data.csrfToken).to.be.a('string');
+    expect(data.csrfToken.length).to.be.greaterThan(0);
+  });
+  
+  test("should store token in collection variable", function() {
+    const storedToken = bru.getVar("X-CSRF-Token");
+    expect(storedToken).to.be.a('string');
+    expect(storedToken.length).to.be.greaterThan(0);
+  });
+}
+
+docs {
+  # CSRF Test Workflow
+  
+  This request helps you test the complete CSRF workflow.
+  
+  ## Test Steps:
+  
+  1. **First, login:**
+     - Execute `auth/login` or `auth/loginAdmin`
+     - The CSRF token will be automatically fetched
+  
+  2. **Verify CSRF token is stored:**
+     - Execute this request to refresh the token
+     - Check the console for: "✓ CSRF token stored"
+     - The variable `{{X-CSRF-Token}}` should be set
+  
+  3. **Test a protected endpoint:**
+     - Try `challenges/submit` with a test flag
+     - Should work without errors
+  
+  4. **Test without CSRF token:**
+     - Manually clear the `X-CSRF-Token` variable
+     - Try a POST request
+     - Should receive: `{"error":"csrf_token_missing"}`
+  
+  ## Debugging:
+  
+  If you get CSRF errors:
+  - Check if `{{X-CSRF-Token}}` variable is set (look in Variables panel)
+  - Check if cookies are being sent (check request headers)
+  - Verify you're logged in (execute `auth/me`)
+  - Try logging in again (will auto-fetch CSRF token)
+}

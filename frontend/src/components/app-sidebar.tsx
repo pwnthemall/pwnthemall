@@ -12,6 +12,7 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
+  SidebarBurger,
   useSidebar,
 } from "@/components/ui/sidebar";
 
@@ -32,7 +33,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { t } = useLanguage();
   const { getSiteName, siteConfig } = useSiteConfig();
   const router = useRouter();
-  const { isMobile } = useSidebar();
+  const { isMobile, open } = useSidebar();
   const { ctfStatus, loading: ctfLoading } = useCTFStatus();
   const { theme } = useTheme();
 
@@ -179,16 +180,24 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     >
       <div className="flex flex-col h-full">
         <SidebarHeader>
-          <Link href="/">
-            <Image
-              src={getThemeLogo(theme)}
-              alt={getSiteName()}
-              width={150}
-              height={150}
-              style={{ width: '150px', height: 'auto' }}
-              className="mx-auto pt-2"
-            />
-          </Link>
+          <div className={cn(
+            "flex items-center transition-all duration-300",
+            open ? "gap-2 justify-start" : "justify-center flex-col gap-2"
+          )}>
+            {open && (
+              <Link href="/">
+                <Image
+                  src={getThemeLogo(theme)}
+                  alt={getSiteName()}
+                  width={150}
+                  height={150}
+                  style={{ width: '150px', height: 'auto' }}
+                  className="pt-2"
+                />
+              </Link>
+            )}
+            <SidebarBurger />
+          </div>
         </SidebarHeader>
         {authChecked && (
           <>

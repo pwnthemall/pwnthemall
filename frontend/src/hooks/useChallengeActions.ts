@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import axios from 'axios';
+import axios from '@/lib/axios';
 import { toast } from 'sonner';
 import { Challenge, Solve } from '@/models/Challenge';
 import { buildSubmitPayload } from '@/components/pwn/category-helpers';
