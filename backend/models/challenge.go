@@ -11,11 +11,11 @@ type Challenge struct {
 	Slug                  string               `gorm:"unique;not null" json:"slug"`
 	Name                  string               `json:"name"`
 	Description           string               `json:"description"`
-	ChallengeDifficultyID uint                 `json:"difficultyId"`
+	ChallengeDifficultyID uint                 `json:"challengeDifficultyId"`
 	ChallengeDifficulty   *ChallengeDifficulty `gorm:"foreignKey:ChallengeDifficultyID" json:"challengeDifficulty,omitempty"`
-	ChallengeCategoryID   uint                 `json:"categoryId"`
+	ChallengeCategoryID   uint                 `json:"challengeCategoryId"`
 	ChallengeCategory     *ChallengeCategory   `gorm:"foreignKey:ChallengeCategoryID" json:"challengeCategory,omitempty"`
-	ChallengeTypeID       uint                 `json:"challenge_type_id"`
+	ChallengeTypeID       uint                 `json:"challengeTypeId"`
 	ChallengeType         *ChallengeType       `gorm:"foreignKey:ChallengeTypeID" json:"challengeType"`
 	CreatedAt             time.Time            `json:"created_at"`
 	UpdatedAt             time.Time            `json:"updated_at"`

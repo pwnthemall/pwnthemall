@@ -1,5 +1,5 @@
 import Head from "next/head"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import axios from "@/lib/axios";
 
 import { ColumnDef, RowSelectionState } from "@tanstack/react-table"

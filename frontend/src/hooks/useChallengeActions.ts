@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import axios from 'axios';
+import axios from '@/lib/axios';
 import { toast } from 'sonner';
 import { Challenge, Solve } from '@/models/Challenge';
 import { buildSubmitPayload } from '@/components/pwn/category-helpers';
@@ -83,13 +83,17 @@ export const useChallengeActions = ({
       const res = await axios.post(`/api/challenges/${selectedChallenge.id}/submit`, payload);
 
       toast.success(t(res.data.message) || 'Challenge solved!');
-      if (onChallengeUpdate) onChallengeUpdate();
       
       fetchSolves(selectedChallenge.id);
       await handlePostSubmitInstanceCleanup(selectedChallenge.id);
       
       // Close the modal after successful submission
       setOpen(false);
+      
+      // Update challenges after modal is closed to prevent reopening
+      if (onChallengeUpdate) {
+        setTimeout(() => onChallengeUpdate(), 100);
+      }
     } catch (err: any) {
       const errorKey = err.response?.data?.error || err.response?.data?.result;
       toast.error(t(errorKey) || 'Try again');

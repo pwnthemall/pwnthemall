@@ -36,7 +36,7 @@ type NavItem = {
   readonly onReorderItems?: (items: ChallengeCategory[]) => void
 }
 
-// Collapsible menu item component
+// Collapsible menu item component - MODIFIÉ POUR L'ANIMATION
 function CollapsibleNavItem({ item, open, isOpen, onOpenChange }: {
   readonly item: NavItem
   readonly open: boolean
@@ -65,12 +65,14 @@ function CollapsibleNavItem({ item, open, isOpen, onOpenChange }: {
               {item.title}
             </span>
             <ChevronRight className={cn(
-              "w-4 h-4 transition-all duration-200 ease-in-out group-data-[state=open]/collapsible:rotate-90",
+              "w-4 h-4 transition-transform duration-200 ease-in-out group-data-[state=open]/collapsible:rotate-90",
               open ? "opacity-100 ml-auto" : "opacity-0 w-0 overflow-hidden"
             )} />
           </button>
         </CollapsibleTrigger>
-        <CollapsibleContent>
+        
+        {/* ICI: Animation fluide standard shadcn/radix */}
+        <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
           <div className="ml-6 mt-1">
             {item.draggableItems && item.onReorderItems ? (
               <DraggableCategoryList
@@ -92,7 +94,7 @@ function CollapsibleNavItem({ item, open, isOpen, onOpenChange }: {
                   <Link
                     key={subItem.title}
                     href={subItem.url}
-                    className="block rounded-lg p-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    className="block rounded-lg p-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-all duration-150"
                   >
                     {subItem.title}
                   </Link>

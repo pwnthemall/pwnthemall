@@ -482,7 +482,7 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
             </CardContent>
           </Card>
           </div>
-          <div className="pt-4 border-t">
+          <div className="pt-4">
             <Button onClick={handleGeneralSubmit} disabled={generalLoading} className="w-full">
               {generalLoading ? t('challenge_form.saving') : t('challenge_form.save_general')}
             </Button>

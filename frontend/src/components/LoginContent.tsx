@@ -32,14 +32,15 @@ export default function LoginContent({
 }: LoginContentProps) {
     const { t } = useLanguage();
     const { theme } = useTheme();
+
     const [logoLoaded, setLogoLoaded] = useState(false);
 
     return (
         <div className="w-full max-w-4xl px-4">
             <Card className="border-0 rounded-[20px] overflow-hidden p-0 shadow-2xl dark:shadow-[0_20px_50px_rgba(255,255,255,0.1)]">
                 <MagicCard
-                    gradientSize={theme === "dark" ? 100 : 80}
-                    gradientColor={theme === "dark" ? "#262626" : "#cecece55"}
+                    gradientSize={getThemeType(theme) === "dark" ? 40 : 40}
+                    gradientColor={getThemeType(theme) === "dark" ? "#6b6b6b55" : "#c4c4c455"}
                     className="rounded-[20px] p-0"
                 >
                     <CardContent className="grid p-0 md:grid-cols-2">
