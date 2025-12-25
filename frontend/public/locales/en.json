@@ -22,7 +22,8 @@
     "submissions": "Submissions",
     "tickets": "Tickets",
     "ticket_management": "Ticket Management",
-    "ticket_management_desc": "Manage and respond to support tickets"
+    "ticket_management_desc": "Manage and respond to support tickets",
+    "pages_management": "Custom pages management"
   },
   "admin_challenges": {
     "challenge_management": "Challenge management",
@@ -889,6 +890,7 @@
     "delete_page": "Delete Page",
     "save_page": "Save Page",
     "slug": "Slug",
+    "title": "Title",
     "slug_required": "Slug is required",
     "title_required": "Title is required",
     "html_required": "HTML content is required",

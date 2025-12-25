@@ -1,6 +1,8 @@
 import { GetServerSideProps } from 'next';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import axios from 'axios';
+import { debugLog } from '@/lib/debug';
 
 
 interface PageProps {
@@ -21,7 +23,11 @@ export default function CustomPage({ page, error }: PageProps) {
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <h1 className="text-4xl font-bold">404</h1>
-          <p className="mt-2 text-gray-600"></p>
+          <p className="mt-2 text-gray-600">
+            {error === 'Page not found' && page === null 
+              ? `Page not found` 
+              : error || 'An error occurred while loading the page'}
+          </p>
           <button
             onClick={() => router.push('/')}
             className="mt-4 rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
@@ -39,10 +45,14 @@ export default function CustomPage({ page, error }: PageProps) {
         <title>{page.title}</title>
         <meta httpEquiv="Content-Security-Policy" content="script-src 'none'; style-src 'unsafe-inline';" />
       </Head>
-      <div 
-        className="custom-page-content"
-        dangerouslySetInnerHTML={{ __html: page.html }}
-      />
+      <div className="min-h-screen">
+        <main className="container mx-auto px-4 py-8">
+          <div 
+            className="custom-page-content prose prose-lg dark:prose-invert max-w-none"
+            dangerouslySetInnerHTML={{ __html: page.html }}
+          />
+        </main>
+      </div>
     </>
   );
 }
@@ -50,50 +60,39 @@ export default function CustomPage({ page, error }: PageProps) {
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { slug } = context.params as { slug: string };
   
-  try {
-    // Use internal backend URL for SSR (within Docker network)
-    // In production: http://backend:8080
-    // In development: http://localhost:8080
-    const isProduction = process.env.NODE_ENV === 'production';
-    const baseURL = isProduction ? 'http://backend:8080' : 'http://localhost:8080';
-    
-    const response = await fetch(`${baseURL}/pages/${slug}`, {
-      headers: {
-        'Content-Type': 'application/json',
+  const internalApiUrl = process.env.INTERNAL_API_URL || 'http://backend:8080';
+  
+  if (!internalApiUrl) {
+    return {
+      props: {
+        page: null,
+        error: 'Configuration error',
       },
-    });
-
-    if (!response.ok) {
-      return {
-        props: {
-          page: null,
-          error: 'Page not found',
-        },
-      };
-    }
-
-    const contentType = response.headers.get('content-type');
+    };
+  }
+  
+  const apiClient = axios.create({
+    baseURL: internalApiUrl,
+    timeout: 5000,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  
+  try {
+    debugLog('[SSR] Fetching page:', slug, 'from', internalApiUrl);
+    const response = await apiClient.get(`/api/pages/${slug}`);
+    debugLog('[SSR] Fetched page data:', response.data);
     
-    // Check if response is HTML (from ServePublicPage) or JSON
-    if (contentType?.includes('text/html')) {
-      const html = await response.text();
-      
+    if (response.data && response.data.page) {
       return {
         props: {
           page: {
-            id: 0,
-            slug,
-            title: slug.charAt(0).toUpperCase() + slug.slice(1),
-            html,
+            id: response.data.page.id,
+            slug: response.data.page.slug,
+            title: response.data.page.title,
+            html: response.data.page.html,
           },
-        },
-      };
-    } else if (contentType?.includes('application/json')) {
-      const data = await response.json();
-      
-      return {
-        props: {
-          page: data.page || data,
         },
       };
     }
@@ -104,8 +103,19 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         error: 'Invalid response format',
       },
     };
-  } catch (error) {
-    console.error('Error fetching page:', error);
+  } catch (error: any) {
+    console.error('[SSR Error] Failed to fetch page:', error.message);
+    
+    // Check if it's a 404 error
+    if (error.response?.status === 404) {
+      return {
+        props: {
+          page: null,
+          error: 'Page not found',
+        },
+      };
+    }
+    
     return {
       props: {
         page: null,

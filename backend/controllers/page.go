@@ -298,3 +298,44 @@ func ServePublicPage(c *gin.Context) {
 	// Serve HTML
 	c.Data(http.StatusOK, "text/html; charset=utf-8", buf.Bytes())
 }
+
+// ServePublicPageAPI serves a custom page as JSON (for Next.js SSR)
+func ServePublicPageAPI(c *gin.Context) {
+	slug := c.Param("slug")
+
+	// Lookup page in database
+	var page models.Page
+	if err := config.DB.Where("slug = ?", slug).First(&page).Error; err != nil {
+		// Page not found
+		c.JSON(http.StatusNotFound, gin.H{"error": "Page not found"})
+		return
+	}
+
+	// Fetch HTML content from MinIO
+	ctx := context.Background()
+	obj, err := config.FS.GetObject(ctx, pagesBucket, page.MinioKey, minio.GetObjectOptions{})
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Page content not found"})
+		return
+	}
+	defer obj.Close()
+
+	buf := new(bytes.Buffer)
+	if _, err := buf.ReadFrom(obj); err != nil {
+		utils.InternalServerError(c, "Failed to read page content")
+		return
+	}
+
+	// Return JSON response with page metadata and HTML content
+	c.JSON(http.StatusOK, gin.H{
+		"page": gin.H{
+			"id":         page.ID,
+			"slug":       page.Slug,
+			"title":      page.Title,
+			"minio_key":  page.MinioKey,
+			"created_at": page.CreatedAt,
+			"updated_at": page.UpdatedAt,
+			"html":       buf.String(),
+		},
+	})
+}
