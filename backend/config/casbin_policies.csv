@@ -45,4 +45,8 @@ p, member, /tickets/:id/close, write
 p, member, /tickets/upload, write
 
 p, admin, /admin/submissions, read
+p, admin, /admin/pages, read
+p, admin, /admin/pages, write
+p, admin, /admin/pages/:id, read
+p, admin, /admin/pages/:id, write
 p, admin, /*, *

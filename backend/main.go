@@ -147,6 +147,7 @@ func main() {
 	routes.RegisterSubmissionRoutes(router)
 	routes.RegisterDashboardRoutes(router)
 	routes.RegisterTicketRoutes(router)
+	routes.RegisterPageRoutes(router)
 
 	if os.Getenv("PTA_PLUGINS_ENABLED") == "true" {
 		debug.Log("Loading plugins...")

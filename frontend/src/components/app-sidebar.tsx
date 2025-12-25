@@ -163,7 +163,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             router.pathname === "/admin/challenges" ||
             router.pathname === "/admin/challenge-order" ||
             router.pathname === "/admin/configuration" ||
-            router.pathname === "/admin/notifications",
+            router.pathname === "/admin/notifications" ||
+            router.pathname === "/admin/pages" ||
+            router.pathname.startsWith("/admin/pages/"),
         });
       }
     } else {
