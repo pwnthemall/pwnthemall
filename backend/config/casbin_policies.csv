@@ -38,6 +38,11 @@ p, member, /notifications/unread-count, read
 p, member, /notifications/:id/read, write
 p, member, /notifications/read-all, write
 p, member, /ws/notifications, read
+p, member, /tickets, *
+p, member, /tickets/:id, *
+p, member, /tickets/:id/messages, write
+p, member, /tickets/:id/close, write
+p, member, /tickets/upload, write
 
 p, admin, /admin/submissions, read
 p, admin, /admin/pages, read

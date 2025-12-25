@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, FileText, Loader2, File, Archive, Code } from 'lucide-react';
 import axios from '@/lib/axios';
@@ -22,13 +22,7 @@ export function ChallengeFiles({ challengeId, files }: ChallengeFilesProps) {
   const [loading, setLoading] = useState(false);
   const [downloadingFiles, setDownloadingFiles] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    if (files && files.length > 0) {
-      fetchFileMetadata();
-    }
-  }, [challengeId, files]);
-
-  const fetchFileMetadata = async () => {
+  const fetchFileMetadata = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get<FileMetadata[]>(`/api/challenges/${challengeId}/files`);
@@ -39,7 +33,13 @@ export function ChallengeFiles({ challengeId, files }: ChallengeFilesProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [challengeId, t]);
+
+  useEffect(() => {
+    if (files && files.length > 0) {
+      fetchFileMetadata();
+    }
+  }, [challengeId, files, fetchFileMetadata]);
 
   const handleDownload = async (file: FileMetadata) => {
     setDownloadingFiles(prev => new Set(prev).add(file.name));

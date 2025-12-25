@@ -16,3 +16,31 @@ body:json {
     "password": "user"
   }
 }
+
+docs {
+  Login as a regular user.
+  
+  **IMPORTANT:** You must fetch the CSRF token FIRST!
+  
+  Workflow:
+  1. Execute: auth/csrf-token (FIRST!)
+  2. Execute: auth/login (this request)
+  
+  If you get "csrf_validation_failed", execute csrf-token first.
+}
+
+script:post-response {
+  function onResponse(res) {
+    if (res.getStatus() === 200) {
+      console.log("✓ Login successful");
+      console.log("✓ You can now make authenticated requests");
+    } else if (res.getStatus() === 403) {
+      const error = res.getBody();
+      if (error.error && error.error.includes('csrf')) {
+        console.error("✗ CSRF Error: Execute auth/csrf-token FIRST!");
+      }
+    }
+  }
+  
+  onResponse(res);
+}

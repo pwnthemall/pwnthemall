@@ -6,12 +6,14 @@ import { UserProvider } from '@/context/UserContext'
 import { LanguageProvider } from '@/context/LanguageContext'
 import { SiteConfigProvider } from '@/context/SiteConfigContext'
 import { NotificationProvider } from '@/context/NotificationContext'
+import { CSRFProvider, useCSRF } from '@/context/CSRFContext'
 import { ThemeProvider } from '@/components/theme-provider'
 import '../styles/globals.css'
 import { CookieConsent } from "@/components/ui/CookieConsent"
 import { useEffect, useState, useRef } from 'react'
 import { Toaster } from 'sonner'
 import { useRouter } from 'next/router'
+import { setCSRFToken, setCSRFReady } from '@/lib/axios'
 
 
 interface MyAppProps extends AppProps {
@@ -97,36 +99,51 @@ function MyApp({ Component, pageProps, sidebarDefaultOpen }: MyAppProps) {
       <SiteConfigProvider>
         <AuthProvider>
           <UserProvider>
-            <NotificationProvider>
-              <ThemeProvider
-                attribute="class"
-                defaultTheme={systemTheme}
-                themes={themes}
-                enableSystem
-                disableTransitionOnChange
-              >
-                <Toaster position="top-right" richColors />
-                {router.pathname === '/mobile-blocked' ? (
-                  <Component {...pageProps} />
-                ) : router.pathname.startsWith('/live') ? (
-                  <Component {...pageProps} />
-                ) : router.pathname === '/login' || router.pathname === '/register' ? (
-                  <Component {...pageProps} />
-                ) : (
-                  <SidebarProvider defaultOpen={sidebarDefaultOpen}>
-                    <AppSidebar />
-                    <SidebarInset>
-                      <Component {...pageProps} />
-                    </SidebarInset>
-                  </SidebarProvider>
-                )}
-              </ThemeProvider>
-            </NotificationProvider>
+            <CSRFProvider>
+              <CSRFSyncComponent />
+              <NotificationProvider>
+                <ThemeProvider
+                  attribute="class"
+                  defaultTheme={systemTheme}
+                  themes={themes}
+                  enableSystem
+                  disableTransitionOnChange
+                >
+                  <Toaster position="top-right" richColors />
+                  {router.pathname === '/mobile-blocked' ? (
+                    <Component {...pageProps} />
+                  ) : router.pathname.startsWith('/live') ? (
+                    <Component {...pageProps} />
+                  ) : router.pathname === '/login' || router.pathname === '/register' ? (
+                    <Component {...pageProps} />
+                  ) : (
+                    <SidebarProvider defaultOpen={sidebarDefaultOpen}>
+                      <AppSidebar />
+                      <SidebarInset>
+                        <Component {...pageProps} />
+                      </SidebarInset>
+                    </SidebarProvider>
+                  )}
+                </ThemeProvider>
+              </NotificationProvider>
+            </CSRFProvider>
           </UserProvider>
         </AuthProvider>
       </SiteConfigProvider>
     </LanguageProvider>
   )
+}
+
+// Component to sync CSRF token from context to axios instance
+function CSRFSyncComponent() {
+  const { token, isReady } = useCSRF();
+  
+  useEffect(() => {
+    setCSRFToken(token);
+    setCSRFReady(isReady);
+  }, [token, isReady]);
+  
+  return null;
 }
 
 

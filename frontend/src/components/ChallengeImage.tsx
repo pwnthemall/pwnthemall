@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Image from 'next/image'
 
 interface ChallengeImageProps {
   readonly challengeId: number
@@ -53,10 +54,12 @@ export default function ChallengeImage({
       {imageLoading && (
         <div className="absolute inset-0 animate-pulse bg-muted/50" />
       )}
-      <img
+      <Image
         src={imageUrl}
         alt={alt}
-        className="w-full h-full object-cover"
+        fill
+        unoptimized
+        className="object-cover"
         style={{ 
           objectPosition, 
           transform: `scale(${scale})`,

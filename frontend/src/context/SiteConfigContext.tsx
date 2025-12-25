@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import axios from '@/lib/axios';
 import { Config } from '@/models/Config';
+import { useRealtimeUpdates } from '@/hooks/use-realtime-updates';
 
 interface SiteConfigContextType {
   siteConfig: Record<string, string>;
@@ -58,6 +59,14 @@ export function SiteConfigProvider({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     fetchConfig();
   }, []);
+
+  // Listen for config updates via WebSocket
+  useRealtimeUpdates((event) => {
+    if (event.event === 'config-update') {
+      // Refresh config when any public config changes
+      fetchConfig();
+    }
+  }, true);
 
   // Update document title whenever site config changes
   useEffect(() => {

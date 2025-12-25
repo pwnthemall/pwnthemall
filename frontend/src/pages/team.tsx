@@ -124,7 +124,7 @@ export default function TeamPage() {
       <Head>
         <title>{getSiteName()}</title>
       </Head>
-    <div className="min-h-screen flex items-center justify-center bg-muted px-2 py-8">
+    <div className="min-h-screen flex items-center justify-center px-2 py-8">
       <Card className="w-full max-w-2xl mx-auto">
         <CardContent className="py-8">
           <CardTitle className="text-center text-3xl font-bold mb-2">{t("team")}</CardTitle>
@@ -147,7 +147,7 @@ export default function TeamPage() {
                 maxLength={72}
               />
               <Button type="submit" disabled={loading} className="w-full">
-                {loading ? t("creating") : t("create")}
+                {loading ? t("creating") : t("team.create")}
               </Button>
             </form>
             <form onSubmit={handleJoin} className="flex-1 min-w-[220px] space-y-3">

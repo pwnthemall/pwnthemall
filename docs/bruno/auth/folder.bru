@@ -1,4 +1,63 @@
 meta {
   name: auth
-  seq: 5
+  seq: 3
+}
+
+docs {
+  # Authentication & CSRF Management
+  
+  This folder contains authentication endpoints and CSRF token management.
+  
+  ## 🔑 Authentication Requests:
+  
+  - **login** - Login as regular user
+  - **loginAdmin** - Login as admin
+  - **register** - Create new user account
+  - **logout** - Logout current session
+  - **me** - Get current user information
+  - **refresh** - Refresh authentication tokens
+  
+  ## 🔐 CSRF Token Management:
+  
+  - **csrf-token** - Fetch CSRF token (⚠️ MUST BE EXECUTED FIRST!)
+  - **csrf-test** - Comprehensive CSRF system test with validation
+  - **clear-csrf-token** - Clear CSRF token (testing helper)
+  
+  ## ⚠️ IMPORTANT WORKFLOW:
+  
+  **You MUST execute requests in this order:**
+  
+  ```
+  1. csrf-token    ← ALWAYS FIRST! Sets up CSRF session
+  2. login         ← Then authenticate (requires CSRF token)
+  3. submit/etc    ← Then make other requests
+  ```
+  
+  ## 🔴 Common Error:
+  
+  If you get `{"error":"csrf_validation_failed"}` on login:
+  → You forgot to execute `csrf-token` first!
+  
+  **Solution:** Execute `csrf-token` before any other request.
+  
+  ## 💡 Why this order?
+  
+  - The backend protects login with CSRF (security best practice)
+  - The first request to `/api/csrf-token` establishes the CSRF session
+  - The token returned is then used for login and all other protected endpoints
+  
+  ## 📋 Complete Example:
+  
+  ```
+  1. Execute: csrf-token
+     Result: Token stored in {{X-CSRF-Token}}
+  
+  2. Execute: login
+     Headers: X-CSRF-Token automatically included
+     Result: Authenticated session established
+  
+  3. Execute: challenges/submit
+     Headers: X-CSRF-Token automatically included
+     Result: Flag submitted successfully
+  ```
 }

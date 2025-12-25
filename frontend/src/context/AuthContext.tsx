@@ -81,6 +81,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await axios.get("/api/me");
       setLoggedIn(true);
     } catch (err: any) {
+      // 401/403 are expected when not logged in - don't log these
+      if (err?.response?.status !== 401 && err?.response?.status !== 403) {
+        console.error('Auth check failed:', err);
+      }
       setLoggedIn(false);
     } finally {
       authCheckedRef.current = true;
@@ -91,8 +95,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     checkAuth();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run once on mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount - checkAuth is stable
 
   // Listen for auth refresh events (e.g., after username update, team changes)
   useEffect(() => {
@@ -106,6 +110,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         window.removeEventListener('auth:refresh', handleAuthRefresh);
       };
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Listen for user-banned events from WebSocket

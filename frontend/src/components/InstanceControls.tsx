@@ -75,7 +75,7 @@ export const InstanceControls: React.FC<InstanceControlsProps> = ({
         globalThis.window.removeEventListener('instance-update', handler as EventListener);
       }
     };
-  }, [fetchStatus]);
+  }, [fetchStatus, challengeId]);
 
   const handleStartInstance = async () => {
     setLoading(true);

@@ -13,7 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Trophy, Medal, Award, Users, User, Search, ChevronLeft, ChevronRight, TrendingUp, ExternalLink, ChevronDown, Settings, Zap, ZapOff, RefreshCw } from 'lucide-react';
+import { Trophy, Medal, Award, Users, User, Search, ChevronLeft, ChevronRight, TrendingUp, ExternalLink, ChevronDown, Settings, Zap, ZapOff, RefreshCw, Download, FileText } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useUser } from '@/context/UserContext';
 import { IndividualLeaderboardEntry, TeamLeaderboardEntry } from '@/models/Leaderboard';
@@ -244,6 +244,103 @@ export default function ScoreboardContent() {
     setTeamPage(1);
   }, [activeTab]);
 
+  // Export leaderboard data to various formats (CSV implemented)
+  const exportScoreboard = (format: 'csv' | string) => {
+    try {
+      const now = new Date();
+      const ts = now.toISOString().replace(/[:.]/g, '-');
+      const active = activeTab === 'individual' ? filteredIndividualData : filteredTeamData;
+
+      if (format === 'csv') {
+        let columns: string[] = [];
+        let rows: any[] = [];
+
+        if (activeTab === 'individual') {
+          columns = ['rank', 'username', 'teamName', 'points', 'solves'];
+          rows = active.map((r: any) => ({
+            rank: r.rank,
+            username: r.username || '',
+            teamName: r.teamName || '',
+            points: r.points ?? 0,
+            solves: r.solves ?? 0,
+          }));
+        } else {
+          columns = ['rank', 'name', 'memberCount', 'points', 'solves'];
+          rows = active.map((r: any) => ({
+            rank: r.rank,
+            name: r.name || '',
+            memberCount: r.memberCount ?? 0,
+            points: r.points ?? 0,
+            solves: r.solves ?? 0,
+          }));
+        }
+
+        const escapeCell = (v: any) => {
+          if (v === null || v === undefined) return '';
+          const s = String(v);
+          if (s.includes('"')) return '"' + s.replace(/"/g, '""') + '"';
+          if (s.includes(',') || s.includes('\n')) return '"' + s + '"';
+          return s;
+        };
+
+        const header = columns.join(',');
+        const lines = rows.map(r => columns.map(c => escapeCell(r[c])).join(','));
+        const csv = [header, ...lines].join('\n');
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const name = `scoreboard_${activeTab}_${ts}.csv`;
+        a.setAttribute('download', name);
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      } else if (format === 'html') {
+        try {
+          // capture SVG chart if present
+          const root = document.getElementById('scoreboard-root');
+          const svgEl = root?.querySelector('svg');
+          const svgHtml = svgEl ? svgEl.outerHTML : '';
+
+          const title = activeTab === 'individual' ? 'Individual Scoreboard' : 'Team Scoreboard';
+
+          const headerRow = activeTab === 'individual'
+            ? '<th>Rank</th><th>Player</th><th>Team</th><th>Points</th><th>Solves</th>'
+            : '<th>Rank</th><th>Team</th><th>Members</th><th>Points</th><th>Solves</th>';
+
+          const rowsHtml = active.map((r: any) => {
+            if (activeTab === 'individual') {
+              return `<tr><td>${r.rank}</td><td>${r.username || ''}</td><td>${r.teamName || ''}</td><td>${r.points ?? 0}</td><td>${r.solves ?? 0}</td></tr>`;
+            }
+            return `<tr><td>${r.rank}</td><td>${r.name || ''}</td><td>${r.memberCount ?? 0}</td><td>${r.points ?? 0}</td><td>${r.solves ?? 0}</td></tr>`;
+          }).join('');
+
+          const htmlDoc = `<!doctype html><html><head><meta charset="utf-8"><title>${title} export</title><style>body{font-family:system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;padding:20px} table{border-collapse:collapse;width:100%} th,td{border:1px solid #ddd;padding:8px} th{background:#f3f4f6;font-weight:600} .chart{max-width:100%}</style></head><body><h1>${title}</h1><p>Exported at ${now.toLocaleString()}</p>${svgHtml ? `<div class="chart">${svgHtml}</div>` : ''}<table><thead><tr>${headerRow}</tr></thead><tbody>${rowsHtml}</tbody></table></body></html>`;
+
+          const blobHtml = new Blob([htmlDoc], { type: 'text/html;charset=utf-8' });
+          const urlHtml = URL.createObjectURL(blobHtml);
+          const ah = document.createElement('a');
+          ah.href = urlHtml;
+          const nameh = `scoreboard_${activeTab}_${ts}.html`;
+          ah.setAttribute('download', nameh);
+          document.body.appendChild(ah);
+          ah.click();
+          ah.remove();
+          URL.revokeObjectURL(urlHtml);
+        } catch (e) {
+          console.error('HTML export failed', e);
+        }
+      } else {
+        // Future formats can be implemented here
+        console.warn('Export format not supported:', format);
+      }
+    } catch (err) {
+      console.error('Export failed', err);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -256,7 +353,7 @@ export default function ScoreboardContent() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div id="scoreboard-root" className="min-h-screen">
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
@@ -386,6 +483,32 @@ export default function ScoreboardContent() {
                       />
                     </div>
                   )}
+
+                  {/* Export controls */}
+                  <div className="mt-3">
+                    <div className="text-xs text-muted-foreground mb-1">Export</div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button className="w-full px-2 py-1 rounded text-xs font-medium flex items-center justify-center gap-1">
+                          <Download className="h-3 w-3" />
+                          Export
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-44">
+                        <DropdownMenuItem onClick={() => exportScoreboard('csv')}>
+                          <FileText className="h-4 w-4 mr-2" />
+                          CSV
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => exportScoreboard('html')}>
+                          <FileText className="h-4 w-4 mr-2" />
+                          HTML
+                        </DropdownMenuItem>
+                        <DropdownMenuItem disabled>
+                          {t('scoreboard.more_formats_coming')}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
               </div>
             )}

@@ -1,5 +1,5 @@
 import Head from "next/head"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { useLanguage } from "@/context/LanguageContext"
 import { useSiteConfig } from "@/context/SiteConfigContext"
 import { Button } from "@/components/ui/button"
@@ -79,7 +79,7 @@ export default function SubmissionsContent({ submissions, onRefresh }: Submissio
   const totalPages = Math.max(1, Math.ceil(filteredSubmissions.length / pageSize))
 
     // Reset to first page when filters change
-  useMemo(() => {
+  useEffect(() => {
     setCurrentPage(0)
   }, [userFilter, teamFilter, challengeFilter])
 

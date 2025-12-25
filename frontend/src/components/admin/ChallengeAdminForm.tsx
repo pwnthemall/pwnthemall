@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useLanguage } from "@/context/LanguageContext"
 import { Challenge, ChallengeCategory, ChallengeDifficulty } from "@/models"
 import { Button } from "@/components/ui/button"
@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import axios from "@/lib/axios"
 import { toast } from "sonner"
 import { Plus, Trash2, Edit } from "lucide-react"
+import Image from "next/image"
 import {
   Select,
   SelectContent,
@@ -123,14 +124,7 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
   const [newHint, setNewHint] = useState({ title: "", content: "", cost: 0, isActive: true, autoActiveAt: null as string | null })
   const [editingHints, setEditingHints] = useState<{[key: number]: {title: string, content: string, cost: number, isActive: boolean, autoActiveAt: string | null}}>({})
 
-  useEffect(() => {
-    fetchDecayFormulas()
-    fetchChallengeCategories()
-    fetchChallengeDifficulties()
-    fetchChallengeData()
-  }, [])
-
-  const fetchChallengeData = async () => {
+  const fetchChallengeData = useCallback(async () => {
     try {
       const response = await axios.get(`/api/admin/challenges/${challenge.id}`)
       const challengeData = response.data.challenge
@@ -162,9 +156,9 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
       }
       
     } catch (error) {
-      console.error("Failed to fetch challenge data:", error)
+      console.error('Failed to fetch challenge data:', error)
     }
-  }
+  }, [challenge.id])
 
   const fetchDecayFormulas = async () => {
     try {
@@ -193,7 +187,7 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
     }
   }
 
-  const fetchChallengeDifficulties = async () => {
+  const fetchChallengeDifficulties = useCallback(async () => {
     try {
       const response = await axios.get(`/api/admin/challenges/${challenge.id}`)
       if (response.data.challengeDifficulties) {
@@ -202,7 +196,14 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
     } catch (error) {
       console.error("Failed to fetch challenge difficulties:", error)
     }
-  }
+  }, [challenge.id])
+
+  useEffect(() => {
+    fetchDecayFormulas()
+    fetchChallengeCategories()
+    fetchChallengeDifficulties()
+    fetchChallengeData()
+  }, [fetchChallengeDifficulties, fetchChallengeData])
 
   const handleSubmit = async () => {
     setLoading(true)
@@ -481,7 +482,7 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
             </CardContent>
           </Card>
           </div>
-          <div className="pt-4 border-t">
+          <div className="pt-4">
             <Button onClick={handleGeneralSubmit} disabled={generalLoading} className="w-full">
               {generalLoading ? t('challenge_form.saving') : t('challenge_form.save_general')}
             </Button>
@@ -526,6 +527,7 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
                             setCoverPosition({ x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) })
                           }}
                         >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={`/api/challenges/${challenge.id}/cover`}
                             alt="Full cover"
@@ -553,6 +555,7 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
                       <div className="border rounded-lg overflow-hidden bg-muted">
                         {/* Preview container matching card aspect ratio (411:192 ≈ 2.14:1) */}
                         <div className="w-full aspect-[411/192]">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={`/api/challenges/${challenge.id}/cover`}
                             alt={t('challenge_form.cover_preview_alt')}

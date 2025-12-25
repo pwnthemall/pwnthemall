@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 
@@ -145,7 +146,7 @@ func generateAndSetTokens(c *gin.Context, userID uint, role string) error {
 		return fmt.Errorf("could not create refresh token")
 	}
 
-	// Set both tokens as secure HTTP-only cookies
+	c.SetSameSite(http.SameSiteStrictMode)
 	c.SetCookie("access_token", accessToken, 3600, "/", "", true, true)        // 1 hour, secure, httpOnly
 	c.SetCookie("refresh_token", refreshToken, 7*24*3600, "/", "", true, true) // 7 days, secure, httpOnly
 

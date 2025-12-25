@@ -1,4 +1,5 @@
 import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import Image from "next/image";
 import axios from "@/lib/axios";
 import { AxiosResponse } from "axios";
 import { User, Team } from "@/models";
@@ -289,7 +290,7 @@ export default function ProductionProfileCard() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-100/80 via-blue-100/20 to-indigo-100/30 dark:from-slate-900 dark:via-slate-800/50 dark:to-slate-900 p-4 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br p-4 flex items-center justify-center">
         <Card className="bg-gradient-to-br from-destructive/20 to-destructive/10 border-destructive/30">
           <CardContent className="p-6 text-center">
             <span className="text-destructive">User not found</span>
@@ -300,7 +301,7 @@ export default function ProductionProfileCard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100/80 via-blue-100/20 to-indigo-100/30 dark:from-slate-900 dark:via-slate-800/50 dark:to-slate-900 p-4">
+    <div className="min-h-screen bg-gradient-to-br p-4">
       <div className="w-full max-w-6xl mx-auto space-y-6">
         {/* Profile Card */}
         <div className="w-full max-w-4xl mx-auto">
@@ -312,9 +313,11 @@ export default function ProductionProfileCard() {
                 {/* Avatar */}
                 <div className="flex-shrink-0 relative">
                   <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-accent p-1 shadow-lg shadow-primary/30">
-                    <img
+                    <Image
                       src="/logo-no-text.png"
-                      alt="Profile Avatar"
+                      alt={user?.username ? `${user.username}'s profile` : "Profile Avatar"}
+                      width={80}
+                      height={80}
                       className="w-full h-full rounded-full object-cover border-2 border-background/20"
                     />
                   </div>

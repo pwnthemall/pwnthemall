@@ -311,7 +311,7 @@ export default function IndexContent({ ctfStatus, ctfLoading, isLoggedIn, hasTea
                   onClick={() => router.push('/pwn')}
                   className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors text-left"
                 >
-                  <Flag className="h-5 w-5 text-cyan-600 dark:text-cyan-500" />
+                  <Flag className="h-5 w-5" />
                   <div>
                     <div className="font-medium">{t('dashboard.browse_challenges')}</div>
                   </div>
@@ -320,7 +320,7 @@ export default function IndexContent({ ctfStatus, ctfLoading, isLoggedIn, hasTea
                   onClick={() => router.push('/scoreboard')}
                   className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors text-left"
                 >
-                  <Trophy className="h-5 w-5 text-cyan-600 dark:text-cyan-500" />
+                  <Trophy className="h-5 w-5" />
                   <div>
                     <div className="font-medium">{t('dashboard.view_scoreboard')}</div>
                   </div>
@@ -329,7 +329,7 @@ export default function IndexContent({ ctfStatus, ctfLoading, isLoggedIn, hasTea
                   onClick={() => router.push('/profile')}
                   className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors text-left"
                 >
-                  <Users className="h-5 w-5 text-cyan-600 dark:text-cyan-500" />
+                  <Users className="h-5 w-5" />
                   <div>
                     <div className="font-medium">{t('dashboard.view_profile')}</div>
                   </div>

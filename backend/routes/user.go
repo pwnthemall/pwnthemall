@@ -14,16 +14,16 @@ func RegisterUserRoutes(router *gin.Engine) {
 		publicUsers.GET("/timeline", middleware.CheckPolicy("/users/timeline", "read"), controllers.GetIndividualTimeline)
 	}
 
-	// Authenticated routes
-	users := router.Group("/users", middleware.AuthRequired(false))
+	users := router.Group("/users", middleware.AuthRequired(false), middleware.CSRFProtection())
 	{
 		users.GET("", middleware.CheckPolicy("/users", "read"), controllers.GetUsers)
 		users.GET("/search/ip", middleware.DemoRestriction, middleware.CheckPolicy("/users", "read"), controllers.GetUserByIP)
 		users.GET("/:id", middleware.CheckPolicy("/users/:id", "read"), controllers.GetUser)
+		users.GET("/:id/profile", middleware.CheckPolicy("/users/:id/profile", "read"), controllers.GetPublicUserProfile)
+
 		users.POST("", middleware.CheckPolicy("/users", "write"), controllers.CreateUser)
 		users.PUT("/:id", middleware.CheckPolicy("/users/:id", "write"), controllers.UpdateUser)
 		users.DELETE("/:id", middleware.CheckPolicy("/users/:id", "write"), controllers.DeleteUser)
 		users.POST("/:id/ban", middleware.CheckPolicy("/users/:id/ban", "write"), controllers.BanOrUnbanUser)
-		users.GET("/:id/profile", middleware.CheckPolicy("/users/:id/profile", "read"), controllers.GetPublicUserProfile)
 	}
 }

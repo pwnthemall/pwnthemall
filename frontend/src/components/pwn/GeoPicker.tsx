@@ -83,6 +83,7 @@ export default function GeoPicker({ value, onChange, height = 320, radiusKm }: G
         if (instanceRef.current) instanceRef.current.remove();
       } catch {}
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Debounced search using Nominatim

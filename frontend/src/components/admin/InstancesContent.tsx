@@ -1,5 +1,5 @@
 import Head from "next/head"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import axios from "@/lib/axios";
 
 import { ColumnDef, RowSelectionState } from "@tanstack/react-table"
@@ -145,7 +145,7 @@ export default function InstancesContent({ instances, onRefresh }: Readonly<Inst
   const totalPages = Math.max(1, Math.ceil(filteredInstances.length / pageSize))
 
   // Reset to first page when filters change
-  useMemo(() => {
+  useEffect(() => {
     setCurrentPage(0)
   }, [usernameFilter, challengeFilter, categoryFilter])
   

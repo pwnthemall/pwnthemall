@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"flag"
 	"net/http"
 	"os"
@@ -15,6 +13,7 @@ import (
 	"github.com/pwnthemall/pwnthemall/backend/config"
 	"github.com/pwnthemall/pwnthemall/backend/debug"
 	_ "github.com/pwnthemall/pwnthemall/backend/handlers" // Import to trigger init() functions
+	"github.com/pwnthemall/pwnthemall/backend/middleware"
 	"github.com/pwnthemall/pwnthemall/backend/pluginsystem"
 	"github.com/pwnthemall/pwnthemall/backend/routes"
 	"github.com/pwnthemall/pwnthemall/backend/utils"
@@ -27,14 +26,6 @@ var (
 	seedTeams     = flag.Int("teams", 30, "Number of demo teams to create (default: 30)")
 	seedTimeRange = flag.Int("time-range", 20, "Time range in hours for spreading solve timestamps (default: 20)")
 )
-
-func generateRandomString(n int) (string, error) {
-	bytes := make([]byte, n)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", err
-	}
-	return hex.EncodeToString(bytes), nil
-}
 
 // initWebSocketHub initializes the WebSocket hubs
 func initWebSocketHub() {
@@ -109,7 +100,7 @@ func main() {
 
 	sessionSecret := os.Getenv("SESSION_SECRET")
 	if sessionSecret == "" {
-		sessionSecret, _ = generateRandomString(25)
+		sessionSecret, _ = utils.GenerateRandomString(25)
 	}
 	store := cookie.NewStore([]byte(sessionSecret))
 	store.Options(sessions.Options{
@@ -119,6 +110,9 @@ func main() {
 		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
 	})
+
+	middleware.InitCSRFProtection()
+
 	router.Use(sessions.Sessions("pwnthemall", store))
 	router.SetTrustedProxies([]string{"172.70.1.0/24"})
 	allowedOrigin := os.Getenv("NEXT_PUBLIC_API_URL")
@@ -128,8 +122,8 @@ func main() {
 	}
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{allowedOrigin},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "X-CSRF-Token"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 	}))
@@ -152,6 +146,7 @@ func main() {
 	routes.RegisterDecayFormulaRoutes(router)
 	routes.RegisterSubmissionRoutes(router)
 	routes.RegisterDashboardRoutes(router)
+	routes.RegisterTicketRoutes(router)
 	routes.RegisterPageRoutes(router)
 
 	if os.Getenv("PTA_PLUGINS_ENABLED") == "true" {

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Home, Swords, LogIn, UserPlus, User, List, ShieldUser, Bell, Flag } from "lucide-react";
+import { Home, Swords, LogIn, UserPlus, User, List, ShieldUser, Bell, Flag, MessageSquare } from "lucide-react";
 import { useRouter } from "next/router";
 
 import { NavMain } from "@/components/nav-main";
@@ -12,6 +12,7 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
+  SidebarBurger,
   useSidebar,
 } from "@/components/ui/sidebar";
 
@@ -32,7 +33,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { t } = useLanguage();
   const { getSiteName, siteConfig } = useSiteConfig();
   const router = useRouter();
-  const { isMobile } = useSidebar();
+  const { isMobile, open } = useSidebar();
   const { ctfStatus, loading: ctfLoading } = useCTFStatus();
   const { theme } = useTheme();
 
@@ -114,28 +115,50 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         isActive: router.pathname === "/scoreboard",
       });
       }
+      
+      // Only show tickets if enabled (and not admin - admins use admin/tickets)
+      if (siteConfig.TICKETS_ENABLED !== 'false' && userData.role !== "admin") {
+        items.push({
+          title: t('tickets'),
+          url: "/tickets",
+          icon: MessageSquare,
+          isActive: router.pathname.startsWith("/tickets"),
+        });
+      }
+      
       if (userData.role === "admin") {
+        // Build admin sub-items dynamically
+        const adminSubItems = [
+          { title: t('dashboard'), url: "/admin/dashboard" },
+          { title: t('users'), url: "/admin/users" },
+          { title: t('instances'), url: "/admin/instances" },
+          { title: t('admin.submissions'), url: "/admin/submissions" },
+        ];
+        
+        // Add tickets management if enabled
+        if (siteConfig.TICKETS_ENABLED !== 'false') {
+          adminSubItems.push({ title: t('admin.tickets'), url: "/admin/tickets" });
+        }
+        
+        adminSubItems.push(
+          { title: 'Categories & Difficulties', url: "/admin/challenge-categories" },
+          { title: 'Challenges', url: "/admin/challenges" },
+          { title: t('challenge_order_management'), url: "/admin/challenge-order" },
+          { title: t('configuration'), url: "/admin/configuration" },
+          { title: 'Notifications', url: "/admin/notifications" }
+        );
+        
         items.push({
           title: t('administration'),
           url: "/admin",
           icon: ShieldUser,
-          items: [
-            { title: t('dashboard'), url: "/admin/dashboard" },
-            { title: t('users'), url: "/admin/users" },
-            { title: t('instances'), url: "/admin/instances" },
-            { title: t('admin.submissions'), url: "/admin/submissions" },
-            { title: 'Categories & Difficulties', url: "/admin/challenge-categories" },
-            { title: 'Challenges', url: "/admin/challenges" },
-            { title: t('challenge_order_management'), url: "/admin/challenge-order" },
-            { title: t('configuration'), url: "/admin/configuration" },
-            { title: 'Notifications', url: "/admin/notifications" },
-            { title: t('pages'), url: "/admin/pages" },
-          ],
+          items: adminSubItems,
           isActive:
             router.pathname === "/admin/dashboard" ||
             router.pathname === "/admin/users" ||
             router.pathname === "/admin/instances" ||
             router.pathname === "/admin/submissions" ||
+            router.pathname === "/admin/tickets" ||
             router.pathname === "/admin/challenge-categories" ||
             router.pathname === "/admin/challenges" ||
             router.pathname === "/admin/challenge-order" ||
@@ -149,7 +172,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       // Not logged in
     }
     return items;
-  }, [authChecked, loggedIn, router.pathname, userData.role, t, siteConfig.REGISTRATION_ENABLED, ctfLoading, ctfStatus.status]);
+  }, [authChecked, loggedIn, router.pathname, userData.role, t, siteConfig.TICKETS_ENABLED, ctfLoading, ctfStatus.status]);
 
   return (
     <Sidebar
@@ -159,15 +182,24 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     >
       <div className="flex flex-col h-full">
         <SidebarHeader>
-          <Link href="/">
-            <Image
-              src={getThemeLogo(theme)}
-              alt={getSiteName()}
-              width={isMobile ? 150 : 150}
-              height={isMobile ? 150 : 150}
-              className="mx-auto pt-2"
-            ></Image>
-          </Link>
+          <div className={cn(
+            "flex items-center transition-all duration-300",
+            open ? "gap-2 justify-start" : "justify-center flex-col gap-2"
+          )}>
+            {open && (
+              <Link href="/">
+                <Image
+                  src={getThemeLogo(theme)}
+                  alt={getSiteName()}
+                  width={150}
+                  height={150}
+                  style={{ width: '150px', height: 'auto' }}
+                  className="pt-2"
+                />
+              </Link>
+            )}
+            <SidebarBurger />
+          </div>
         </SidebarHeader>
         {authChecked && (
           <>

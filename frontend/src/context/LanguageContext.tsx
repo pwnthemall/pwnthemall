@@ -142,12 +142,37 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
+  // Use a ref to track current language for async operations
+  const languageRef = React.useRef(language);
+  React.useEffect(() => {
+    languageRef.current = language;
+  }, [language]);
+
   const validateCache = async (lang: Language) => {
     // Perform background validation using HEAD request for efficiency
     if (globalThis.window === undefined) return;
     
     const cachedETag = localStorage.getItem(getETagKey(lang));
-    if (!cachedETag) return; // No ETag stored, skip validation
+    if (!cachedETag) {
+      // No ETag stored - fetch fresh to get one
+      try {
+        const dataRes = await fetch(`/locales/${lang}.json`, { cache: 'no-cache' });
+        if (dataRes.ok) {
+          const serverETag = dataRes.headers.get('etag');
+          const data = await dataRes.json();
+          const flattenedData = flattenTranslations(data);
+          
+          cacheTranslations(lang, flattenedData, serverETag);
+          // Always update if this is still the current language
+          if (lang === languageRef.current) {
+            setTranslations(flattenedData);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch translations for ETag:', error);
+      }
+      return;
+    }
     
     try {
       // Use HEAD request to check ETag without downloading full file
@@ -167,7 +192,8 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           
           // Update cache and state
           cacheTranslations(lang, flattenedData, serverETag);
-          if (lang === language) {
+          // Always update if this is still the current language
+          if (lang === languageRef.current) {
             setTranslations(flattenedData);
           }
         }
@@ -221,6 +247,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
     
     loadTranslations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language, isInitialLoad]);
 
   const handleSetLanguage = useCallback((lang: Language) => {
