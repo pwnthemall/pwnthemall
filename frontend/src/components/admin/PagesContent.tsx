@@ -232,7 +232,7 @@ export default function PagesContent({ pages, onRefresh, loading }: PagesContent
         <div className="flex flex-wrap gap-4 items-end bg-card p-4 rounded-lg border">
           <div className="flex-1 min-w-[200px]">
             <label className="text-sm font-medium mb-1 block">
-              {t("slug") || "Slug"}
+              {t("pages.slug") || "Slug"}
             </label>
             <div className="relative">
               <Input
@@ -254,7 +254,7 @@ export default function PagesContent({ pages, onRefresh, loading }: PagesContent
 
           <div className="flex-1 min-w-[200px]">
             <label className="text-sm font-medium mb-1 block">
-              {t("title") || "Title"}
+              {t("pages.title") || "Title"}
             </label>
             <div className="relative">
               <Input

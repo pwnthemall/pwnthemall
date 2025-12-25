@@ -133,6 +133,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           { title: t('users'), url: "/admin/users" },
           { title: t('instances'), url: "/admin/instances" },
           { title: t('admin.submissions'), url: "/admin/submissions" },
+          { title: t('admin.pages_management'), url: "/admin/pages"}
         ];
         
         // Add tickets management if enabled
@@ -164,8 +165,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             router.pathname === "/admin/challenge-order" ||
             router.pathname === "/admin/configuration" ||
             router.pathname === "/admin/notifications" ||
-            router.pathname === "/admin/pages" ||
-            router.pathname.startsWith("/admin/pages/"),
+            router.pathname === "/admin/pages"
         });
       }
     } else {

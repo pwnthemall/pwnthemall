@@ -16,10 +16,14 @@ func RegisterPageRoutes(router *gin.Engine) {
 		adminPages.PUT("/:id", middleware.CheckPolicy("/admin/pages/:id", "write"), middleware.RateLimit(30), controllers.UpdatePage)
 		adminPages.DELETE("/:id", middleware.CheckPolicy("/admin/pages/:id", "write"), middleware.RateLimit(10), controllers.DeletePage)
 	}
-	
-	// Public route for serving custom pages
-	// This is a catch-all that will be checked before Next.js 404
-	// Frontend should request /api/pages/:slug to get page content
+
+	// API route for serving custom pages as JSON (used by Next.js SSR)
+	apiPages := router.Group("/api/pages")
+	{
+		apiPages.GET("/:slug", middleware.RateLimit(120), controllers.ServePublicPageAPI)
+	}
+
+	// Public route for serving custom pages as HTML (optional direct access)
 	publicPages := router.Group("/pages")
 	{
 		publicPages.GET("/:slug", middleware.RateLimit(120), controllers.ServePublicPage)
