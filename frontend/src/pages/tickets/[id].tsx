@@ -24,6 +24,7 @@ export default function TicketDetailPage() {
     loading,
     error,
     sendMessage,
+    closeTicket,
     refreshTicket,
   } = useTicketDetail(id as string, false);
 
@@ -122,13 +123,14 @@ export default function TicketDetailPage() {
 
   const handleClose = async () => {
     try {
-      const response = await fetch(`/api/tickets/${id}/close`, { method: 'PUT' });
-      if (response.ok) {
-        toast.success(t("tickets.closed_success") || "Ticket closed");
-        await refreshTicket();
-      }
-    } catch (error) {
-      toast.error(t("tickets.close_failed") || "Failed to close ticket");
+      await closeTicket();
+      toast.success(t("tickets.closed_success") || "Ticket closed");
+      await refreshTicket();
+    } catch (error: any) {
+      const errorMsg = error.message === 'invalid_ticket_id' 
+        ? t("tickets.invalid_ticket_id") || "Invalid ticket ID"
+        : t("tickets.close_failed") || "Failed to close ticket";
+      toast.error(errorMsg);
     }
   };
 
