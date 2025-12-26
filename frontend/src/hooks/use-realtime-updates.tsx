@@ -33,7 +33,7 @@ const callbacks = new Map<number, UpdateCallback>();
 const connectionListeners = new Set<(connected: boolean) => void>();
 let callbackIdCounter = 0;
 
-export function useRealtimeUpdates(onUpdate?: UpdateCallback, enabled: boolean = true) {
+export function useRealtimeUpdates(onUpdate?: UpdateCallback, enabled: boolean = true, requireAuth: boolean = true) {
   const [isConnected, setIsConnected] = useState(globalIsConnected);
   const callbackIdRef = useRef<number>(0);
   const onUpdateRef = useRef(onUpdate);
@@ -46,6 +46,16 @@ export function useRealtimeUpdates(onUpdate?: UpdateCallback, enabled: boolean =
   useEffect(() => {
     if (!enabled) {
       return;
+    }
+
+    // Check if user is authenticated when requireAuth is true
+    if (requireAuth) {
+      // Check if user has a valid session by checking for auth cookie or token
+      const hasAuthCookie = document.cookie.split(';').some(c => c.trim().startsWith('session='));
+      if (!hasAuthCookie) {
+        // Don't attempt WebSocket connection if not authenticated
+        return;
+      }
     }
 
     // Assign unique ID for this callback

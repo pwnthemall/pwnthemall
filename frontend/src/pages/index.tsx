@@ -40,7 +40,7 @@ export default function Home() {
           setTeamChecked(true);
         });
     } else if (authChecked && !loggedIn) {
-      setTeamChecked(true);
+      router.replace("/login");
     }
   }, [authChecked, loggedIn, teamChecked, router]);
 
