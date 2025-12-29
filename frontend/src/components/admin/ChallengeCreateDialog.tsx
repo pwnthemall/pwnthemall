@@ -504,11 +504,11 @@ export default function ChallengeCreateDialog({
             <div className="space-y-2">
               <Label htmlFor="decayFormula">{t("challenge_form.decay_formula") || "Decay Formula"}</Label>
               <Select
-                value={formData.decayFormulaId?.toString() || "none"}
+                value={formData.decayFormulaId?.toString() || ""}
                 onValueChange={(value) =>
                   setFormData((prev) => ({
                     ...prev,
-                    decayFormulaId: value === "none" ? null : Number.parseInt(value),
+                    decayFormulaId: value === "" ? null : Number.parseInt(value),
                   }))
                 }
               >
@@ -516,7 +516,6 @@ export default function ChallengeCreateDialog({
                   <SelectValue placeholder={t("challenge_form.select_decay") || "Select decay formula"} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">None (No Decay)</SelectItem>
                   {decayFormulas.map((formula) => (
                     <SelectItem key={formula.id} value={formula.id.toString()}>
                       {formula.type === "fixed"

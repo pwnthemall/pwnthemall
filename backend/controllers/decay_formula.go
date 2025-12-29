@@ -9,21 +9,12 @@ import (
 
 func GetDecayFormulas(c *gin.Context) {
 	var decayFormulas []models.DecayFormula
-	if err := config.DB.Where("name != '' AND name IS NOT NULL").Find(&decayFormulas).Error; err != nil {
+	if err := config.DB.Where("name != '' AND name IS NOT NULL").Order("CASE WHEN type = 'fixed' THEN 0 ELSE 1 END, name ASC").Find(&decayFormulas).Error; err != nil {
 		utils.InternalServerError(c, err.Error())
 		return
 	}
 
-	// Ajouter une option "None" pour désactiver le decay
-	noneOption := models.DecayFormula{
-		ID:   0,
-		Name: "None (No Decay)",
-	}
-
-	// Insérer l'option "None" au début de la liste
-	allFormulas := append([]models.DecayFormula{noneOption}, decayFormulas...)
-
-	utils.OKResponse(c, allFormulas)
+	utils.OKResponse(c, decayFormulas)
 }
 
 func CreateDecayFormula(c *gin.Context) {
