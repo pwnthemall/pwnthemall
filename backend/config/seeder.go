@@ -366,39 +366,60 @@ func SeedDemoData(teamCount int, timeRangeHours int) error {
 			return fmt.Errorf("failed to hash demo password: %w", err)
 		}
 
+		userCounter := 1
 		for i := 1; i <= teamCount; i++ {
-			// Create user first
-			user := models.User{
-				Username: fmt.Sprintf("demo-user-%d", i),
-				Email:    fmt.Sprintf("demo%d@demo.local", i),
+			// Determine number of members for this team (1-4)
+			memberCount := 1 + (i % 4) // Cycles through 1, 2, 3, 4
+
+			// Create first user (team creator)
+			creator := models.User{
+				Username: fmt.Sprintf("demo-user-%d", userCounter),
+				Email:    fmt.Sprintf("demo%d@demo.local", userCounter),
 				Password: string(hashedPassword),
 				Role:     "member",
 			}
-			if err := DB.Create(&user).Error; err != nil {
-				debug.Log("Failed to create demo user %d: %v\n", i, err)
+			if err := DB.Create(&creator).Error; err != nil {
+				debug.Log("Failed to create demo user %d: %v\n", userCounter, err)
+				userCounter++
 				continue
 			}
+			userCounter++
 
 			// Create team
 			team := models.Team{
 				Name:      fmt.Sprintf("Demo Team %d", i),
 				Password:  string(hashedPassword),
-				CreatorID: user.ID,
+				CreatorID: creator.ID,
 			}
 			if err := DB.Create(&team).Error; err != nil {
 				debug.Log("Failed to create demo team %d: %v\n", i, err)
 				continue
 			}
 
-			// Assign user to team
-			user.TeamID = &team.ID
-			if err := DB.Save(&user).Error; err != nil {
-				debug.Log("Failed to assign user to team %d: %v\n", i, err)
+			// Assign creator to team
+			creator.TeamID = &team.ID
+			if err := DB.Save(&creator).Error; err != nil {
+				debug.Log("Failed to assign creator to team %d: %v\n", i, err)
 				continue
 			}
 
+			// Create additional team members
+			for j := 1; j < memberCount; j++ {
+				member := models.User{
+					Username: fmt.Sprintf("demo-user-%d", userCounter),
+					Email:    fmt.Sprintf("demo%d@demo.local", userCounter),
+					Password: string(hashedPassword),
+					Role:     "member",
+					TeamID:   &team.ID,
+				}
+				if err := DB.Create(&member).Error; err != nil {
+					debug.Log("Failed to create team member %d: %v\n", userCounter, err)
+				}
+				userCounter++
+			}
+
 			createdTeams = append(createdTeams, team)
-			debug.Log("Created Demo Team %d with user demo-user-%d\n", i, i)
+			debug.Log("Created Demo Team %d with %d members\n", i, memberCount)
 		}
 	}
 

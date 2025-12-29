@@ -118,7 +118,7 @@ export default function ScoreboardContent() {
         name: t.team?.name || t.name,
         points: t.totalScore || t.points || 0,
         solves: t.solveCount || t.solves || 0,
-        memberCount: t.team?.users?.length || 0
+        memberCount: t.memberCount || t.team?.users?.length || 0
       }));
 
       // Map individual leaderboard data from the new API
@@ -584,14 +584,14 @@ export default function ScoreboardContent() {
                             animationDuration={animationsEnabled ? 300 : 0}
                             dot={(props: any) => {
                               const { cx, cy, payload, index } = props;
-                              if (index === 0) return <circle cx={cx} cy={cy} r={4} fill={entity.color} />;
+                              if (index === 0) return <circle key={`dot-${entity.id}-${index}`} cx={cx} cy={cy} r={4} fill={entity.color} />;
                               const prevPoint = timelineData.timeline[index - 1];
                               const currentScore = payload[entityName];
                               const prevScore = prevPoint?.scores?.[entityName] || 0;
                               if (currentScore > prevScore) {
-                                return <circle cx={cx} cy={cy} r={4} fill={entity.color} />;
+                                return <circle key={`dot-${entity.id}-${index}`} cx={cx} cy={cy} r={4} fill={entity.color} />;
                               }
-                              return <></>;
+                              return null;
                             }}
                             activeDot={{ r: 6 }}
                           />
