@@ -228,7 +228,7 @@ func buildTimelinePoint(solve *models.Solve, allTeams []models.Team, teamScoresM
 // GetLeaderboard calculates and returns team rankings with current points
 func GetLeaderboard(c *gin.Context) {
 	var teams []models.Team
-	result := config.DB.Find(&teams)
+	result := config.DB.Preload("Users").Find(&teams)
 	if result.Error != nil {
 		debug.Log("Failed to fetch teams for leaderboard", result.Error)
 		utils.InternalServerError(c, "failed_to_fetch_teams")
@@ -249,9 +249,10 @@ func GetLeaderboard(c *gin.Context) {
 
 		copier.Copy(&safeTeam, &team)
 		copier.Copy(&teamScore, &dto.TeamScore{
-			Team:       safeTeam,
-			TotalScore: totalScore,
-			SolveCount: solvesCount,
+			Team:        safeTeam,
+			TotalScore:  totalScore,
+			SolveCount:  solvesCount,
+			MemberCount: len(team.Users),
 		})
 		leaderboard = append(leaderboard, teamScore)
 	}
