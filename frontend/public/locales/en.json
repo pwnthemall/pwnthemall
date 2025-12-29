@@ -130,6 +130,7 @@
     "base_points": "Base points",
     "decay_formula": "Decay formula",
     "select_decay": "Select a decay formula",
+    "decay_help": "Controls how points decrease as more players solve the challenge",
     "cancel": "Cancel",
     "save_config": "Save configuration",
     "enable_firstblood": "Enable First Blood system",
