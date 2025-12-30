@@ -90,11 +90,17 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     const shouldShowPwn = ctfLoading || ctfStatus.status !== 'not_started';
     items.push({
       title: t('sidebar.home'),
-      url: "/",
+      url: "/pages/index",
       icon:  Home,
-      isActive: router.pathname.startsWith("/"),
+      isActive: router.pathname.startsWith("/pages/index"),
     });
     if (loggedIn && shouldShowPwn) {
+      items.push({
+        title: t('dashboard'),
+        url: "/",
+        icon: Swords,
+        isActive: router.pathname.startsWith("/"),
+      });
       items.push({
         title: t('pwn'),
         url: "/pwn",
@@ -187,7 +193,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             open ? "gap-2 justify-start" : "justify-center flex-col gap-2"
           )}>
             {open && (
-              <Link href="/">
+              <Link href="/pages/index">
                 <Image
                   src={getThemeLogo(theme)}
                   alt={getSiteName()}
