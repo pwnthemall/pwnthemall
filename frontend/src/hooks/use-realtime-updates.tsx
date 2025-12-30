@@ -48,14 +48,27 @@ export function useRealtimeUpdates(onUpdate?: UpdateCallback, enabled: boolean =
       return;
     }
 
-    // Check if user is authenticated when requireAuth is true
-    if (requireAuth) {
-      // Check if user has a valid session by checking for auth cookie or token
-      const hasAuthCookie = document.cookie.split(';').some(c => c.trim().startsWith('session='));
-      if (!hasAuthCookie) {
-        // Don't attempt WebSocket connection if not authenticated
+    const handleRealtimeUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent<UpdateEvent>;
+      
+      if (!customEvent.detail || !customEvent.detail.event) {
+        console.warn('[useRealtimeUpdates] Invalid event structure');
         return;
       }
+      
+      const data = customEvent.detail;
+      
+      callbacks.forEach(callback => {
+        try {
+          callback(data);
+        } catch (error) {
+          console.error('[useRealtimeUpdates] Callback error:', error);
+        }
+      });
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('realtime-update', handleRealtimeUpdate);
     }
 
     // Assign unique ID for this callback
@@ -181,6 +194,11 @@ export function useRealtimeUpdates(onUpdate?: UpdateCallback, enabled: boolean =
     return () => {
       callbacks.delete(callbackIdRef.current);
       connectionListeners.delete(connectionListener);
+
+      // Remove custom event listener
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('realtime-update', handleRealtimeUpdate);
+      }
 
       // Remove WebSocket close listener
       if (typeof window !== 'undefined') {

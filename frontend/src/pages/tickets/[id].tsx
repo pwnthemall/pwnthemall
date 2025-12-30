@@ -153,12 +153,14 @@ export default function TicketDetailPage() {
           </div>
 
           {/* Chat */}
-          <TicketChat
-            ticket={ticket}
-            isAdmin={false}
-            onSendMessage={sendMessage}
-            onClose={handleClose}
-          />
+          <div className="flex flex-col h-[calc(100vh-12rem)]">
+            <TicketChat
+              ticket={ticket}
+              isAdmin={false}
+              onSendMessage={sendMessage}
+              onClose={handleClose}
+            />
+          </div>
         </div>
       </div>
     </>

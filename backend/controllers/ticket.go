@@ -156,6 +156,7 @@ func sendTicketWebSocketEvent(event dto.TicketWebSocketEvent, ticket *models.Tic
 		event.Event, event.TicketID, len(authorizedUserIDs), excludeUserID)
 
 	for userID := range authorizedUserIDs {
+		utils.WebSocketHub.SendToUser(userID, messageBytes)
 		utils.UpdatesHub.SendToUser(userID, messageBytes)
 	}
 }
