@@ -591,7 +591,7 @@ export default function ScoreboardContent() {
                               if (currentScore > prevScore) {
                                 return <circle key={`dot-${entity.id}-${index}`} cx={cx} cy={cy} r={4} fill={entity.color} />;
                               }
-                              return null;
+                              return <></>;
                             }}
                             activeDot={{ r: 6 }}
                           />
