@@ -18,14 +18,10 @@ func RegisterPageRoutes(router *gin.Engine) {
 	}
 
 	// API route for serving custom pages as JSON (used by Next.js SSR)
-	apiPages := router.Group("/api/pages")
+	apiPages := router.Group("/pages")
 	{
-		apiPages.GET("/:slug", middleware.RateLimit(120), controllers.ServePublicPageAPI)
+		apiPages.GET("", middleware.CheckPolicy("/pages", "read"), middleware.RateLimit(60), controllers.GetPages)
+		apiPages.GET("/:slug", middleware.CheckPolicy("/pages/:slug", "read"), middleware.RateLimit(120), controllers.ServePublicPageAPI)
 	}
 
-	// Public route for serving custom pages as HTML (optional direct access)
-	publicPages := router.Group("/pages")
-	{
-		publicPages.GET("/:slug", middleware.RateLimit(120), controllers.ServePublicPage)
-	}
 }

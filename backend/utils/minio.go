@@ -1,13 +1,14 @@
 package utils
 
 import (
-	"github.com/pwnthemall/pwnthemall/backend/debug"
 	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
-	
+
+	"github.com/pwnthemall/pwnthemall/backend/debug"
+
 	"os"
 	"path/filepath"
 	"reflect"
@@ -26,16 +27,20 @@ import (
 )
 
 const (
-	bucketNameChallenges = "challenges"
-	querySlug            = "slug = ?"
+	bucketNameChallenges  = "challenges"
+	bucketNamePages       = "pages"
+	querySlug             = "slug = ?"
 	queryChallengeIDMinio = "challenge_id = ?"
 )
 
 // parseObjectKey extracts the actual object key from webhook payload
 func parseObjectKey(key string) string {
 	parts := strings.SplitN(key, "/", 2)
-	if len(parts) == 2 && parts[0] == bucketNameChallenges {
-		return parts[1]
+	if len(parts) == 2 {
+		// Strip bucket name prefix if present (e.g., "challenges/..." or "pages/...")
+		if parts[0] == bucketNameChallenges || parts[0] == bucketNamePages {
+			return parts[1]
+		}
 	}
 	return key
 }
@@ -143,27 +148,27 @@ func parseChallengeByType(base meta.BaseChallengeMetadata, content []byte, objec
 // SyncAllChallengesFromMinIO syncs all challenges from MinIO on startup
 func SyncAllChallengesFromMinIO(ctx context.Context, updatesHub *Hub) error {
 	debug.Log("Starting initial sync of all challenges from MinIO bucket: %s", bucketNameChallenges)
-	
+
 	// List all objects in the challenges bucket
 	objectCh := config.FS.ListObjects(ctx, bucketNameChallenges, minio.ListObjectsOptions{
 		Recursive: true,
 	})
-	
+
 	syncCount := 0
 	errorCount := 0
-	
+
 	for object := range objectCh {
 		if object.Err != nil {
 			debug.Log("Error listing object: %v", object.Err)
 			errorCount++
 			continue
 		}
-		
+
 		// Only sync chall.yml files
 		if filepath.Base(object.Key) != "chall.yml" {
 			continue
 		}
-		
+
 		// Sync this challenge
 		key := bucketNameChallenges + "/" + object.Key
 		if err := SyncChallengesFromMinIO(ctx, key, updatesHub); err != nil {
@@ -173,7 +178,7 @@ func SyncAllChallengesFromMinIO(ctx context.Context, updatesHub *Hub) error {
 			syncCount++
 		}
 	}
-	
+
 	debug.Log("Initial sync completed: %d challenges synced, %d errors", syncCount, errorCount)
 	return nil
 }
@@ -304,7 +309,7 @@ func populateBasicChallengeFields(challenge *models.Challenge, metaData meta.Bas
 	challenge.MaxAttempts = metaData.Attempts
 	challenge.DependsOn = metaData.DependsOn
 	challenge.Emoji = metaData.Emoji
-	
+
 	// Only set decay formula if:
 	// 1. It's a new challenge, OR
 	// 2. The YAML file explicitly specifies a decay formula (not empty/None)
@@ -429,7 +434,7 @@ func setChallengeFiles(challenge *models.Challenge, files []string, slug string)
 		return nil
 	}
 
-	const maxFileSize = 50 * 1024 * 1024  // 50MB per file
+	const maxFileSize = 50 * 1024 * 1024   // 50MB per file
 	const maxTotalSize = 200 * 1024 * 1024 // 200MB total
 	var totalSize int64
 
@@ -494,7 +499,7 @@ func updateOrCreateChallengeInDB(metaData meta.BaseChallengeMetadata, slug strin
 	setConnectionInfo(&challenge, metaData.ConnectionInfo)
 	challenge.EnableFirstBlood = metaData.EnableFirstBlood
 	setFirstBloodConfig(&challenge, metaData.FirstBlood)
-	
+
 	// Set challenge files
 	if err := setChallengeFiles(&challenge, metaData.Files, slug); err != nil {
 		return fmt.Errorf("failed to set challenge files: %w", err)
@@ -593,4 +598,191 @@ func DownloadChallengeContext(slug string, localDir string) error {
 		outFile.Close()
 	}
 	return nil
+}
+
+// SyncAllPagesFromMinIO syncs all pages from MinIO on startup
+func SyncAllPagesFromMinIO(ctx context.Context) error {
+	debug.Log("Starting initial sync of all pages from MinIO bucket: %s", bucketNamePages)
+
+	// List all objects in the pages bucket
+	objectCh := config.FS.ListObjects(ctx, bucketNamePages, minio.ListObjectsOptions{
+		Recursive: true,
+	})
+
+	syncCount := 0
+	errorCount := 0
+
+	for object := range objectCh {
+		if object.Err != nil {
+			debug.Log("Error listing pages: %v", object.Err)
+			errorCount++
+			continue
+		}
+
+		// Only sync page.yml files
+		if !strings.HasSuffix(object.Key, "/page.yml") {
+			continue
+		}
+
+		// Sync this page
+		if err := SyncPagesFromMinIO(ctx, object.Key, nil); err != nil {
+			debug.Log("Failed to sync page %s: %v", object.Key, err)
+			errorCount++
+		} else {
+			syncCount++
+		}
+	}
+
+	debug.Log("Initial page sync completed: %d pages synced, %d errors", syncCount, errorCount)
+	return nil
+}
+
+// SyncPagesFromMinIO syncs a single page from MinIO (triggered by webhook or manual sync)
+func SyncPagesFromMinIO(ctx context.Context, key string, updatesHub *Hub) error {
+	objectKey := parseObjectKey(key)
+	debug.Log("SyncPagesFromMinIO begin for bucket: %s, key: %s", bucketNamePages, objectKey)
+
+	// Extract slug from path (e.g., "index/page.yml" -> "index")
+	parts := strings.Split(objectKey, "/")
+	if len(parts) < 2 {
+		return fmt.Errorf("invalid page path: %s", objectKey)
+	}
+	slug := parts[0]
+
+	// Fetch and parse page.yml
+	yamlKey := fmt.Sprintf("%s/page.yml", slug)
+	yamlObj, err := retrieveAndValidateObject(ctx, bucketNamePages, yamlKey)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve page.yml: %w", err)
+	}
+	defer yamlObj.Close()
+
+	yamlBuf, err := readObjectContent(yamlObj)
+	if err != nil {
+		return fmt.Errorf("failed to read page.yml: %w", err)
+	}
+
+	// Validate YAML size (max 10KB)
+	if yamlBuf.Len() > 10*1024 {
+		return fmt.Errorf("page.yml exceeds maximum size of 10KB")
+	}
+
+	// Parse YAML metadata
+	var pageMeta meta.PageMetadata
+	if err := yaml.Unmarshal(yamlBuf.Bytes(), &pageMeta); err != nil {
+		return fmt.Errorf("invalid page.yml: %w", err)
+	}
+
+	// Validate metadata
+	if err := validatePageMetadata(pageMeta, slug); err != nil {
+		return fmt.Errorf("invalid page metadata: %w", err)
+	}
+
+	// Check sidebar page limit (only if this page wants to be in sidebar)
+	if pageMeta.IsInSidebar {
+		var sidebarCount int64
+		config.DB.Model(&models.Page{}).
+			Where("is_in_sidebar = ? AND slug != ?", true, slug).
+			Count(&sidebarCount)
+		if sidebarCount >= 15 {
+			return fmt.Errorf("maximum 15 sidebar pages exceeded (current: %d)", sidebarCount)
+		}
+	}
+
+	// Fetch page.html
+	htmlKey := fmt.Sprintf("%s/page.html", slug)
+	htmlObj, err := retrieveAndValidateObject(ctx, bucketNamePages, htmlKey)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve page.html: %w", err)
+	}
+	defer htmlObj.Close()
+
+	htmlBuf, err := readObjectContent(htmlObj)
+	if err != nil {
+		return fmt.Errorf("failed to read page.html: %w", err)
+	}
+
+	// Validate HTML size (max 1MB)
+	if htmlBuf.Len() > 1024*1024 {
+		return fmt.Errorf("page.html exceeds maximum size of 1MB")
+	}
+
+	// Audit log before overwrite
+	var existing models.Page
+	if config.DB.Where("slug = ?", slug).First(&existing).Error == nil {
+		logPageOverwrite(existing, pageMeta)
+	}
+
+	// Update/create page in database
+	now := time.Now()
+	page := models.Page{
+		Slug:         slug,
+		Title:        pageMeta.Title,
+		MinioKey:     htmlKey,
+		IsInSidebar:  pageMeta.IsInSidebar,
+		Order:        pageMeta.Order,
+		Source:       "minio",
+		LastSyncedAt: &now,
+	}
+
+	// Upsert page record (sanitized HTML is stored in MinIO, we just reference it)
+	result := config.DB.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "slug"}},
+		DoUpdates: clause.AssignmentColumns([]string{"title", "minio_key", "is_in_sidebar", "order", "source", "last_synced_at", "updated_at"}),
+	}).Create(&page)
+
+	if result.Error != nil {
+		return fmt.Errorf("failed to sync page to database: %w", result.Error)
+	}
+
+	// Broadcast update to connected clients
+	if updatesHub != nil {
+		if payload, err := json.Marshal(map[string]interface{}{
+			"event":  "page",
+			"action": "synced",
+			"slug":   slug,
+		}); err == nil {
+			updatesHub.SendToAll(payload)
+		}
+	}
+
+	debug.Log("Successfully synced page: %s", slug)
+	return nil
+}
+
+// validatePageMetadata validates page metadata fields
+func validatePageMetadata(meta meta.PageMetadata, slug string) error {
+	if meta.Title == "" {
+		return fmt.Errorf("title cannot be empty")
+	}
+
+	if len(meta.Title) > 200 {
+		return fmt.Errorf("title cannot exceed 200 characters")
+	}
+
+	if meta.Order < 0 {
+		return fmt.Errorf("order must be non-negative")
+	}
+
+	// Validate slug format (reuse existing validator)
+	if err := ValidatePageSlug(slug); err != nil {
+		return fmt.Errorf("invalid slug: %w", err)
+	}
+
+	return nil
+}
+
+// logPageOverwrite logs page overwrites for audit trail
+func logPageOverwrite(existing models.Page, newMeta meta.PageMetadata) {
+	debug.Log("AUDIT: Overwriting page '%s' (id=%d) - Old: {title=%s, is_in_sidebar=%v, order=%d, source=%s} -> New: {title=%s, is_in_sidebar=%v, order=%d, source=minio}",
+		existing.Slug,
+		existing.ID,
+		existing.Title,
+		existing.IsInSidebar,
+		existing.Order,
+		existing.Source,
+		newMeta.Title,
+		newMeta.IsInSidebar,
+		newMeta.Order,
+	)
 }

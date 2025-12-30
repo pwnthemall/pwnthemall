@@ -191,6 +191,7 @@ services:
       MINIO_NOTIFY_WEBHOOK_AUTH_TOKEN_DBSYNC: "Bearer ${MINIO_NOTIFY_WEBHOOK_AUTH_TOKEN_DBSYNC}"
     volumes:
       - "./minio/challenges:/data/challenges"
+      - "./minio/pages:/data/pages"
       - "./minio/config:/data/config"
       - "minio:/data/minio"
     entrypoint: '/bin/sh /data/config/entrypoint.sh'

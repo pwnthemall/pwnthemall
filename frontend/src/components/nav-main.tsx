@@ -28,6 +28,7 @@ type NavItem = {
   readonly url: string
   readonly icon?: LucideIcon
   readonly isActive?: boolean
+  readonly ariaLabel?: string
   readonly items?: ReadonlyArray<{
     readonly title: string
     readonly url: string
@@ -146,6 +147,7 @@ function SimpleNavItem({ item, open }: { readonly item: NavItem; readonly open: 
   return (
     <Link
       href={item.url}
+      aria-label={item.ariaLabel || item.title}
       className={cn(
         "flex w-full items-center gap-2 rounded-lg p-2 text-left text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-all duration-200",
         item.isActive && "bg-sidebar-accent text-sidebar-accent-foreground"
