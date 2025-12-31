@@ -10,8 +10,8 @@ func RegisterPageRoutes(router *gin.Engine) {
 	// Admin routes for page management
 	adminPages := router.Group("/admin/pages", middleware.AuthRequired(false))
 	{
-		adminPages.GET("", middleware.CheckPolicy("/admin/pages", "read"), middleware.RateLimit(60), controllers.GetPages)
-		adminPages.GET("/:id", middleware.CheckPolicy("/admin/pages/:id", "read"), middleware.RateLimit(60), controllers.GetPage)
+		adminPages.GET("", middleware.CheckPolicy("/admin/pages", "read"), middleware.RateLimit(60), controllers.GetAdminPages)
+		adminPages.GET("/:id", middleware.CheckPolicy("/admin/pages/:id", "read"), middleware.RateLimit(60), controllers.GetAdminPage)
 		adminPages.POST("", middleware.CheckPolicy("/admin/pages", "write"), middleware.RateLimit(10), controllers.CreatePage)
 		adminPages.PUT("/:id", middleware.CheckPolicy("/admin/pages/:id", "write"), middleware.RateLimit(30), controllers.UpdatePage)
 		adminPages.DELETE("/:id", middleware.CheckPolicy("/admin/pages/:id", "write"), middleware.RateLimit(10), controllers.DeletePage)
