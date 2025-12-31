@@ -205,6 +205,11 @@ export const useNotifications = (isAuthenticated: boolean = false): UseNotificat
                   debugLog('[NOTIFICATIONS WS] Event dispatched successfully');
                   return; // Not a Notification object
                 }
+                if (parsed && (parsed.event === 'ticket_created' || parsed.event === 'ticket_message' || parsed.event === 'ticket_resolved')) {
+                  debugLog('[WS] Ticket event:', parsed.event);
+                  window.dispatchEvent(new CustomEvent('realtime-update', { detail: parsed }));
+                  return;
+                }
               } catch {}
             }
 

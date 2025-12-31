@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { ChallengeCategory, ChallengeDifficulty } from "@/models"
+import { DecayFormula } from "@/models/DecayFormula"
 
 interface ChallengeCreateDialogProps {
   readonly open: boolean
@@ -46,6 +47,7 @@ interface CreateChallengeForm {
   category: string
   difficulty: string
   points: number
+  decayFormulaId: number | null
   flags: string[]
   hints: HintInput[]
   hidden: boolean
@@ -66,6 +68,7 @@ const initialFormState: CreateChallengeForm = {
   category: "",
   difficulty: "",
   points: 100,
+  decayFormulaId: null,
   flags: [""],
   hints: [],
   hidden: true,
@@ -88,6 +91,7 @@ export default function ChallengeCreateDialog({
   const [loading, setLoading] = useState(false)
   const [categories, setCategories] = useState<ChallengeCategory[]>([])
   const [difficulties, setDifficulties] = useState<ChallengeDifficulty[]>([])
+  const [decayFormulas, setDecayFormulas] = useState<DecayFormula[]>([])
   const [newCategory, setNewCategory] = useState("")
   const [newDifficulty, setNewDifficulty] = useState("")
   const [formData, setFormData] = useState<CreateChallengeForm>(initialFormState)
@@ -96,6 +100,7 @@ export default function ChallengeCreateDialog({
     if (open) {
       fetchCategories()
       fetchDifficulties()
+      fetchDecayFormulas()
       setFormData(initialFormState)
     }
   }, [open])
@@ -129,6 +134,18 @@ export default function ChallengeCreateDialog({
       }
     } catch (error) {
       console.error("Failed to fetch difficulties:", error)
+    }
+  }
+
+  const fetchDecayFormulas = async () => {
+    try {
+      const response = await axios.get("/api/decay-formulas")
+      const validFormulas = (response.data || []).filter(
+        (formula: DecayFormula) => formula.id > 0 && formula.name && formula.name.trim() !== ""
+      )
+      setDecayFormulas(validFormulas)
+    } catch (error) {
+      console.error("Failed to fetch decay formulas:", error)
     }
   }
 
@@ -223,6 +240,7 @@ export default function ChallengeCreateDialog({
         category: newCategory.trim() || formData.category,
         difficulty: newDifficulty.trim() || formData.difficulty,
         points: formData.points,
+        decayFormulaId: formData.decayFormulaId,
         flags: formData.flags.filter((f) => f.trim()),
         hints: formData.hints
           .filter((h) => h.title.trim() && h.content.trim())
@@ -481,6 +499,35 @@ export default function ChallengeCreateDialog({
                   setFormData((prev) => ({ ...prev, points: parseInt(e.target.value) || 1 }))
                 }
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="decayFormula">{t("challenge_form.decay_formula") || "Decay Formula"}</Label>
+              <Select
+                value={formData.decayFormulaId?.toString() || ""}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    decayFormulaId: value === "" ? null : Number.parseInt(value),
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t("challenge_form.select_decay") || "Select decay formula"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {decayFormulas.map((formula) => (
+                    <SelectItem key={formula.id} value={formula.id.toString()}>
+                      {formula.type === "fixed"
+                        ? formula.name
+                        : `${formula.name} - Step: ${formula.step}, Min: ${formula.minPoints}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                {t("challenge_form.decay_help") || "Controls how points decrease as more players solve the challenge"}
+              </p>
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">

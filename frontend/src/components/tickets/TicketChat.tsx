@@ -191,7 +191,7 @@ export function TicketChat({
       </Card>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto space-y-4 mb-4 min-h-[300px] max-h-[500px] px-2">
+      <div className="flex-1 overflow-y-scroll space-y-4 mb-4 px-2">
         {ticket.messages.length === 0 ? (
           <div className="text-center text-muted-foreground py-8">
             {t("tickets.no_messages") || "No messages yet. Start the conversation!"}
@@ -211,7 +211,7 @@ export function TicketChat({
 
       {/* Input */}
       {!isResolved && (
-        <div className="border-t pt-4">
+        <div className="border-t pt-4 flex-shrink-0">
           <div className="flex gap-2">
             <div className="flex-1 relative">
               <Textarea

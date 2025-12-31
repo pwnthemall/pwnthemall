@@ -229,11 +229,15 @@ func CreateChallengeAdmin(c *gin.Context) {
 		return
 	}
 
-	// Get default decay formula (No Decay)
-	var decayFormula models.DecayFormula
-	if err := tx.Where(queryNameEquals, "No Decay").First(&decayFormula).Error; err != nil {
-		// If no decay formula found, just continue without it
-		debug.Log("No decay formula found, continuing without")
+	// Validate decay formula if provided
+	if req.DecayFormulaID != nil && *req.DecayFormulaID > 0 {
+		var decayFormula models.DecayFormula
+		if err := tx.First(&decayFormula, *req.DecayFormulaID).Error; err != nil {
+			tx.Rollback()
+			utils.BadRequestError(c, "invalid decay formula ID")
+			return
+		}
+		debug.Log("Decay formula '%s' (ID: %d) will be applied to challenge", decayFormula.Name, decayFormula.ID)
 	}
 
 	// Create challenge
@@ -252,8 +256,9 @@ func CreateChallengeAdmin(c *gin.Context) {
 		CoverZoom:             coverZoom,
 	}
 
-	if decayFormula.ID > 0 {
-		challenge.DecayFormulaID = decayFormula.ID
+	// Set decay formula if provided
+	if req.DecayFormulaID != nil && *req.DecayFormulaID > 0 {
+		challenge.DecayFormulaID = *req.DecayFormulaID
 	}
 
 	if err := tx.Create(&challenge).Error; err != nil {
