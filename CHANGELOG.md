@@ -1,5 +1,25 @@
 # 🚀 Changelog
 
+## [0.6.0](https://github.com/pwnthemall/pwnthemall/compare/v0.5.0...v0.6.0) (2025-12-31)
+
+
+### 🧩 Features
+
+* **custom-pages:** Custom pages feature improvement ([5419854](https://github.com/pwnthemall/pwnthemall/commit/54198549a6d385cefc0c314ecebaa5f5e1ee6da9))
+
+
+### 🐛 Bug fixes
+
+* **build:** Fixed pta not building ([3b272fe](https://github.com/pwnthemall/pwnthemall/commit/3b272fe5f8b479ed8aad03ed27a77f1baa26f822))
+* **chall-creation:** Remove one 'no decay' option which was duped ([229fd1f](https://github.com/pwnthemall/pwnthemall/commit/229fd1f81001c2c3c20fb5231b4171b054234890))
+* **custom-pages:** Administration table fixed (wrong controller function call in admin routes) ([dc1f506](https://github.com/pwnthemall/pwnthemall/commit/dc1f506d7cb94593f25b3a72d457a5ad31cd28f7))
+* Redirect to /login when not logged and added a check for unauthed users to avoid trying to connect to ws ([f5677bd](https://github.com/pwnthemall/pwnthemall/commit/f5677bda1f52969fec3f620fdd2026df98231667))
+* **scoreboard:** Add missing memberCount to team leaderboard response ([0a47459](https://github.com/pwnthemall/pwnthemall/commit/0a47459019384fcc48a366fe4274e55b99ecf33c))
+* **security:** Add ticket ID validation to prevent request forgery ([0b2a345](https://github.com/pwnthemall/pwnthemall/commit/0b2a3450c88e3fdc5ff7f528a03f8a9d4a34bdd3))
+* **seeder/scoreboard:** Added a random amount of players for each team when seeding the db using pta-cli ([9ad9645](https://github.com/pwnthemall/pwnthemall/commit/9ad96454740f661aeb3a6043ff16e67b47ed2f55))
+* **tickets:** Fixed tickets not using realtime updates, tickets now have RT for creation,update(message), status chaneg etc ([3e4d6a9](https://github.com/pwnthemall/pwnthemall/commit/3e4d6a94b338de022731e7a01be8e391468853ac))
+* **trad:** Wrong trads in en.json ([492ee31](https://github.com/pwnthemall/pwnthemall/commit/492ee3166e9f92db9fbaaf9c67831a5199a8cdc5))
+
 ## [0.5.0](https://github.com/pwnthemall/pwnthemall/compare/v0.4.0...v0.5.0) (2025-12-23)
 
 
