@@ -7,16 +7,30 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/copier"
 	"github.com/minio/minio-go/v7"
 	"github.com/pwnthemall/pwnthemall/backend/config"
+	"github.com/pwnthemall/pwnthemall/backend/dto"
 	"github.com/pwnthemall/pwnthemall/backend/models"
 	"github.com/pwnthemall/pwnthemall/backend/utils"
 )
 
 const pagesBucket = "pages"
 
-// GetPages returns all pages (admin only)
+// GetPages returns all pages
 func GetPages(c *gin.Context) {
+	var pages []models.Page
+
+	if err := config.DB.Order("created_at DESC").Find(&pages).Error; err != nil {
+		utils.InternalServerError(c, "Failed to fetch pages")
+		return
+	}
+	var pagesDTO []dto.PageDTO
+	copier.Copy(&pagesDTO, &pages)
+	utils.SuccessResponse(c, http.StatusOK, gin.H{"pages": pagesDTO})
+}
+
+func GetAdminPages(c *gin.Context) {
 	var pages []models.Page
 
 	if err := config.DB.Order("created_at DESC").Find(&pages).Error; err != nil {
@@ -27,8 +41,40 @@ func GetPages(c *gin.Context) {
 	utils.SuccessResponse(c, http.StatusOK, gin.H{"pages": pages})
 }
 
-// GetPage returns a single page by ID (admin only)
+// GetPage returns a single page by ID
 func GetPage(c *gin.Context) {
+	id := c.Param("id")
+
+	var page models.Page
+	if err := config.DB.First(&page, id).Error; err != nil {
+		utils.NotFoundError(c, "Page not found")
+		return
+	}
+
+	// Fetch HTML content from MinIO
+	objectKey := fmt.Sprintf("%s.html", page.Slug)
+	ctx := context.Background()
+
+	obj, err := config.FS.GetObject(ctx, pagesBucket, objectKey, minio.GetObjectOptions{})
+	if err != nil {
+		utils.InternalServerError(c, "Failed to fetch page content")
+		return
+	}
+	defer obj.Close()
+
+	buf := new(bytes.Buffer)
+	if _, err := buf.ReadFrom(obj); err != nil {
+		utils.InternalServerError(c, "Failed to read page content")
+		return
+	}
+
+	utils.SuccessResponse(c, http.StatusOK, gin.H{
+		"page": page,
+		"html": buf.String(),
+	})
+}
+
+func GetAdminPage(c *gin.Context) {
 	id := c.Param("id")
 
 	var page models.Page
@@ -288,6 +334,9 @@ func ServePublicPage(c *gin.Context) {
 		return
 	}
 
+	// Sanitize HTML content before serving
+	sanitizedHTML := utils.SanitizePageHTML(buf.String())
+
 	// Set security headers
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	c.Header("X-Content-Type-Options", "nosniff")
@@ -295,8 +344,8 @@ func ServePublicPage(c *gin.Context) {
 	c.Header("Content-Security-Policy", utils.GetPageContentSecurityPolicy())
 	c.Header("Cache-Control", "public, max-age=300") // Cache for 5 minutes
 
-	// Serve HTML
-	c.Data(http.StatusOK, "text/html; charset=utf-8", buf.Bytes())
+	// Serve sanitized HTML
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(sanitizedHTML))
 }
 
 // ServePublicPageAPI serves a custom page as JSON (for Next.js SSR)
@@ -326,7 +375,10 @@ func ServePublicPageAPI(c *gin.Context) {
 		return
 	}
 
-	// Return JSON response with page metadata and HTML content
+	// Sanitize HTML content before serving
+	sanitizedHTML := utils.SanitizePageHTML(buf.String())
+
+	// Return JSON response with page metadata and sanitized HTML content
 	c.JSON(http.StatusOK, gin.H{
 		"page": gin.H{
 			"id":         page.ID,
@@ -335,7 +387,7 @@ func ServePublicPageAPI(c *gin.Context) {
 			"minio_key":  page.MinioKey,
 			"created_at": page.CreatedAt,
 			"updated_at": page.UpdatedAt,
-			"html":       buf.String(),
+			"html":       sanitizedHTML,
 		},
 	})
 }

@@ -5,6 +5,7 @@ import { AuthProvider } from '@/context/AuthContext'
 import { UserProvider } from '@/context/UserContext'
 import { LanguageProvider } from '@/context/LanguageContext'
 import { SiteConfigProvider } from '@/context/SiteConfigContext'
+import { SidebarPagesProvider } from '@/context/SidebarPagesContext'
 import { NotificationProvider } from '@/context/NotificationContext'
 import { CSRFProvider, useCSRF } from '@/context/CSRFContext'
 import { ThemeProvider } from '@/components/theme-provider'
@@ -97,11 +98,12 @@ function MyApp({ Component, pageProps, sidebarDefaultOpen }: MyAppProps) {
   return (
     <LanguageProvider>
       <SiteConfigProvider>
-        <AuthProvider>
-          <UserProvider>
-            <CSRFProvider>
-              <CSRFSyncComponent />
-              <NotificationProvider>
+        <SidebarPagesProvider>
+          <AuthProvider>
+            <UserProvider>
+              <CSRFProvider>
+                <CSRFSyncComponent />
+                <NotificationProvider>
                 <ThemeProvider
                   attribute="class"
                   defaultTheme={systemTheme}
@@ -129,6 +131,7 @@ function MyApp({ Component, pageProps, sidebarDefaultOpen }: MyAppProps) {
             </CSRFProvider>
           </UserProvider>
         </AuthProvider>
+      </SidebarPagesProvider>
       </SiteConfigProvider>
     </LanguageProvider>
   )

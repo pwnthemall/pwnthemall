@@ -916,7 +916,10 @@
     "pages_description": "Gérer les pages HTML personnalisées",
     "no_pages_yet": "Aucune page créée pour le moment. Cliquez sur 'Créer une page' pour commencer.",
     "no_pages_match_filter": "Aucune page ne correspond à vos filtres.",
-    "clear_all": "Tout effacer"
+    "clear_all": "Tout effacer",
+    "in_sidebar": "Afficher dans la sidebar",
+    "source": "Source",
+    "view_only": "Lecture seule"
   },
   "sidebar":{
     "home":"Accueil"
