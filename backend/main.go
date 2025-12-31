@@ -85,6 +85,17 @@ func main() {
 		}
 	}()
 
+	// Sync all pages from MinIO on startup
+	debug.Println("INFO: Launching initial page sync goroutine...")
+	go func() {
+		ctx := context.Background()
+		if err := utils.SyncAllPagesFromMinIO(ctx); err != nil {
+			debug.Log("Warning: Initial page sync failed: %v", err)
+		} else {
+			debug.Println("INFO: Initial page sync goroutine completed successfully")
+		}
+	}()
+
 	// Start hint activation scheduler
 	utils.StartHintScheduler()
 
@@ -147,6 +158,7 @@ func main() {
 	routes.RegisterSubmissionRoutes(router)
 	routes.RegisterDashboardRoutes(router)
 	routes.RegisterTicketRoutes(router)
+	routes.RegisterPageRoutes(router)
 
 	if os.Getenv("PTA_PLUGINS_ENABLED") == "true" {
 		debug.Log("Loading plugins...")

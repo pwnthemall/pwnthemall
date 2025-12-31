@@ -92,6 +92,17 @@ func messageToResponse(msg models.TicketMessage) dto.TicketMessageResponse {
 	return response
 }
 
+// validateTicketID validates and parses a ticket ID from a string parameter
+func validateTicketID(c *gin.Context) (uint, bool) {
+	ticketIDStr := c.Param("id")
+	ticketID, err := strconv.ParseUint(ticketIDStr, 10, 32)
+	if err != nil {
+		utils.BadRequestError(c, "invalid_ticket_id")
+		return 0, false
+	}
+	return uint(ticketID), true
+}
+
 // sendTicketWebSocketEvent sends a ticket event via WebSocket to authorized users only
 func sendTicketWebSocketEvent(event dto.TicketWebSocketEvent, ticket *models.Ticket, excludeUserID uint) {
 	messageBytes, err := json.Marshal(event)
@@ -145,6 +156,7 @@ func sendTicketWebSocketEvent(event dto.TicketWebSocketEvent, ticket *models.Tic
 		event.Event, event.TicketID, len(authorizedUserIDs), excludeUserID)
 
 	for userID := range authorizedUserIDs {
+		utils.WebSocketHub.SendToUser(userID, messageBytes)
 		utils.UpdatesHub.SendToUser(userID, messageBytes)
 	}
 }
@@ -288,7 +300,10 @@ func GetUserTickets(c *gin.Context) {
 // GetTicket retrieves a specific ticket with paginated messages
 func GetTicket(c *gin.Context) {
 	userID := c.GetUint("user_id")
-	ticketID := c.Param("id")
+	ticketID, ok := validateTicketID(c)
+	if !ok {
+		return
+	}
 
 	// Parse pagination parameters
 	limit := 50                 // Max 50 messages per page
@@ -375,7 +390,10 @@ func GetTicket(c *gin.Context) {
 // SendTicketMessage sends a message in a ticket
 func SendTicketMessage(c *gin.Context) {
 	userID := c.GetUint("user_id")
-	ticketID := c.Param("id")
+	ticketID, ok := validateTicketID(c)
+	if !ok {
+		return
+	}
 
 	// Get user
 	var user models.User
@@ -457,7 +475,10 @@ func SendTicketMessage(c *gin.Context) {
 // CloseTicket allows a user to close their own ticket
 func CloseTicket(c *gin.Context) {
 	userID := c.GetUint("user_id")
-	ticketID := c.Param("id")
+	ticketID, ok := validateTicketID(c)
+	if !ok {
+		return
+	}
 
 	var ticket models.Ticket
 	if err := config.DB.First(&ticket, ticketID).Error; err != nil {
@@ -564,7 +585,10 @@ func UploadTicketAttachment(c *gin.Context) {
 // GetTicketAttachment serves a ticket attachment
 func GetTicketAttachment(c *gin.Context) {
 	userID := c.GetUint("user_id")
-	ticketID := c.Param("id")
+	ticketID, ok := validateTicketID(c)
+	if !ok {
+		return
+	}
 	filename := c.Param("filename")
 
 	// Validate filename to prevent path traversal attacks
@@ -729,7 +753,10 @@ func GetAllTickets(c *gin.Context) {
 
 // GetAdminTicket retrieves a specific ticket for admin with paginated messages
 func GetAdminTicket(c *gin.Context) {
-	ticketID := c.Param("id")
+	ticketID, ok := validateTicketID(c)
+	if !ok {
+		return
+	}
 
 	// Parse pagination parameters
 	limit := 50                 // Max 50 messages per page
@@ -797,7 +824,10 @@ func GetAdminTicket(c *gin.Context) {
 
 // ResolveTicket allows an admin to resolve a ticket
 func ResolveTicket(c *gin.Context) {
-	ticketID := c.Param("id")
+	ticketID, ok := validateTicketID(c)
+	if !ok {
+		return
+	}
 
 	var ticket models.Ticket
 	if err := config.DB.Preload("User").First(&ticket, ticketID).Error; err != nil {
@@ -828,7 +858,10 @@ func ResolveTicket(c *gin.Context) {
 // AdminReplyTicket allows an admin to reply to a ticket
 func AdminReplyTicket(c *gin.Context) {
 	adminID := c.GetUint("user_id")
-	ticketID := c.Param("id")
+	ticketID, ok := validateTicketID(c)
+	if !ok {
+		return
+	}
 
 	// Get admin info
 	var admin models.User
@@ -892,7 +925,10 @@ func AdminReplyTicket(c *gin.Context) {
 
 // DeleteTicket allows an admin to delete a ticket
 func DeleteTicket(c *gin.Context) {
-	ticketID := c.Param("id")
+	ticketID, ok := validateTicketID(c)
+	if !ok {
+		return
+	}
 
 	var ticket models.Ticket
 	if err := config.DB.First(&ticket, ticketID).Error; err != nil {

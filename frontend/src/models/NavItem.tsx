@@ -10,6 +10,7 @@ export interface NavItem extends NavSubItem {
   icon?: LucideIcon;
   items?: NavSubItem[];
   isActive?: boolean;
+  ariaLabel?: string;
   draggableItems?: ChallengeCategory[];
   onReorderItems?: (items: ChallengeCategory[]) => void;
 }

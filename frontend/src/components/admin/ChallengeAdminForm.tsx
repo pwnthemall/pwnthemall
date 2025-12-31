@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { useLanguage } from "@/context/LanguageContext"
 import { Challenge, ChallengeCategory, ChallengeDifficulty } from "@/models"
+import { DecayFormula } from "@/models/DecayFormula"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -24,14 +25,6 @@ import { FirstBloodManager } from "./FirstBloodManager"
 interface ChallengeAdminFormProps {
   readonly challenge: Challenge
   readonly onClose: () => void
-}
-
-interface DecayFormula {
-  id: number
-  name: string
-  type: string
-  step: number
-  minPoints: number
 }
 
 interface Hint {

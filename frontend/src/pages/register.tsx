@@ -71,7 +71,7 @@ const RegisterPage = () => {
   // Show loading state while config is being loaded
   if (configLoading) {
     return (
-      <div className="min-h-screen w-screen bg-muted flex items-center justify-center">
+      <div className="min-h-screen w-screen flex items-center justify-center">
         <p>{t('loading')}</p>
       </div>
     );
@@ -80,7 +80,7 @@ const RegisterPage = () => {
   // If registration is disabled, show disabled message
   if (!registrationEnabled) {
     return (
-      <div className="min-h-screen w-screen bg-muted flex items-center justify-center overflow-hidden relative">
+      <div className="min-h-screen w-screen flex items-center justify-center overflow-hidden relative">
         <Button
           variant="ghost"
           className="absolute top-4 left-4 h-8 w-8 p-0"
@@ -97,7 +97,7 @@ const RegisterPage = () => {
   }
 
   return (
-    <div className="min-h-screen w-screen bg-muted flex items-center justify-center overflow-hidden relative">
+    <div className="min-h-screen w-screen flex items-center justify-center overflow-hidden relative">
       <Button
         variant="ghost"
         className="absolute top-4 left-4 h-8 w-8 p-0"

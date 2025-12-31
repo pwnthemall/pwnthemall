@@ -33,7 +33,7 @@ const callbacks = new Map<number, UpdateCallback>();
 const connectionListeners = new Set<(connected: boolean) => void>();
 let callbackIdCounter = 0;
 
-export function useRealtimeUpdates(onUpdate?: UpdateCallback, enabled: boolean = true) {
+export function useRealtimeUpdates(onUpdate?: UpdateCallback, enabled: boolean = true, requireAuth: boolean = true) {
   const [isConnected, setIsConnected] = useState(globalIsConnected);
   const callbackIdRef = useRef<number>(0);
   const onUpdateRef = useRef(onUpdate);
@@ -46,6 +46,29 @@ export function useRealtimeUpdates(onUpdate?: UpdateCallback, enabled: boolean =
   useEffect(() => {
     if (!enabled) {
       return;
+    }
+
+    const handleRealtimeUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent<UpdateEvent>;
+      
+      if (!customEvent.detail || !customEvent.detail.event) {
+        console.warn('[useRealtimeUpdates] Invalid event structure');
+        return;
+      }
+      
+      const data = customEvent.detail;
+      
+      callbacks.forEach(callback => {
+        try {
+          callback(data);
+        } catch (error) {
+          console.error('[useRealtimeUpdates] Callback error:', error);
+        }
+      });
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('realtime-update', handleRealtimeUpdate);
     }
 
     // Assign unique ID for this callback
@@ -171,6 +194,11 @@ export function useRealtimeUpdates(onUpdate?: UpdateCallback, enabled: boolean =
     return () => {
       callbacks.delete(callbackIdRef.current);
       connectionListeners.delete(connectionListener);
+
+      // Remove custom event listener
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('realtime-update', handleRealtimeUpdate);
+      }
 
       // Remove WebSocket close listener
       if (typeof window !== 'undefined') {

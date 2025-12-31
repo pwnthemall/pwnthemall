@@ -71,7 +71,7 @@ const LoginPage = () => {
 
   return (
     <>
-      <div className="min-h-screen w-screen bg-muted flex items-center justify-center overflow-hidden relative">
+      <div className="min-h-screen w-screen flex items-center justify-center overflow-hidden relative">
         <Button
           variant="ghost"
           className="absolute top-4 left-4 h-8 w-8 p-0"

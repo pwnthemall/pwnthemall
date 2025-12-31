@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Home, Swords, LogIn, UserPlus, User, List, ShieldUser, Bell, Flag, MessageSquare } from "lucide-react";
+import { Home, Swords, LogIn, UserPlus, User, List, ShieldUser, Bell, Flag, MessageSquare, FileText, Telescope } from "lucide-react";
 import { useRouter } from "next/router";
 
 import { NavMain } from "@/components/nav-main";
@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSiteConfig } from "@/context/SiteConfigContext";
+import { useSidebarPages } from "@/context/SidebarPagesContext";
 import { useCTFStatus } from "@/hooks/use-ctf-status";
 import type { NavItem } from "@/models/NavItem";
 import Image from "next/image";
@@ -32,6 +33,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { loggedIn, logout, authChecked } = useAuth();
   const { t } = useLanguage();
   const { getSiteName, siteConfig } = useSiteConfig();
+  const { pages: sidebarPages, loading: pagesLoading } = useSidebarPages();
   const router = useRouter();
   const { isMobile, open } = useSidebar();
   const { ctfStatus, loading: ctfLoading } = useCTFStatus();
@@ -88,13 +90,14 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     
     // Only show pwn section if CTF has started (active, ended, no timing, or still loading CTF status)
     const shouldShowPwn = ctfLoading || ctfStatus.status !== 'not_started';
-    items.push({
-      title: t('sidebar.home'),
-      url: "/",
-      icon:  Home,
-      isActive: router.pathname.startsWith("/"),
-    });
+
     if (loggedIn && shouldShowPwn) {
+      items.push({
+        title: t('dashboard'),
+        url: "/",
+        icon: Telescope,
+        isActive: router.pathname.startsWith("/"),
+      });
       items.push({
         title: t('pwn'),
         url: "/pwn",
@@ -102,7 +105,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         isActive: router.pathname.startsWith("/pwn"),
       });
     }
-    
+
     if (loggedIn) {
       // Only show scoreboard if CTF has started (active, ended, or no timing)
       const shouldShowScoreboard = ctfLoading || ctfStatus.status !== 'not_started';
@@ -115,7 +118,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         isActive: router.pathname === "/scoreboard",
       });
       }
-      
+
       // Only show tickets if enabled (and not admin - admins use admin/tickets)
       if (siteConfig.TICKETS_ENABLED !== 'false' && userData.role !== "admin") {
         items.push({
@@ -125,7 +128,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           isActive: router.pathname.startsWith("/tickets"),
         });
       }
-      
+
       if (userData.role === "admin") {
         // Build admin sub-items dynamically
         const adminSubItems = [
@@ -133,13 +136,14 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           { title: t('users'), url: "/admin/users" },
           { title: t('instances'), url: "/admin/instances" },
           { title: t('admin.submissions'), url: "/admin/submissions" },
+          { title: t('admin.pages_management'), url: "/admin/pages"}
         ];
-        
+
         // Add tickets management if enabled
         if (siteConfig.TICKETS_ENABLED !== 'false') {
           adminSubItems.push({ title: t('admin.tickets'), url: "/admin/tickets" });
         }
-        
+
         adminSubItems.push(
           { title: 'Categories & Difficulties', url: "/admin/challenge-categories" },
           { title: 'Challenges', url: "/admin/challenges" },
@@ -147,7 +151,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           { title: t('configuration'), url: "/admin/configuration" },
           { title: 'Notifications', url: "/admin/notifications" }
         );
-        
+
         items.push({
           title: t('administration'),
           url: "/admin",
@@ -163,14 +167,41 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             router.pathname === "/admin/challenges" ||
             router.pathname === "/admin/challenge-order" ||
             router.pathname === "/admin/configuration" ||
-            router.pathname === "/admin/notifications",
+            router.pathname === "/admin/notifications" ||
+            router.pathname === "/admin/pages"
         });
       }
     } else {
-      // Not logged in
+      items.push({
+        title: t('sidebar.home'),
+        url: "/pages/index",
+        icon:  Home,
+        isActive: router.pathname.startsWith("/pages/index"),
+      });
     }
+
+    // custom pages
+    if (!pagesLoading && sidebarPages.length > 0) {
+      const sortedPages = [...sidebarPages]
+        .sort((a, b) => {
+          if (a.order !== b.order) return a.order - b.order;
+          return a.title.localeCompare(b.title);
+        })
+        .slice(0, 15); // Limit to 15 pages
+
+      sortedPages.forEach(page => {
+        items.push({
+          title: t(page.title) || page.title,
+          url: `/pages/${page.slug}`,
+          icon: FileText,
+          isActive: router.pathname === `/pages/${page.slug}`,
+          ariaLabel: `Custom page: ${page.title}`,
+        });
+      });
+    }
+
     return items;
-  }, [authChecked, loggedIn, router.pathname, userData.role, t, siteConfig.TICKETS_ENABLED, ctfLoading, ctfStatus.status]);
+  }, [authChecked, loggedIn, router.pathname, userData.role, t, siteConfig.TICKETS_ENABLED, ctfLoading, ctfStatus.status, sidebarPages, pagesLoading]);
 
   return (
     <Sidebar
@@ -185,7 +216,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             open ? "gap-2 justify-start" : "justify-center flex-col gap-2"
           )}>
             {open && (
-              <Link href="/">
+              <Link href="/pages/index">
                 <Image
                   src={getThemeLogo(theme)}
                   alt={getSiteName()}

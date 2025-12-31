@@ -131,6 +131,7 @@ interface UseTicketDetailReturn {
   error: string | null;
   refreshTicket: () => Promise<void>;
   sendMessage: (input: TicketMessageInput) => Promise<void>;
+  closeTicket: () => Promise<void>;
   resolveTicket: () => Promise<void>;
 }
 
@@ -214,6 +215,15 @@ export function useTicketDetail(ticketId: number | string, isAdmin: boolean = fa
     });
   }, [ticketId, isAdmin]);
 
+  const closeTicket = useCallback(async (): Promise<void> => {
+    // Validate ticket ID
+    if (!ticketId || !/^\d+$/.test(String(ticketId))) {
+      throw new Error('invalid_ticket_id');
+    }
+    await axios.put(`/api/tickets/${ticketId}/close`);
+    // WebSocket will update the state
+  }, [ticketId]);
+
   const resolveTicket = useCallback(async (): Promise<void> => {
     await axios.put(`/api/admin/tickets/${ticketId}/resolve`);
     // WebSocket will update the state
@@ -225,6 +235,7 @@ export function useTicketDetail(ticketId: number | string, isAdmin: boolean = fa
     error,
     refreshTicket: fetchTicket,
     sendMessage,
+    closeTicket,
     resolveTicket,
   };
 }

@@ -29,6 +29,7 @@ func ConnectDB() *gorm.DB {
 		&models.Submission{}, &models.Instance{}, &models.InstanceCooldown{}, &models.DynamicFlag{}, &models.GeoSpec{},
 		&models.Notification{},
 		&models.Ticket{}, &models.TicketMessage{},
+		&models.Page{},
 	)
 	if err != nil {
 		debug.Log("Failed to migrate database: %v", err)
@@ -37,11 +38,35 @@ func ConnectDB() *gorm.DB {
 
 	DB = db
 
+	// Migrate existing pages to have is_in_sidebar = true
+	migrateExistingPages()
+
 	// fixInstanceUserForeignKey()
 	if os.Getenv("PTA_SEED_DATABASE") == "true" {
 		SeedDatabase()
 	}
 	return db
+}
+
+// migrateExistingPages updates existing pages to have is_in_sidebar = true
+func migrateExistingPages() {
+	var count int64
+	DB.Model(&models.Page{}).Where("is_in_sidebar = ?", false).Count(&count)
+
+	if count > 0 {
+		debug.Log("Migrating %d existing pages to set is_in_sidebar = true", count)
+		result := DB.Model(&models.Page{}).
+			Where("is_in_sidebar = ?", false).
+			Updates(map[string]interface{}{
+				"is_in_sidebar": true,
+				"source":        "ui",
+			})
+		if result.Error != nil {
+			debug.Log("Warning: Failed to migrate existing pages: %v", result.Error)
+		} else {
+			debug.Log("Successfully migrated %d pages", result.RowsAffected)
+		}
+	}
 }
 
 // func fixInstanceUserForeignKey() {
