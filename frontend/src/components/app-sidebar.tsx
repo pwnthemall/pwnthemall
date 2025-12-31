@@ -105,7 +105,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         isActive: router.pathname.startsWith("/pwn"),
       });
     }
-    
+
     if (loggedIn) {
       // Only show scoreboard if CTF has started (active, ended, or no timing)
       const shouldShowScoreboard = ctfLoading || ctfStatus.status !== 'not_started';
@@ -118,7 +118,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         isActive: router.pathname === "/scoreboard",
       });
       }
-      
+
       // Only show tickets if enabled (and not admin - admins use admin/tickets)
       if (siteConfig.TICKETS_ENABLED !== 'false' && userData.role !== "admin") {
         items.push({
@@ -128,7 +128,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           isActive: router.pathname.startsWith("/tickets"),
         });
       }
-      
+
       if (userData.role === "admin") {
         // Build admin sub-items dynamically
         const adminSubItems = [
@@ -138,12 +138,12 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           { title: t('admin.submissions'), url: "/admin/submissions" },
           { title: t('admin.pages_management'), url: "/admin/pages"}
         ];
-        
+
         // Add tickets management if enabled
         if (siteConfig.TICKETS_ENABLED !== 'false') {
           adminSubItems.push({ title: t('admin.tickets'), url: "/admin/tickets" });
         }
-        
+
         adminSubItems.push(
           { title: 'Categories & Difficulties', url: "/admin/challenge-categories" },
           { title: 'Challenges', url: "/admin/challenges" },
@@ -151,7 +151,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           { title: t('configuration'), url: "/admin/configuration" },
           { title: 'Notifications', url: "/admin/notifications" }
         );
-        
+
         items.push({
           title: t('administration'),
           url: "/admin",
@@ -179,7 +179,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         isActive: router.pathname.startsWith("/pages/index"),
       });
     }
-    
+
     // custom pages
     if (!pagesLoading && sidebarPages.length > 0) {
       const sortedPages = [...sidebarPages]
@@ -199,7 +199,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         });
       });
     }
-    
+
     return items;
   }, [authChecked, loggedIn, router.pathname, userData.role, t, siteConfig.TICKETS_ENABLED, ctfLoading, ctfStatus.status, sidebarPages, pagesLoading]);
 
