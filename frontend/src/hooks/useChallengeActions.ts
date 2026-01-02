@@ -87,8 +87,10 @@ export const useChallengeActions = ({
       fetchSolves(selectedChallenge.id);
       await handlePostSubmitInstanceCleanup(selectedChallenge.id);
       
-      // Close the modal after successful submission
+      // Clear flag and close modal immediately after successful submission
+      setFlag("");
       setOpen(false);
+      setSelectedChallenge(null);
       
       // Update challenges after modal is closed to prevent reopening
       if (onChallengeUpdate) {
@@ -100,7 +102,6 @@ export const useChallengeActions = ({
       if (onChallengeUpdate) onChallengeUpdate();
     } finally {
       setLoading(false);
-      setFlag("");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedChallenge, flag, geoCoords, onChallengeUpdate, t]);
