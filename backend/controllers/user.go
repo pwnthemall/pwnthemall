@@ -194,6 +194,7 @@ func GetCurrentUser(c *gin.Context) {
 		"points":              totalPoints,
 		"challengesCompleted": solvesCount,
 		"totalChallenges":     totalChallenges,
+		"socialLinks":         user.SocialLinks,
 	}
 
 	if user.Team != nil {

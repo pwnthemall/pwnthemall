@@ -883,6 +883,14 @@
     "username_too_long": "Username too long (max 32 characters)",
     "username_updated": "Username updated successfully!"
   },
+  "social_links": {
+    "social_links": "Social Links",
+    "social_links_description": "Add your social media profiles to share with other users",
+    "save_social_links": "Save Social Links",
+    "social_links_updated": "Social links updated successfully!",
+    "failed_to_update_social_links": "Failed to update social links",
+    "website": "Website"
+  },
   "pages": {
     "pages": "Pages",
     "page": "Page",

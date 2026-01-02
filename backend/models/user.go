@@ -51,7 +51,38 @@ type User struct {
 	Notifications []Notification `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"notifications,omitempty"`
 	Banned        bool           `json:"banned"`
 	IPAddresses   IPAddresses    `gorm:"type:json" json:"ipAddresses"`
+	SocialLinks   SocialLinks    `gorm:"type:jsonb" json:"socialLinks,omitempty"`
 	MemberSince   time.Time      `gorm:"-" json:"memberSince"`
+}
+
+// SocialLinks stores user's social media profiles
+type SocialLinks struct {
+	Github   string `json:"github,omitempty"`
+	Twitter  string `json:"twitter,omitempty"`
+	LinkedIn string `json:"linkedin,omitempty"`
+	Discord  string `json:"discord,omitempty"`
+	Website  string `json:"website,omitempty"`
+}
+
+// Value implements the driver.Valuer interface for SocialLinks
+func (s SocialLinks) Value() (driver.Value, error) {
+	return json.Marshal(s)
+}
+
+// Scan implements the sql.Scanner interface for SocialLinks
+func (s *SocialLinks) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+
+	switch v := value.(type) {
+	case []byte:
+		return json.Unmarshal(v, s)
+	case string:
+		return json.Unmarshal([]byte(v), s)
+	default:
+		return errors.New("cannot scan SocialLinks")
+	}
 }
 
 // AfterFind GORM hook to populate computed fields
