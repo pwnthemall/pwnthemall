@@ -81,7 +81,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   
   try {
     debugLog('[SSR] Fetching page:', slug, 'from', internalApiUrl);
-    const response = await apiClient.get(`/api/pages/${slug}`);
+    const response = await apiClient.get(`/pages/${slug}`);
     debugLog('[SSR] Fetched page data:', response.data);
     
     if (response.data && response.data.page) {

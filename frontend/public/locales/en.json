@@ -924,7 +924,10 @@
     "pages_description": "Manage custom HTML pages",
     "no_pages_yet": "No pages created yet. Click 'Create Page' to get started.",
     "no_pages_match_filter": "No pages match your filters.",
-    "clear_all": "Clear All"
+    "clear_all": "Clear All",
+    "in_sidebar": "Show in sidebar",
+    "source": "Source",
+    "view_only": "Read only"
   },
   "sidebar":{
     "home":"Home"

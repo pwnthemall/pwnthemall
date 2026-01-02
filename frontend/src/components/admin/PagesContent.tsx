@@ -8,7 +8,8 @@ import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowUpDown, Plus, X, ExternalLink, Edit, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ArrowUpDown, Plus, X, ExternalLink, Edit, Trash2, FolderSync, Edit3 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -124,6 +125,40 @@ export default function PagesContent({ pages, onRefresh, loading }: PagesContent
       ),
     },
     {
+      accessorKey: "source",
+      header: () => (
+        <div className="font-semibold">{t("pages.source") || "Source"}</div>
+      ),
+      cell: ({ row }) => {
+        const source = row.original.source || 'ui';
+        const isMinIO = source === 'minio';
+        
+        return (
+          <Badge 
+            variant={isMinIO ? "secondary" : "default"}
+            className="flex items-center gap-1 w-fit"
+          >
+            {isMinIO ? <FolderSync className="h-3 w-3" /> : <Edit3 className="h-3 w-3" />}
+            {isMinIO ? "MinIO" : "UI"}
+          </Badge>
+        );
+      },
+    },
+    {
+      accessorKey: "is_in_sidebar",
+      header: () => (
+        <div className="font-semibold">{t("pages.in_sidebar") || "In Sidebar"}</div>
+      ),
+      cell: ({ getValue }) => {
+        const inSidebar = getValue() as boolean;
+        return (
+          <Badge variant={inSidebar ? "default" : "outline"}>
+            {inSidebar ? "Yes" : "No"}
+          </Badge>
+        );
+      },
+    },
+    {
       accessorKey: "created_at",
       header: () => (
         <Button
@@ -164,26 +199,32 @@ export default function PagesContent({ pages, onRefresh, loading }: PagesContent
       header: () => (
         <div className="font-semibold">{t("actions") || "Actions"}</div>
       ),
-      cell: ({ row }) => (
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleEdit(row.original)}
-          >
-            <Edit className="h-4 w-4 mr-1" />
-            {t("edit") || "Edit"}
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => setDeleting(row.original)}
-          >
-            <Trash2 className="h-4 w-4 mr-1" />
-            {t("delete") || "Delete"}
-          </Button>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const isMinIOManaged = row.original.source === 'minio';
+        
+        return (
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleEdit(row.original)}
+              disabled={isMinIOManaged}
+              title={isMinIOManaged ? "MinIO-managed pages cannot be edited in the UI" : "Edit page"}
+            >
+              <Edit className="h-4 w-4 mr-1" />
+              {isMinIOManaged ? t("view_only") || "View Only" : t("edit") || "Edit"}
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setDeleting(row.original)}
+            >
+              <Trash2 className="h-4 w-4 mr-1" />
+              {t("delete") || "Delete"}
+            </Button>
+          </div>
+        );
+      },
     },
   ];
 
