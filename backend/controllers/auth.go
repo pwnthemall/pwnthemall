@@ -326,13 +326,13 @@ func UpdateCurrentUser(c *gin.Context) {
 			normalizedLinks.Github = normalized
 		}
 
-		if input.SocialLinks.Twitter != "" {
-			normalized, err := utils.NormalizeSocialURL("twitter", input.SocialLinks.Twitter)
+		if input.SocialLinks.X != "" {
+			normalized, err := utils.NormalizeSocialURL("X", input.SocialLinks.X)
 			if err != nil {
-				utils.BadRequestError(c, "Invalid Twitter URL: "+err.Error())
+				utils.BadRequestError(c, "Invalid X URL: "+err.Error())
 				return
 			}
-			normalizedLinks.Twitter = normalized
+			normalizedLinks.X = normalized
 		}
 
 		if input.SocialLinks.LinkedIn != "" {

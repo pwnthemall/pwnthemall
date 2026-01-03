@@ -31,9 +31,9 @@ func NormalizeSocialURL(platform, input string) (string, error) {
 		// Remove @ prefix if present
 		handle := strings.TrimPrefix(input, "@")
 		return "https://github.com/" + handle, nil
-	case "twitter":
+	case "X":
 		handle := strings.TrimPrefix(input, "@")
-		return "https://twitter.com/" + handle, nil
+		return "https://x.com/" + handle, nil
 	case "linkedin":
 		// Accept linkedin.com/in/username format
 		if strings.HasPrefix(input, "linkedin.com/in/") {
@@ -73,12 +73,12 @@ func ValidateFullURL(platform, fullURL string) (string, error) {
 		if !strings.Contains(normalizedURL, "github.com/") {
 			return "", errors.New("must be a github.com URL")
 		}
-	case "twitter":
-		if !strings.Contains(normalizedURL, "twitter.com/") && !strings.Contains(normalizedURL, "x.com/") {
-			return "", errors.New("must be a twitter.com or x.com URL")
+	case "X":
+		if !strings.Contains(normalizedURL, "x.com/") && !strings.Contains(normalizedURL, "twitter.com/") {
+			return "", errors.New("must be a x.com or twitter.com URL")
 		}
-		// Normalize x.com to twitter.com for consistency
-		normalizedURL = strings.Replace(normalizedURL, "x.com/", "twitter.com/", 1)
+		// Normalize twitter.com to x.com for consistency
+		normalizedURL = strings.Replace(normalizedURL, "twitter.com/", "x.com/", 1)
 	case "linkedin":
 		if !strings.Contains(normalizedURL, "linkedin.com/") {
 			return "", errors.New("must be a linkedin.com URL")

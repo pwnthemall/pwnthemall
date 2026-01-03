@@ -58,7 +58,7 @@ type User struct {
 // SocialLinks stores user's social media profiles
 type SocialLinks struct {
 	Github   string `json:"github,omitempty"`
-	Twitter  string `json:"twitter,omitempty"`
+	X        string `json:"X,omitempty"`
 	LinkedIn string `json:"linkedin,omitempty"`
 	Discord  string `json:"discord,omitempty"`
 	Website  string `json:"website,omitempty"`
