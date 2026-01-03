@@ -1,5 +1,7 @@
 import React from 'react';
-import { Github, Twitter, Linkedin, Globe } from 'lucide-react';
+import { Linkedin, Globe, X } from 'lucide-react';
+import type {SimpleIcon} from 'simple-icons';
+import { siGithub, siX } from 'simple-icons';
 import { Button } from '@/components/ui/button';
 import {
   Tooltip,
@@ -22,7 +24,7 @@ const DiscordIcon = ({ size = 20 }: { size?: number }) => (
 
 interface SocialLinksData {
   github?: string;
-  twitter?: string;
+  X?: string;
   linkedin?: string;
   discord?: string;
   website?: string;
@@ -37,7 +39,7 @@ export function SocialLinks({ links, size = 'md' }: SocialLinksProps) {
   const iconSize = size === 'sm' ? 16 : size === 'md' ? 20 : 24;
   const buttonSize = size === 'sm' ? 'sm' : 'default';
   
-  const hasAnyLink = links && (links.github || links.twitter || links.linkedin || links.discord || links.website);
+  const hasAnyLink = links && (links.github || links.X || links.linkedin || links.discord || links.website);
   
   if (!hasAnyLink) {
     return null;
@@ -61,7 +63,17 @@ export function SocialLinks({ links, size = 'md' }: SocialLinksProps) {
                   rel="noopener noreferrer"
                   aria-label="GitHub Profile"
                 >
-                  <Github size={iconSize} />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    role="img"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    width={iconSize}
+                    height={iconSize}
+                  >
+                    <title>{siGithub.title}</title>
+                    <path d={siGithub.path} />
+                  </svg>
                 </a>
               </Button>
             </TooltipTrigger>
@@ -71,7 +83,7 @@ export function SocialLinks({ links, size = 'md' }: SocialLinksProps) {
           </Tooltip>
         )}
         
-        {links.twitter && (
+        {links.X && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -81,17 +93,27 @@ export function SocialLinks({ links, size = 'md' }: SocialLinksProps) {
                 asChild
               >
                 <a
-                  href={links.twitter}
+                  href={links.X}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="Twitter Profile"
+                  aria-label="X Profile"
                 >
-                  <Twitter size={iconSize} />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    role="img"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    width={iconSize}
+                    height={iconSize}
+                  >
+                    <title>{siX.title}</title>
+                    <path d={siX.path} />
+                  </svg>
                 </a>
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Twitter</p>
+              <p>X</p>
             </TooltipContent>
           </Tooltip>
         )}

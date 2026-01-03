@@ -32,7 +32,7 @@ type Tab = typeof TABS[number];
 
 interface SocialLinks {
   github?: string;
-  twitter?: string;
+  X?: string;
   linkedin?: string;
   discord?: string;
   website?: string;
@@ -93,7 +93,7 @@ export default function ProductionProfileCard() {
   // Social links state
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({
     github: '',
-    twitter: '',
+    X: '',
     linkedin: '',
     discord: '',
     website: ''
@@ -142,7 +142,7 @@ export default function ProductionProfileCard() {
       // Set social links state
       setSocialLinks(res.data.socialLinks || {
         github: '',
-        twitter: '',
+        X: '',
         linkedin: '',
         discord: '',
         website: ''
@@ -291,7 +291,7 @@ export default function ProductionProfileCard() {
       // Filter out empty strings to send only filled social links
       const filteredLinks: any = {};
       if (socialLinks.github?.trim()) filteredLinks.github = socialLinks.github.trim();
-      if (socialLinks.twitter?.trim()) filteredLinks.twitter = socialLinks.twitter.trim();
+      if (socialLinks.X?.trim()) filteredLinks.X = socialLinks.X.trim();
       if (socialLinks.linkedin?.trim()) filteredLinks.linkedin = socialLinks.linkedin.trim();
       if (socialLinks.discord?.trim()) filteredLinks.discord = socialLinks.discord.trim();
       if (socialLinks.website?.trim()) filteredLinks.website = socialLinks.website.trim();
@@ -596,15 +596,15 @@ export default function ProductionProfileCard() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-1" htmlFor="twitter">
-                        Twitter
+                      <label className="block text-sm font-medium mb-1" htmlFor="X">
+                        X (Twitter)
                       </label>
                       <Input
-                        id="twitter"
-                        name="twitter"
-                        value={socialLinks.twitter || ''}
-                        onChange={(e) => setSocialLinks({...socialLinks, twitter: e.target.value})}
-                        placeholder="username or https://twitter.com/username"
+                        id="X"
+                        name="X"
+                        value={socialLinks.X || ''}
+                        onChange={(e) => setSocialLinks({...socialLinks, X: e.target.value})}
+                        placeholder="username or https://x.com/username"
                         disabled={socialLinksLoading}
                       />
                     </div>

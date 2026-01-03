@@ -60,7 +60,7 @@ interface RecentSolve {
 
 interface SocialLinks {
   github?: string;
-  twitter?: string;
+  X?: string;
   linkedin?: string;
   discord?: string;
   website?: string;
