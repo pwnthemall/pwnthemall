@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { useTheme } from "next-themes";
 import { useLanguage } from "@/context/LanguageContext";
 import { TeamManagementSection } from "@/components/TeamManagementSection";
+import { SocialLinks as SocialLinksDisplay } from "@/components/SocialLinks";
 import { toast } from "sonner";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
@@ -29,6 +30,14 @@ import {
 const TABS = ["Account", "Appearance", "Badges", "Team"] as const;
 type Tab = typeof TABS[number];
 
+interface SocialLinks {
+  github?: string;
+  twitter?: string;
+  linkedin?: string;
+  discord?: string;
+  website?: string;
+}
+
 interface ExtendedUser extends User {
   points?: number;
   challengesCompleted?: number;
@@ -38,6 +47,7 @@ interface ExtendedUser extends User {
   teamId?: number;
   team?: Team;
   totalChallenges?: number;
+  socialLinks?: SocialLinks;
 }
 
 export default function ProductionProfileCard() {
@@ -79,6 +89,16 @@ export default function ProductionProfileCard() {
   const [teamLoading, setTeamLoading] = useState(true);
   const [teamError, setTeamError] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  
+  // Social links state
+  const [socialLinks, setSocialLinks] = useState<SocialLinks>({
+    github: '',
+    twitter: '',
+    linkedin: '',
+    discord: '',
+    website: ''
+  });
+  const [socialLinksLoading, setSocialLinksLoading] = useState(false);
   // Points state (per-user, sourced from team memberPoints like TeamManagementSection)
   const [userPoints, setUserPoints] = useState<number | null>(null);
   const [teamTotalPoints, setTeamTotalPoints] = useState<number | null>(null);
@@ -116,7 +136,17 @@ export default function ProductionProfileCard() {
         teamId: res.data.teamId || null,
         team: res.data.team || null,
         totalChallenges: res.data.totalChallenges || null,
+        socialLinks: res.data.socialLinks || {},
       };
+      
+      // Set social links state
+      setSocialLinks(res.data.socialLinks || {
+        github: '',
+        twitter: '',
+        linkedin: '',
+        discord: '',
+        website: ''
+      });
       
       setUser(realUser);
       setUsername(res.data.username);
@@ -255,6 +285,32 @@ export default function ProductionProfileCard() {
     }
   };
 
+  const handleSaveSocialLinks = async () => {
+    setSocialLinksLoading(true);
+    try {
+      // Filter out empty strings to send only filled social links
+      const filteredLinks: any = {};
+      if (socialLinks.github?.trim()) filteredLinks.github = socialLinks.github.trim();
+      if (socialLinks.twitter?.trim()) filteredLinks.twitter = socialLinks.twitter.trim();
+      if (socialLinks.linkedin?.trim()) filteredLinks.linkedin = socialLinks.linkedin.trim();
+      if (socialLinks.discord?.trim()) filteredLinks.discord = socialLinks.discord.trim();
+      if (socialLinks.website?.trim()) filteredLinks.website = socialLinks.website.trim();
+
+      const response = await axios.patch("/api/me", { socialLinks: filteredLinks });
+      toast.success(t("social_links.social_links_updated"));
+      
+      // Update user state with new social links
+      if (user) {
+        setUser({ ...user, socialLinks: response.data.socialLinks });
+      }
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.error || t("social_links.failed_to_update_social_links");
+      toast.error(errorMsg);
+    } finally {
+      setSocialLinksLoading(false);
+    }
+  };
+
   // Theme selector
   const themes = [
     { value: "light", label: "Light", previewLeft: "#ffffff", previewRight: "#f1f5f9" },
@@ -351,6 +407,13 @@ export default function ProductionProfileCard() {
                       {user.description || `${t('role')}: ${user.role}`}
                     </p>
                   </div>
+                  
+                  {/* Social Links */}
+                  {user.socialLinks && (
+                    <div className="flex items-center gap-2">
+                      <SocialLinksDisplay links={user.socialLinks} size="sm" />
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -509,6 +572,90 @@ export default function ProductionProfileCard() {
                       </AlertDialog>
                     </form>
                   </div>
+                </div>
+
+                {/* Social Links Section */}
+                <Separator className="my-8" />
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">{t('social_links.social_links')}</h3>
+                  <p className="text-sm text-muted-foreground mb-6">
+                    {t('social_links.social_links_description')}
+                  </p>
+                  <form className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1" htmlFor="github">
+                        GitHub
+                      </label>
+                      <Input
+                        id="github"
+                        name="github"
+                        value={socialLinks.github || ''}
+                        onChange={(e) => setSocialLinks({...socialLinks, github: e.target.value})}
+                        placeholder="username or https://github.com/username"
+                        disabled={socialLinksLoading}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1" htmlFor="twitter">
+                        Twitter
+                      </label>
+                      <Input
+                        id="twitter"
+                        name="twitter"
+                        value={socialLinks.twitter || ''}
+                        onChange={(e) => setSocialLinks({...socialLinks, twitter: e.target.value})}
+                        placeholder="username or https://twitter.com/username"
+                        disabled={socialLinksLoading}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1" htmlFor="linkedin">
+                        LinkedIn
+                      </label>
+                      <Input
+                        id="linkedin"
+                        name="linkedin"
+                        value={socialLinks.linkedin || ''}
+                        onChange={(e) => setSocialLinks({...socialLinks, linkedin: e.target.value})}
+                        placeholder="username or https://linkedin.com/in/username"
+                        disabled={socialLinksLoading}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1" htmlFor="discord">
+                        Discord
+                      </label>
+                      <Input
+                        id="discord"
+                        name="discord"
+                        value={socialLinks.discord || ''}
+                        onChange={(e) => setSocialLinks({...socialLinks, discord: e.target.value})}
+                        placeholder="username#1234"
+                        disabled={socialLinksLoading}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1" htmlFor="website">
+                        {t('social_links.website')}
+                      </label>
+                      <Input
+                        id="website"
+                        name="website"
+                        value={socialLinks.website || ''}
+                        onChange={(e) => setSocialLinks({...socialLinks, website: e.target.value})}
+                        placeholder="https://yourwebsite.com"
+                        disabled={socialLinksLoading}
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      className="w-full"
+                      onClick={handleSaveSocialLinks}
+                      disabled={socialLinksLoading}
+                    >
+                      {t('social_links.save_social_links')}
+                    </Button>
+                  </form>
                 </div>
 
                 {/* Danger Zone - Centered */}

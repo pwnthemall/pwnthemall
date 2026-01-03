@@ -946,7 +946,7 @@ export default function ChallengeAdminForm({ challenge, onClose }: ChallengeAdmi
           </Card>
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4 border-t">
+          <div className="flex justify-end space-x-2 pt-4">
             <Button variant="outline" onClick={onClose}>
               {t('challenge_form.cancel')}
             </Button>

@@ -883,6 +883,14 @@
     "username_too_long": "Nom d'utilisateur trop long (max 32 caractères)",
     "username_updated": "Nom d'utilisateur mis à jour avec succès !"
   },
+  "social_links": {
+    "social_links": "Réseaux sociaux",
+    "social_links_description": "Ajoutez vos réseaux sociaux pour les partager avec d'autres utilisateurs",
+    "save_social_links": "Enregistrer vos réseaux sociaux",
+    "social_links_updated": "Réseaux sociaux mis à jour avec succès !",
+    "failed_to_update_social_links": "Échec de la mise à jour de vos réseaux sociaux",
+    "website": "Site web"
+  },
   "pages": {
     "pages": "Pages",
     "page": "Page",

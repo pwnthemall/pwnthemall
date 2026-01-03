@@ -96,6 +96,7 @@ func GetPublicUserProfile(c *gin.Context) {
 		CategoryBreakdown: categoryBreakdown,
 		RecentSolves:      recentSolves,
 		SolveTimeline:     solveTimeline,
+		SocialLinks:       user.SocialLinks,
 	}
 
 	utils.OKResponse(c, response)

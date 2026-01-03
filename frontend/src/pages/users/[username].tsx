@@ -32,6 +32,7 @@ import {
   Percent,
   Activity,
 } from "lucide-react";
+import { SocialLinks } from "@/components/SocialLinks";
 
 interface SubmissionStats {
   totalSubmissions: number;
@@ -57,6 +58,14 @@ interface RecentSolve {
   solvedAt: string;
 }
 
+interface SocialLinks {
+  github?: string;
+  twitter?: string;
+  linkedin?: string;
+  discord?: string;
+  website?: string;
+}
+
 interface SolveTimelinePoint {
   date: string;
   points: number;
@@ -77,6 +86,7 @@ interface PublicProfile {
   categoryBreakdown: CategoryBreakdown[];
   recentSolves: RecentSolve[];
   solveTimeline: SolveTimelinePoint[];
+  socialLinks?: SocialLinks;
 }
 
 export default function PublicUserProfile() {
@@ -171,6 +181,11 @@ export default function PublicUserProfile() {
                     </Badge>
                   )}
                 </div>
+                {profile.socialLinks && (
+                  <div className="mt-2">
+                    <SocialLinks links={profile.socialLinks} size="sm" />
+                  </div>
+                )}
                 <p className="text-muted-foreground text-xs">{t("member_since")}: {formatDate(profile.memberSince)}</p>
               </div>
             </div>
