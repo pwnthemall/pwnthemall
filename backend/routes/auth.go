@@ -23,5 +23,10 @@ func RegisterAuthRoutes(router *gin.Engine) {
 		auth.PATCH("me", middleware.AuthRequired(false), middleware.CSRFProtection(), controllers.UpdateCurrentUser)
 		auth.PUT("me/password", middleware.AuthRequired(false), middleware.CSRFProtection(), controllers.UpdateCurrentUserPassword)
 		auth.DELETE("me", middleware.AuthRequired(false), middleware.CSRFProtection(), controllers.DeleteCurrentUser)
+
+		// Password reset routes
+		auth.POST("forgot-password", middleware.RateLimit(3), middleware.CSRFProtection(), controllers.ForgotPassword)
+		auth.POST("reset-password", middleware.CSRFProtection(), controllers.ResetPassword)
+		auth.GET("validate-reset-token/:token", controllers.ValidateResetToken)
 	}
 }
