@@ -13,6 +13,7 @@ import { MagicCard } from "@/components/ui/magic-card"
 import { getThemeLogo, getThemeType } from "@/lib/themeConfig"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useState } from "react"
+import { useRouter } from "next/router"
 
 interface LoginContentProps {
     form: {
@@ -32,6 +33,7 @@ export default function LoginContent({
 }: LoginContentProps) {
     const { t } = useLanguage();
     const { theme } = useTheme();
+    const router = useRouter();
 
     const [logoLoaded, setLogoLoaded] = useState(false);
 
@@ -72,6 +74,7 @@ export default function LoginContent({
                                         <button
                                             type="button"
                                             tabIndex={-1}
+                                            onClick={() => router.push('/forgot-password')}
                                             className="ml-auto text-sm underline-offset-2 hover:underline bg-transparent border-0 cursor-pointer p-0"
                                         >
                                             {t('forgot_password')}

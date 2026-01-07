@@ -141,6 +141,9 @@ function env_randomize() {
         -e "s|^\(MINIO_ROOT_PASSWORD=\).*|\1$(rand_str 40)|" \
         -e "s|^\(MINIO_NOTIFY_WEBHOOK_AUTH_TOKEN_DBSYNC=\).*|\1$(rand_str 40)|" \
         -e "s|^\(DOCKER_WORKER_PASSWORD=\).*|\1$(rand_str 25)|" \
+        -e "s|^\(LIBVIRT_WORKER_PASSWORD=\).*|\1$(rand_str 25)|" \
+        -e "s|^\(PTA_PLUGIN_MAGIC_VALUE=\).*|\1$(rand_str 20)|" \
+        -e "s|^\(PTA_ENCRYPTION_KEY=\).*|\1$(rand_str 44)|" \
         "$env_file"
 
     echo "[✓] Randomization complete"

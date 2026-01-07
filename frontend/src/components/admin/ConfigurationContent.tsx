@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import ConfigurationForm from "./ConfigurationForm";
 import CTFStatusOverview from "./CTFStatusOverview";
+import EmailConfiguration from "./EmailConfiguration";
 import { Config, ConfigFormData } from "@/models/Config";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSiteConfig } from "@/context/SiteConfigContext";
@@ -256,6 +257,9 @@ export default function ConfigurationContent({ configs, onRefresh }: Configurati
         <div className="mb-6">
           <CTFStatusOverview />
         </div>
+
+        {/* Email & Password Reset Configuration */}
+        <EmailConfiguration configs={configs} onRefresh={onRefresh} />
 
         <div className="mb-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold">{t("configuration")}</h1>
