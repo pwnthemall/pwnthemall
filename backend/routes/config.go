@@ -23,6 +23,6 @@ func RegisterConfigRoutes(router *gin.Engine) {
 		configs.DELETE("/:key", middleware.DemoRestriction, middleware.CheckPolicy("/configs/:key", "write"), controllers.DeleteConfig)
 
 		// Admin-only endpoint for testing SMTP configuration
-		configs.POST("/test-email", middleware.DemoRestriction, middleware.CheckPolicy("/configs", "write"), controllers.SendTestEmail)
+		configs.POST("/test-email", middleware.DemoRestriction, middleware.CheckPolicy("/configs/test-email", "write"), controllers.SendTestEmail)
 	}
 }
