@@ -1,5 +1,20 @@
 # 🚀 Changelog
 
+## [0.7.0](https://github.com/pwnthemall/pwnthemall/compare/v0.6.0...v0.7.0) (2026-01-08)
+
+
+### 🧩 Features
+
+* **socials:** Users can now save & display multiples social links on their public profile, edit in the profile 'Account' tab ([2d5c663](https://github.com/pwnthemall/pwnthemall/commit/2d5c66325125b3e7851f3ed315389fa7be8c2d52))
+
+
+### 🐛 Bug fixes
+
+* **index:** Now redirecting to /pages/index when not logged in ([47d393d](https://github.com/pwnthemall/pwnthemall/commit/47d393dad9fe40631926c531c73740e6c1687330))
+* **social-links:** Twitter replaced by X ([8692b17](https://github.com/pwnthemall/pwnthemall/commit/8692b17055b4bc78445173e2f4a4dadf3059f23c))
+* **social-links:** Twitter replaced by X ([200407d](https://github.com/pwnthemall/pwnthemall/commit/200407d6c41db5c3ba7fda7ba255b727d77877a9))
+* **socials:** Fix discord logo ([34fdb4e](https://github.com/pwnthemall/pwnthemall/commit/34fdb4e4f1943441bd5dd7bd952bc1c541b7ed02))
+
 ## [0.6.0](https://github.com/pwnthemall/pwnthemall/compare/v0.5.0...v0.6.0) (2025-12-31)
 
 
