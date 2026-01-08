@@ -1,6 +1,10 @@
 package dto
 
-import "time"
+import (
+	"time"
+
+	"github.com/pwnthemall/pwnthemall/backend/models"
+)
 
 // PublicProfileResponse represents the public profile data
 type PublicProfileResponse struct {
@@ -17,6 +21,7 @@ type PublicProfileResponse struct {
 	CategoryBreakdown []CategoryBreakdown     `json:"categoryBreakdown"`
 	RecentSolves      []RecentSolve           `json:"recentSolves"`
 	SolveTimeline     []SolveTimelinePoint    `json:"solveTimeline"`
+	SocialLinks       models.SocialLinks      `json:"socialLinks"`
 }
 
 // SubmissionStatsResponse holds submission statistics

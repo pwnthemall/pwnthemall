@@ -296,7 +296,8 @@ func UpdateCurrentUser(c *gin.Context) {
 	}
 
 	var input struct {
-		Username string `json:"username" binding:"max=32"`
+		Username    string              `json:"username" binding:"max=32"`
+		SocialLinks *models.SocialLinks `json:"socialLinks"`
 	}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		utils.BadRequestError(c, "Username too long (max 32 chars) or invalid input")
@@ -304,12 +305,66 @@ func UpdateCurrentUser(c *gin.Context) {
 	}
 
 	// Validate username for malicious characters
-	if errKey := utils.ValidateUsername(input.Username); errKey != "" {
-		utils.BadRequestError(c, errKey)
-		return
+	if input.Username != "" {
+		if errKey := utils.ValidateUsername(input.Username); errKey != "" {
+			utils.BadRequestError(c, errKey)
+			return
+		}
+		user.Username = input.Username
 	}
 
-	user.Username = input.Username
+	// Validate and normalize social links if provided
+	if input.SocialLinks != nil {
+		normalizedLinks := models.SocialLinks{}
+
+		if input.SocialLinks.Github != "" {
+			normalized, err := utils.NormalizeSocialURL("github", input.SocialLinks.Github)
+			if err != nil {
+				utils.BadRequestError(c, "Invalid GitHub URL: "+err.Error())
+				return
+			}
+			normalizedLinks.Github = normalized
+		}
+
+		if input.SocialLinks.X != "" {
+			normalized, err := utils.NormalizeSocialURL("X", input.SocialLinks.X)
+			if err != nil {
+				utils.BadRequestError(c, "Invalid X URL: "+err.Error())
+				return
+			}
+			normalizedLinks.X = normalized
+		}
+
+		if input.SocialLinks.LinkedIn != "" {
+			normalized, err := utils.NormalizeSocialURL("linkedin", input.SocialLinks.LinkedIn)
+			if err != nil {
+				utils.BadRequestError(c, "Invalid LinkedIn URL: "+err.Error())
+				return
+			}
+			normalizedLinks.LinkedIn = normalized
+		}
+
+		if input.SocialLinks.Discord != "" {
+			normalized, err := utils.NormalizeSocialURL("discord", input.SocialLinks.Discord)
+			if err != nil {
+				utils.BadRequestError(c, "Invalid Discord username: "+err.Error())
+				return
+			}
+			normalizedLinks.Discord = normalized
+		}
+
+		if input.SocialLinks.Website != "" {
+			normalized, err := utils.NormalizeSocialURL("website", input.SocialLinks.Website)
+			if err != nil {
+				utils.BadRequestError(c, "Invalid Website URL: "+err.Error())
+				return
+			}
+			normalizedLinks.Website = normalized
+		}
+
+		user.SocialLinks = normalizedLinks
+	}
+
 	if err := config.DB.Save(&user).Error; err != nil {
 		// Check for duplicate username without exposing SQL details
 		if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "UNIQUE constraint") {
@@ -318,12 +373,13 @@ func UpdateCurrentUser(c *gin.Context) {
 				return
 			}
 		}
-		utils.InternalServerError(c, "Failed to update username")
+		utils.InternalServerError(c, "Failed to update profile")
 		return
 	}
 	utils.OKResponse(c, gin.H{
-		"message":  "Username updated",
-		"username": user.Username,
+		"message":     "Profile updated",
+		"username":    user.Username,
+		"socialLinks": user.SocialLinks,
 	})
 }
 
