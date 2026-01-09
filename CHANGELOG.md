@@ -1,5 +1,12 @@
 # 🚀 Changelog
 
+## [0.8.0](https://github.com/pwnthemall/pwnthemall/compare/v0.7.0...v0.8.0) (2026-01-09)
+
+
+### 🧩 Features
+
+* **demo:** Prevent users to enter personal data on demo environment ([ae1935e](https://github.com/pwnthemall/pwnthemall/commit/ae1935e5eb6217b8a3aedf088ca48e28bafe856f))
+
 ## [0.7.0](https://github.com/pwnthemall/pwnthemall/compare/v0.6.0...v0.7.0) (2026-01-08)
 
 
