@@ -30,6 +30,7 @@ func seedConfig() {
 		{Key: "TICKETS_ENABLED", Value: GetEnvWithDefault("PTA_TICKETS_ENABLED", "true"), Public: true},
 		{Key: "CTF_START_TIME", Value: GetEnvWithDefault("PTA_CTF_START_TIME", ""), Public: true},
 		{Key: "CTF_END_TIME", Value: GetEnvWithDefault("PTA_CTF_END_TIME", ""), Public: true},
+		{Key: "DEMO", Value: GetEnvWithDefault("PTA_DEMO", "false"), Public: true, SyncWithEnv: false},
 	}
 
 	for _, item := range config {

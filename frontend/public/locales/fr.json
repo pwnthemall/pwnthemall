@@ -544,7 +544,9 @@
     "warning": "Avertissement",
     "welcome_back": "Bienvenue",
     "incorrect_location": "Emplacement incorrect. Vous n'êtes pas assez proche de la cible !",
-    "flag_already_submitted": "Vous avez déjà soumis ce flag"
+    "flag_already_submitted": "Vous avez déjà soumis ce flag",
+    "demo_warning_title": "Mode démo activé",
+    "demo_warning_message": "Ceci est un environnement de démonstration. N'entrez pas de vraies adresses e-mail ou d'informations personnelles."
   },
   "pagination": {
     "showing": "Affichage",

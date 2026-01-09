@@ -544,7 +544,9 @@
     "warning": "Warning",
     "welcome_back": "Welcome back",
     "incorrect_location": "Incorrect location. You're not close enough to the target!",
-    "flag_already_submitted": "You've already submitted this flag"
+    "flag_already_submitted": "You've already submitted this flag",
+    "demo_warning_title": "Demo mode active",
+    "demo_warning_message": "This is a demonstration environment. Do not enter real email addresses or personal information."
   },
   "pagination": {
     "showing": "Showing",
