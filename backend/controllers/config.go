@@ -114,6 +114,11 @@ func UpdateConfig(c *gin.Context) {
 
 	key := c.Param("key")
 
+	if key == "DEMO" {
+		utils.ForbiddenError(c, "Demo configuration cannot be modified at runtime")
+		return
+	}
+
 	// Validate time format for CTF timing configs
 	if err := validateCTFTimeFormat(key, input.Value); err != nil {
 		utils.BadRequestError(c, err.Error())

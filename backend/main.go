@@ -68,6 +68,10 @@ func main() {
 	config.ConnectMinio()
 	config.InitCasbin()
 
+	if os.Getenv("PTA_DEMO") == "true" {
+		debug.Log("WARNING: Application started in DEMO MODE.")
+	}
+
 	if err := config.ConnectDocker(); err != nil {
 		debug.Log("Failed to connect to docker host: %s", err.Error())
 	}
