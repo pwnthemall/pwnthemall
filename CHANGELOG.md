@@ -1,5 +1,13 @@
 # 🚀 Changelog
 
+## [0.8.1](https://github.com/pwnthemall/pwnthemall/compare/v0.8.0...v0.8.1) (2026-01-11)
+
+
+### 🐛 Bug fixes
+
+* **challenge-files:** Attached files on challenges correction & rate limit added on endpoint ([a63598d](https://github.com/pwnthemall/pwnthemall/commit/a63598d0f5a5c24a65bc90b8e98c20ba90193959))
+* **challenge-files:** Attached files on challenges correction & rate limit added on endpoint ([86a960a](https://github.com/pwnthemall/pwnthemall/commit/86a960ada6efaeee9a9f16f914705bb5bff1bf5e))
+
 ## [0.8.0](https://github.com/pwnthemall/pwnthemall/compare/v0.7.0...v0.8.0) (2026-01-09)
 
 
