@@ -60,8 +60,11 @@ export function ChallengeFiles({ challengeId, files }: ChallengeFilesProps) {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Download failed:', error);
+    } catch (error: Error | any) {
+      if(error.response && error.response.status === 429) {
+        toast.error(t('rate_limit_exceeded') || 'Too many requests. Please try again later.');
+        return;
+      }
       toast.error(t('file_download_failed') || 'Download failed');
     } finally {
       setDownloadingFiles(prev => {
