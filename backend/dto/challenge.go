@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"github.com/lib/pq"
 	"github.com/pwnthemall/pwnthemall/backend/models"
 )
 
@@ -143,4 +144,5 @@ type SafeChallenge struct {
 	CoverPositionY        float64                     `json:"coverPositionY"`     // Y position for cover image (0-100, default 50 = center)
 	CoverZoom             float64                     `json:"coverZoom"`          // Zoom level for cover image (100-200, default 100 = no zoom)
 	Hints                 []HintWithPurchased         `json:"hints,omitempty"`
+	Files                 pq.StringArray              `gorm:"type:text[]" json:"files"`
 }
