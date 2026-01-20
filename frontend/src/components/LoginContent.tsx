@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useLanguage } from "@/context/LanguageContext"
+import { useSiteConfig } from "@/context/SiteConfigContext"
 import Image from "next/image"
 import { useTheme } from "next-themes"
 import { MagicCard } from "@/components/ui/magic-card"
@@ -33,9 +34,13 @@ export default function LoginContent({
 }: LoginContentProps) {
     const { t } = useLanguage();
     const { theme } = useTheme();
+    const { siteConfig } = useSiteConfig();
     const router = useRouter();
 
     const [logoLoaded, setLogoLoaded] = useState(false);
+    
+    // Check if password reset is enabled
+    const passwordResetEnabled = siteConfig.PASSWORD_RESET === "true";
 
     return (
         <div className="w-full max-w-4xl px-4">
@@ -71,14 +76,16 @@ export default function LoginContent({
                                 <div className="grid gap-2">
                                     <div className="flex items-center">
                                         <Label htmlFor="password">{t('password')}</Label>
-                                        <button
-                                            type="button"
-                                            tabIndex={-1}
-                                            onClick={() => router.push('/forgot-password')}
-                                            className="ml-auto text-sm underline-offset-2 hover:underline bg-transparent border-0 cursor-pointer p-0"
-                                        >
-                                            {t('forgot_password')}
-                                        </button>
+                                        {passwordResetEnabled && (
+                                            <button
+                                                type="button"
+                                                tabIndex={-1}
+                                                onClick={() => router.push('/forgot-password')}
+                                                className="ml-auto text-sm underline-offset-2 hover:underline bg-transparent border-0 cursor-pointer p-0"
+                                            >
+                                                {t('forgot_password')}
+                                            </button>
+                                        )}
                                     </div>
                                     <Input
                                         id="password"

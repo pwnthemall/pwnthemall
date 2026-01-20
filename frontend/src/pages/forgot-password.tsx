@@ -26,7 +26,7 @@ export default function ForgotPasswordPage() {
   const [success, setSuccess] = useState(false);
 
   // Check if password reset is disabled
-  if (!configLoading && siteConfig.PASSWORD_RESET_ENABLED === 'false') {
+  if (!configLoading && siteConfig.PASSWORD_RESET !== 'true') {
     return (
       <>
         <Head>

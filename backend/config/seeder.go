@@ -30,6 +30,13 @@ func seedConfig() {
 		{Key: "TICKETS_ENABLED", Value: GetEnvWithDefault("PTA_TICKETS_ENABLED", "true"), Public: true},
 		{Key: "CTF_START_TIME", Value: GetEnvWithDefault("PTA_CTF_START_TIME", ""), Public: true},
 		{Key: "CTF_END_TIME", Value: GetEnvWithDefault("PTA_CTF_END_TIME", ""), Public: true},
+		// Email & SMTP Configuration
+		{Key: "PASSWORD_RESET", Value: GetEnvWithDefault("PTA_PASSWORD_RESET", "false"), Public: true, SyncWithEnv: true},
+		{Key: "SMTP_HOST", Value: GetEnvWithDefault("PTA_SMTP_HOST", ""), Public: false, SyncWithEnv: true},
+		{Key: "SMTP_PORT", Value: GetEnvWithDefault("PTA_SMTP_PORT", "587"), Public: false, SyncWithEnv: true},
+		{Key: "SMTP_USER", Value: GetEnvWithDefault("PTA_SMTP_USER", ""), Public: false, SyncWithEnv: true},
+		{Key: "SMTP_PASSWORD", Value: GetEnvWithDefault("PTA_SMTP_PASSWORD", ""), Public: false, SyncWithEnv: true},
+		{Key: "SMTP_FROM", Value: GetEnvWithDefault("PTA_SMTP_FROM", ""), Public: false, SyncWithEnv: true},
 	}
 
 	for _, item := range config {
