@@ -191,13 +191,13 @@ export function TeamChat({ teamId, teamName }: TeamChatProps) {
                       </div>
                       <div
                         className={cn(
-                          "rounded-lg px-4 py-2 break-words",
+                          "rounded-lg px-4 py-2 break-words overflow-wrap-anywhere",
                           isOwnMessage
                             ? "bg-primary text-primary-foreground"
                             : "bg-muted"
                         )}
                       >
-                        <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+                        <p className="text-sm whitespace-pre-wrap break-all">{msg.message}</p>
                       </div>
                     </div>
                     {isOwnMessage && (
