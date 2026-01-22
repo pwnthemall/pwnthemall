@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Challenge } from "@/models/Challenge";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,47 +6,37 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { BadgeCheck, Lock } from "lucide-react";
 import ChallengeImage from "@/components/ChallengeImage";
 import { AnimatedBorderCard } from "./AnimatedBorderCard";
+import axios from "@/lib/axios";
 
 interface MostSolvedSectionProps {
-  challenges: Challenge[];
-  loading: boolean;
   onChallengeSelect: (challenge: Challenge) => void;
   t: (key: string) => string;
 }
 
 const MostSolvedSection = ({
-  challenges,
-  loading,
   onChallengeSelect,
   t,
 }: MostSolvedSectionProps) => {
-  const mostSolvedChallenges = useMemo(() => {
-    return [...challenges]
-      .sort((a, b) => {
-        const solveCountA = typeof a.solveCount === 'number' ? a.solveCount : 0;
-        const solveCountB = typeof b.solveCount === 'number' ? b.solveCount : 0;
-        return solveCountB - solveCountA;
-      })
-      .slice(0, 3);
-  }, [challenges]);
+  const [featuredChallenges, setFeaturedChallenges] = useState<Challenge[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const getGradientColors = (difficultyColor: string | undefined) => {
-    const baseColor = difficultyColor || '#22c55e';
-    // Create a lighter version for gradient start
-    const lightenColor = (hex: string, percent: number) => {
-      const num = parseInt(hex.replace('#', ''), 16);
-      const r = Math.min(255, Math.floor(((num >> 16) & 0xff) + (255 - ((num >> 16) & 0xff)) * percent));
-      const g = Math.min(255, Math.floor(((num >> 8) & 0xff) + (255 - ((num >> 8) & 0xff)) * percent));
-      const b = Math.min(255, Math.floor((num & 0xff) + (255 - (num & 0xff)) * percent));
-      return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+  useEffect(() => {
+    const fetchFeaturedChallenges = async () => {
+      try {
+        const res = await axios.get<Challenge[]>("/api/challenges/featured");
+        setFeaturedChallenges(res.data || []);
+      } catch (error) {
+        console.error("Failed to fetch featured challenges:", error);
+        setFeaturedChallenges([]);
+      } finally {
+        setLoading(false);
+      }
     };
-    return {
-      light: lightenColor(baseColor, 0.4),
-      base: baseColor
-    };
-  };
 
-  if (mostSolvedChallenges.length === 0 && !loading) {
+    fetchFeaturedChallenges();
+  }, []);
+
+  if (!featuredChallenges || (featuredChallenges.length === 0 && !loading)) {
     return null;
   }
 
@@ -69,7 +59,7 @@ const MostSolvedSection = ({
             </Card>
           ))
         ) : (
-          mostSolvedChallenges.map((challenge) => {
+          featuredChallenges?.map((challenge) => {
             return (
             <AnimatedBorderCard
               key={challenge.id}

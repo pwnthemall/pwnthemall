@@ -9,6 +9,7 @@ p, anonymous, /pages/:slug, read
 p, member, /logout, *
 p, member, /pwn, *
 p, member, /challenges, read
+p, member, /challenges/featured, read
 p, member, /challenges/:id, read
 p, member, /challenges/:id/solves, read
 p, member, /challenges/:id/submit, write

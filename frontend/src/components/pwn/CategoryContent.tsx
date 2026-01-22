@@ -314,8 +314,6 @@ const CategoryContent = ({ cat, challenges = [], onChallengeUpdate, ctfStatus, c
           )}
 
           <MostSolvedSection
-            challenges={challenges}
-            loading={!!externalLoading}
             onChallengeSelect={handleChallengeSelect}
             t={t}
           />

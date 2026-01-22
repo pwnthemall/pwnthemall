@@ -10,6 +10,7 @@ func RegisterChallengeRoutes(router *gin.Engine) {
 	challenges := router.Group("/challenges", middleware.AuthRequiredTeamOrAdmin(), middleware.CSRFProtection())
 	{
 		challenges.GET("", middleware.CheckPolicy("/challenges", "read"), controllers.GetChallenges)
+		challenges.GET("/featured", middleware.CheckPolicy("/challenges/featured", "read"), controllers.GetFeaturedChallenges)
 		challenges.GET("/:id", middleware.CheckPolicy("/challenges/:id", "read"), controllers.GetChallenge)
 		challenges.GET("/:id/solves", middleware.CheckPolicy("/challenges/:id/solves", "read"), controllers.GetChallengeSolves)
 		challenges.GET("/:id/firstbloods", middleware.CheckPolicy("/challenges/:id/firstbloods", "read"), controllers.GetChallengeFirstBloods)
@@ -39,5 +40,11 @@ func RegisterChallengeRoutes(router *gin.Engine) {
 		adminChallenges.PUT("/:id", middleware.CheckPolicy("/admin/challenges/:id", "write"), controllers.UpdateChallengeAdmin)
 		adminChallenges.PUT("/:id/general", middleware.CheckPolicy("/admin/challenges/:id", "write"), controllers.UpdateChallengeGeneralAdmin)
 		adminChallenges.DELETE("/hints/:hintId", middleware.CheckPolicy("/admin/challenges/hints/:hintId", "write"), controllers.DeleteHint)
+	}
+
+	adminFeaturedChallenges := router.Group("/admin/featured-challenges", middleware.AuthRequired(false), middleware.CSRFProtection())
+	{
+		adminFeaturedChallenges.GET("", middleware.CheckPolicy("/admin/featured-challenges", "read"), controllers.GetFeaturedChallengeConfig)
+		adminFeaturedChallenges.POST("", middleware.CheckPolicy("/admin/featured-challenges", "write"), controllers.UpdateFeaturedChallengeConfig)
 	}
 }

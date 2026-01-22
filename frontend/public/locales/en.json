@@ -236,6 +236,28 @@
     "reorder_challenges": "Reorder Challenges",
     "select_category_drag_description": "Select a category and drag challenges to change their display order"
   },
+  "featured_challenges": {
+    "featured_challenges_management": "Featured challenges management",
+    "featured_challenges_description": "Configure which challenges are displayed in the featured section on the challenges page",
+    "selection_mode": "Selection mode",
+    "mode_manual": "Manual selection",
+    "mode_most_solved": "Most solved challenges",
+    "mode_highest_points": "Highest points",
+    "mode_active_first_blood": "Active first blood (no winner yet)",
+    "mode_manual_description": "Manually select up to 3 challenges to feature",
+    "mode_most_solved_description": "Automatically show the 3 most solved challenges",
+    "mode_highest_points_description": "Automatically show the 3 challenges with highest points",
+    "mode_active_first_blood_description": "Automatically show challenges with first blood enabled but no winner yet",
+    "select_challenges": "Select challenges",
+    "search_challenges": "Search challenges...",
+    "selected_challenges": "Selected challenges (max 3)",
+    "no_challenges_selected": "No challenges selected",
+    "save_configuration": "Save configuration",
+    "configuration_saved": "Featured challenges configuration saved successfully",
+    "failed_to_save_configuration": "Failed to save featured challenges configuration",
+    "failed_to_load_configuration": "Failed to load featured challenges configuration",
+    "failed_to_load_challenges": "Failed to load challenges"
+  },
   "challenge_solve": {
     "already_solved": "Already solved",
     "be_the_first": "Be the first to solve this challenge!",

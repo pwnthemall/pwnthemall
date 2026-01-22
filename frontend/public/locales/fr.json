@@ -236,6 +236,28 @@
     "reorder_challenges": "Réorganiser les challenges",
     "select_category_drag_description": "Sélectionnez une catégorie et faites glisser les challenges pour modifier leur ordre d'affichage."
   },
+  "featured_challenges": {
+    "featured_challenges_management": "Gestion des challenges mis en avant",
+    "featured_challenges_description": "Configurez quels challenges sont affichés dans la section mise en avant de la page des challenges",
+    "selection_mode": "Mode de sélection",
+    "mode_manual": "Sélection manuelle",
+    "mode_most_solved": "Challenges les plus résolus",
+    "mode_highest_points": "Points les plus élevés",
+    "mode_active_first_blood": "First blood actifs (pas encore de gagnant)",
+    "mode_manual_description": "Sélectionnez manuellement jusqu'à 3 challenges à mettre en avant",
+    "mode_most_solved_description": "Affiche automatiquement les 3 challenges les plus résolus",
+    "mode_highest_points_description": "Affiche automatiquement les 3 challenges avec le plus de points",
+    "mode_active_first_blood_description": "Affiche automatiquement les challenges avec first blood activé mais sans gagnant",
+    "select_challenges": "Sélectionner les challenges",
+    "search_challenges": "Rechercher des challenges...",
+    "selected_challenges": "Challenges sélectionnés (max 3)",
+    "no_challenges_selected": "Aucun challenge sélectionné",
+    "save_configuration": "Enregistrer la configuration",
+    "configuration_saved": "Configuration des challenges mis en avant enregistrée avec succès",
+    "failed_to_save_configuration": "Échec de l'enregistrement de la configuration des challenges mis en avant",
+    "failed_to_load_configuration": "Échec du chargement de la configuration des challenges mis en avant",
+    "failed_to_load_challenges": "Échec du chargement des challenges"
+  },
   "challenge_solve": {
     "already_solved": "Déjà résolu",
     "be_the_first": "Soyez le premier à résoudre ce challenge !",
