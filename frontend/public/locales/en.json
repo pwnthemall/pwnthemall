@@ -876,7 +876,15 @@
     "team_name_required": "Team name is required",
     "team_required": "Team membership required.",
     "team_required_to_submit": "You must be part of a team to submit flags.",
-    "admin_team_required_for_instances": "Admin must join a team to start Docker instances."
+    "admin_team_required_for_instances": "Admin must join a team to start Docker instances.",
+    "chat": "Team Chat",
+    "no_messages": "No messages yet. Start the conversation!",
+    "type_message": "Type a message...",
+    "message_sent": "Message sent",
+    "message_failed": "Failed to send message",
+    "too_many_messages": "Too many messages. Please slow down.",
+    "chat_hint": "Press Enter to send, Shift+Enter for new line",
+    "load_more": "Load more messages"
   },
   "team_members": {
     "a_teammate": "a teammate",
@@ -899,6 +907,12 @@
     "team_transfer_success": "Team ownership transferred successfully!",
     "transfer_ownership": "Transfer ownership",
     "transfer_ownership_and_leave": "Transfer ownership and leave"
+  },
+  "time": {
+    "just_now": "Just now",
+    "min_ago": "m ago",
+    "hour_ago": "h ago",
+    "day_ago": "d ago"
   },
   "ui": {
     "theme": "Theme"

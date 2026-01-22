@@ -27,6 +27,12 @@ var loginLimiter = &rateLimiter{
 	window:   1 * time.Minute,
 }
 
+var teamChatLimiter = &rateLimiter{
+	attempts: make(map[string][]time.Time),
+	maxTries: 20,
+	window:   1 * time.Minute,
+}
+
 func RateLimitLogin() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Use IP address as key for login attempts
@@ -87,6 +93,41 @@ func RateLimitJoinTeam() gin.HandlerFunc {
 
 		validAttempts = append(validAttempts, now)
 		joinTeamLimiter.attempts[key] = validAttempts
+
+		c.Next()
+	}
+}
+
+func RateLimitTeamChat() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID, exists := c.Get("user_id")
+		if !exists {
+			c.Next()
+			return
+		}
+
+		key := string(rune(userID.(uint)))
+		now := time.Now()
+
+		teamChatLimiter.mu.Lock()
+		defer teamChatLimiter.mu.Unlock()
+
+		attempts := teamChatLimiter.attempts[key]
+		var validAttempts []time.Time
+		for _, attemptTime := range attempts {
+			if now.Sub(attemptTime) < teamChatLimiter.window {
+				validAttempts = append(validAttempts, attemptTime)
+			}
+		}
+
+		if len(validAttempts) >= teamChatLimiter.maxTries {
+			c.JSON(http.StatusTooManyRequests, gin.H{"error": "too_many_messages"})
+			c.Abort()
+			return
+		}
+
+		validAttempts = append(validAttempts, now)
+		teamChatLimiter.attempts[key] = validAttempts
 
 		c.Next()
 	}

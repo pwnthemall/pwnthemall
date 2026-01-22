@@ -83,6 +83,12 @@ export default function TeamPage() {
       if (res.data.error) throw new Error(t(res.data.error) || t("team_creation_failed"));
 
       toast.success(t("team_created_success"));
+      
+      // Trigger auth:refresh to update sidebar immediately
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('auth:refresh'));
+      }
+      
       router.push("/");
     } catch (err: any) {
       const errorMessage = err.response?.data?.error 
@@ -108,6 +114,12 @@ export default function TeamPage() {
       if (res.data.error) throw new Error(t(res.data.error) || t("team_join_failed"));
 
       toast.success(t("team_joined_success"));
+      
+      // Trigger auth:refresh to update sidebar immediately
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('auth:refresh'));
+      }
+      
       router.push("/");
     } catch (err: any) {
       const errorMessage = err.response?.data?.error 

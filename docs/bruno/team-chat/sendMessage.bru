@@ -1,0 +1,23 @@
+meta {
+  name: Send Team Chat Message
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{host}}/teams/{{teamId}}/chat/messages
+  body: json
+  auth: none
+}
+
+headers {
+  Cookie: {{cookieHeader}}
+  X-CSRF-Token: {{csrfToken}}
+}
+
+body:json {
+  {
+    "message": "Hello team!",
+    "attachments": []
+  }
+}

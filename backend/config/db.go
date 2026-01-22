@@ -31,6 +31,7 @@ func ConnectDB() *gorm.DB {
 		&models.Ticket{}, &models.TicketMessage{},
 		&models.Page{},
 		&models.PasswordResetToken{}, // Password reset functionality
+		&models.TeamChatMessage{},
 	)
 	if err != nil {
 		debug.Log("Failed to migrate database: %v", err)

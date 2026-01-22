@@ -35,6 +35,8 @@ p, member, /teams/leave, write
 p, member, /teams/transfer-owner, write
 p, member, /teams/disband, write
 p, member, /teams/kick, write
+p, member, /teams/:id/chat/messages, read
+p, member, /teams/:id/chat/messages, write
 p, member, /notifications, read
 p, member, /notifications/unread-count, read
 p, member, /notifications/:id/read, write

@@ -876,7 +876,15 @@
     "team_name_required": "Le nom de l'équipe est requis",
     "team_required": "Appartenance à une équipe requise.",
     "team_required_to_submit": "Vous devez faire partie d'une équipe pour soumettre des flags.",
-    "admin_team_required_for_instances": "L'admin doit rejoindre une équipe pour démarrer des instances Docker."
+    "admin_team_required_for_instances": "L'admin doit rejoindre une équipe pour démarrer des instances Docker.",
+    "chat": "Discussion d'équipe",
+    "no_messages": "Aucun message pour le moment. Commencez la conversation !",
+    "type_message": "Tapez un message...",
+    "message_sent": "Message envoyé",
+    "message_failed": "Échec de l'envoi du message",
+    "too_many_messages": "Trop de messages. Veuillez ralentir.",
+    "chat_hint": "Appuyez sur Entrée pour envoyer, Maj+Entrée pour une nouvelle ligne",
+    "load_more": "Charger plus de messages"
   },
   "team_members": {
     "a_teammate": "un coéquipier",
@@ -899,6 +907,12 @@
     "team_transfer_success": "Propriété de l'équipe transférée avec succès !",
     "transfer_ownership": "Transférer la propriété",
     "transfer_ownership_and_leave": "Transférer la propriété et partir"
+  },
+  "time": {
+    "just_now": "À l'instant",
+    "min_ago": "min",
+    "hour_ago": "h",
+    "day_ago": "j"
   },
   "ui": {
     "theme": "Thème"
