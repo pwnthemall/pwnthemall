@@ -42,6 +42,12 @@ func GetPublicUserProfile(c *gin.Context) {
 		return
 	}
 
+	// Check if user is banned
+	if user.Banned {
+		utils.NotFoundError(c, "user_not_found")
+		return
+	}
+
 	// Calculate user ranking based on individual leaderboard
 	ranking := calculateUserRanking(user.ID)
 
@@ -111,6 +117,8 @@ func calculateUserRanking(userID uint) int {
 
 	var scores []userScore
 	config.DB.Model(&models.Solve{}).
+		Joins("JOIN users ON users.id = solves.user_id").
+		Where("users.banned = ?", false).
 		Select("user_id, COALESCE(SUM(points), 0) as total_score").
 		Group("user_id").
 		Order("total_score DESC").

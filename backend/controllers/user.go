@@ -278,6 +278,8 @@ func GetIndividualLeaderboard(c *gin.Context) {
 
 	var scores []userScore
 	if err := config.DB.Model(&models.Solve{}).
+		Joins("JOIN users ON users.id = solves.user_id").
+		Where("users.banned = ?", false).
 		Select("user_id, COALESCE(SUM(points), 0) as total_score, COUNT(*) as solve_count").
 		Group("user_id").
 		Order("total_score DESC").
@@ -341,6 +343,8 @@ func GetIndividualTimeline(c *gin.Context) {
 
 	var topScores []userScore
 	if err := config.DB.Model(&models.Solve{}).
+		Joins("JOIN users ON users.id = solves.user_id").
+		Where("users.banned = ?", false).
 		Select("user_id, COALESCE(SUM(points), 0) as total_score").
 		Group("user_id").
 		Order("total_score DESC").
