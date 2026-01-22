@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
+	"io"
 	"strings"
 
 	"github.com/pwnthemall/pwnthemall/backend/debug"
@@ -11,8 +13,19 @@ import (
 )
 
 func MinioWebhook(c *gin.Context) {
+	bodyBytes, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		utils.BadRequestError(c, "failed to read request body")
+		return
+	}
+
+	if !utils.ValidateWebhookSignature(c, bodyBytes) {
+		utils.UnauthorizedError(c, "invalid webhook signature")
+		return
+	}
+
 	var event map[string]interface{}
-	if err := c.BindJSON(&event); err != nil {
+	if err := json.Unmarshal(bodyBytes, &event); err != nil {
 		utils.BadRequestError(c, "invalid JSON payload")
 		return
 	}
