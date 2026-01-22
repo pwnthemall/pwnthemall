@@ -15,6 +15,7 @@ import { getThemeLogo, getThemeType } from "@/lib/themeConfig"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useState } from "react"
 import { useRouter } from "next/router"
+import { TriangleAlert } from "lucide-react"
 
 interface LoginContentProps {
     form: {
@@ -35,10 +36,10 @@ export default function LoginContent({
     const { t } = useLanguage();
     const { siteConfig } = useSiteConfig();
     const { theme } = useTheme();
-    const { siteConfig } = useSiteConfig();
     const router = useRouter();
-
     const [logoLoaded, setLogoLoaded] = useState(false);
+    const themeType = getThemeType(theme);
+    const isDark = themeType === 'dark';
     
     // Check if password reset is enabled
     const passwordResetEnabled = siteConfig.PASSWORD_RESET === "true";
@@ -47,8 +48,8 @@ export default function LoginContent({
         <div className="w-full max-w-4xl px-4">
             <Card className="border-0 rounded-[20px] overflow-hidden p-0 shadow-2xl dark:shadow-[0_20px_50px_rgba(255,255,255,0.1)]">
                 <MagicCard
-                    gradientSize={getThemeType(theme) === "dark" ? 40 : 40}
-                    gradientColor={getThemeType(theme) === "dark" ? "#6b6b6b55" : "#c4c4c455"}
+                    gradientSize={isDark ? 40 : 40}
+                    gradientColor={isDark ? "#6b6b6b55" : "#c4c4c455"}
                     className="rounded-[20px] p-0"
                 >
                     <CardContent className="grid p-0 md:grid-cols-2">
