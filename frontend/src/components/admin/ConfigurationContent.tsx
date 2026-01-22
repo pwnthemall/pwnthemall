@@ -63,8 +63,10 @@ export default function ConfigurationContent({ configs, onRefresh }: Configurati
         const key = row.original.key;
         
         // Mask sensitive fields (passwords, secrets, tokens)
+        const excludedKeys = ['PASSWORD_RESET'];
         const sensitiveKeywords = ['PASSWORD', 'SECRET', 'TOKEN', 'KEY', 'CREDENTIAL'];
-        const isSensitive = sensitiveKeywords.some(keyword => key.toUpperCase().includes(keyword));
+        const isSensitive = !excludedKeys.includes(key) && 
+                           sensitiveKeywords.some(keyword => key.toUpperCase().includes(keyword));
         
         if (isSensitive && value) {
           return (

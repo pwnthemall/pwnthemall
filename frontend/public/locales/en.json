@@ -496,7 +496,8 @@
     "file_download_failed": "Failed to download file",
     "csrf_token_missing": "Security verification failed. Please refresh the page and try again.",
     "csrf_token_invalid": "Your session has expired. Please refresh the page to continue.",
-    "csrf_validation_failed": "Security check failed. Refreshing automatically..."
+    "csrf_validation_failed": "Security check failed. Refreshing automatically...",
+    "invalid_credentials": "Invalid username or password. Please try again."
   },
   "flag": {
     "enter_your_flag": "Enter your flag",

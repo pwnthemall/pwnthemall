@@ -490,13 +490,14 @@
     "invalid_email": "Adresse email invalide."
   },
   "errors": {
-    "challenge_not_found": "Challenge introuvable",
+    "challenge_not_found": "Défi introuvable",
     "file_not_found": "Fichier introuvable",
     "invalid_file_path": "Chemin de fichier invalide",
-    "file_download_failed": "Échec du téléchargement du fichier.",
-    "csrf_token_missing": "La vérification de sécurité a échoué. Veuillez actualiser la page et réessayer.",
+    "file_download_failed": "Échec du téléchargement du fichier",
+    "csrf_token_missing": "Échec de la vérification de sécurité. Veuillez actualiser la page et réessayer.",
     "csrf_token_invalid": "Votre session a expiré. Veuillez actualiser la page pour continuer.",
-    "csrf_validation_failed": "Échec de la vérification de sécurité. Actualisation automatique..."
+    "csrf_validation_failed": "Échec de la vérification de sécurité. Actualisation automatique...",
+    "invalid_credentials": "Nom d'utilisateur ou mot de passe invalide. Veuillez réessayer."
   },
   "flag": {
     "enter_your_flag": "Entrez votre flag",

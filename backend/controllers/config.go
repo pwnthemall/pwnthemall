@@ -45,6 +45,13 @@ func getEncryptionKey() []byte {
 
 // shouldEncryptField determines if a config key should be encrypted
 func shouldEncryptField(key string) bool {
+	excludedKeys := []string{"PASSWORD_RESET"}
+	for _, excluded := range excludedKeys {
+		if key == excluded {
+			return false
+		}
+	}
+	
 	sensitiveKeys := []string{"PASSWORD", "SECRET", "TOKEN", "KEY", "CREDENTIAL"}
 	upperKey := strings.ToUpper(key)
 	for _, sensitive := range sensitiveKeys {

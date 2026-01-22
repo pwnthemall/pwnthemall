@@ -119,16 +119,18 @@ export default function ConfigurationForm({
         ) : (
           <Input
             id="value"
-            type={formData.key.toUpperCase().includes('PASSWORD') || 
-                  formData.key.toUpperCase().includes('SECRET') || 
-                  formData.key.toUpperCase().includes('TOKEN') ? "password" : "text"}
+            type={(formData.key !== 'PASSWORD_RESET' && 
+                  (formData.key.toUpperCase().includes('PASSWORD') || 
+                   formData.key.toUpperCase().includes('SECRET') || 
+                   formData.key.toUpperCase().includes('TOKEN'))) ? "password" : "text"}
             value={formData.value}
             onChange={(e) => handleInputChange("value", e.target.value)}
             className={errors.value ? "border-red-500" : ""}
             placeholder={
-              formData.key.toUpperCase().includes('PASSWORD') || 
-              formData.key.toUpperCase().includes('SECRET') || 
-              formData.key.toUpperCase().includes('TOKEN') 
+              (formData.key !== 'PASSWORD_RESET' && 
+               (formData.key.toUpperCase().includes('PASSWORD') || 
+                formData.key.toUpperCase().includes('SECRET') || 
+                formData.key.toUpperCase().includes('TOKEN')))
                 ? (isEdit ? t("leave_blank_to_keep") : t("enter_password")) || "Leave blank to keep current value"
                 : t("enter_value") || "Enter configuration value"
             }
