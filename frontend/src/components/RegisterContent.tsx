@@ -7,12 +7,14 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useLanguage } from "@/context/LanguageContext"
+import { useSiteConfig } from "@/context/SiteConfigContext"
 import React from "react"
 import Image from "next/image"
 import { useTheme } from "next-themes"
 import { MagicCard } from "@/components/ui/magic-card"
 import { getThemeLogo, getThemeType } from "@/lib/themeConfig"
 import { Skeleton } from "@/components/ui/skeleton"
+import { TriangleAlert } from "lucide-react"
 
 interface RegisterContentProps {
     form: {
@@ -34,10 +36,14 @@ const RegisterContent: React.FC<RegisterContentProps> = ({
     onSubmit,
 }) => {
     const { t } = useLanguage();
+    const { siteConfig } = useSiteConfig();
     const { theme } = useTheme();
     const [logoLoaded, setLogoLoaded] = React.useState(false);
 
     const [errors, setErrors] = React.useState<{username?: string, email?: string, password?: string}>({});
+    
+    const themeType = getThemeType(theme);
+    const isDark = themeType === 'dark';
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -60,6 +66,27 @@ const RegisterContent: React.FC<RegisterContentProps> = ({
                     <CardContent className="grid p-0 md:grid-cols-2">
                         <form onSubmit={onSubmit} className="p-6 md:p-8">
                             <div className="flex flex-col gap-6">
+                                {siteConfig.DEMO === "true" && (
+                                    <div 
+                                        className={`flex items-center gap-2 px-3 py-2 rounded-md border ${
+                                            isDark 
+                                                ? 'bg-amber-950/10 border-amber-800/30' 
+                                                : 'bg-amber-50/50 border-amber-200/50'
+                                        }`}
+                                        role="alert"
+                                    >
+                                        <TriangleAlert 
+                                            className={`h-3.5 w-3.5 flex-shrink-0 ${
+                                                isDark ? 'text-amber-500' : 'text-amber-600'
+                                            }`}
+                                            aria-hidden="true" 
+                                        />
+                                        <p className={`text-xs ${isDark ? 'text-amber-400' : 'text-amber-700'}`}>
+                                            {t('demo_warning_message')}
+                                        </p>
+                                    </div>
+                                )}
+
                                 <div className="flex flex-col items-center gap-2 text-center">
                                     <h1 className="text-2xl font-bold">{t('sign_up')}</h1>
                                     <p className="text-muted-foreground text-balance">
