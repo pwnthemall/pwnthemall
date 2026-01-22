@@ -121,7 +121,7 @@ export function TeamChat({ teamId, teamName }: TeamChatProps) {
       <CardHeader className="border-b">
         <CardTitle className="flex items-center gap-2">
           <MessageSquare className="h-5 w-5" />
-          {teamName} {t("team.chat") || "Chat"}
+          {t("team.chat") || "Team Chat"}
         </CardTitle>
       </CardHeader>
 
