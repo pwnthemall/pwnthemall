@@ -20,7 +20,7 @@ func GetFeaturedChallengeConfig(c *gin.Context) {
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
 			utils.OKResponse(c, models.FeaturedChallengeConfig{
-				Mode:         "most_solved",
+				Mode:         "highest_points",
 				ChallengeIDs: []int64{},
 			})
 			return
@@ -91,8 +91,8 @@ func GetFeaturedChallenges(c *gin.Context) {
 		return
 	}
 	
-	// Default to most_solved if no config
-	mode := "most_solved"
+	// Default to highest_points if no config
+	mode := "highest_points"
 	if result.Error == nil {
 		mode = featuredConfig.Mode
 	}

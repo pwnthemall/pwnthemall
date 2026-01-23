@@ -39,7 +39,7 @@ export default function ChallengeOrderPage() {
   // Featured challenges state
   const [allChallenges, setAllChallenges] = useState<Challenge[]>([])
   const [featuredConfig, setFeaturedConfig] = useState<FeaturedConfig>({
-    mode: "most_solved",
+    mode: "highest_points",
     challengeIds: [],
   })
   const [searchTerm, setSearchTerm] = useState("")
@@ -282,18 +282,6 @@ export default function ChallengeOrderPage() {
                     className="space-y-3"
                   >
                     <div className="flex items-start space-x-3 space-y-0">
-                      <RadioGroupItem value="most_solved" id="most_solved" />
-                      <div className="flex-1">
-                        <Label htmlFor="most_solved" className="font-medium cursor-pointer">
-                          {t("featured_challenges.mode_most_solved")}
-                        </Label>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {t("featured_challenges.mode_most_solved_description")}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start space-x-3 space-y-0">
                       <RadioGroupItem value="highest_points" id="highest_points" />
                       <div className="flex-1">
                         <Label htmlFor="highest_points" className="font-medium cursor-pointer">
@@ -301,6 +289,18 @@ export default function ChallengeOrderPage() {
                         </Label>
                         <p className="text-sm text-muted-foreground mt-1">
                           {t("featured_challenges.mode_highest_points_description")}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start space-x-3 space-y-0">
+                      <RadioGroupItem value="most_solved" id="most_solved" />
+                      <div className="flex-1">
+                        <Label htmlFor="most_solved" className="font-medium cursor-pointer">
+                          {t("featured_challenges.mode_most_solved")}
+                        </Label>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {t("featured_challenges.mode_most_solved_description")}
                         </p>
                       </div>
                     </div>
