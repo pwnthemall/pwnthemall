@@ -62,6 +62,23 @@ export default function ConfigurationContent({ configs, onRefresh }: Configurati
         const value = getValue() as string;
         const key = row.original.key;
         
+        // Mask sensitive fields (passwords, secrets, tokens)
+        const excludedKeys = ['PASSWORD_RESET'];
+        const sensitiveKeywords = ['PASSWORD', 'SECRET', 'TOKEN', 'KEY', 'CREDENTIAL'];
+        const isSensitive = !excludedKeys.includes(key) && 
+                           sensitiveKeywords.some(keyword => key.toUpperCase().includes(keyword));
+        
+        if (isSensitive && value) {
+          return (
+            <div className="min-w-[200px] max-w-[300px]">
+              <span className="font-mono text-sm text-muted-foreground">••••••••</span>
+              <div className="text-xs text-muted-foreground mt-1">
+                {t("encrypted_value")}
+              </div>
+            </div>
+          );
+        }
+        
         // Special formatting for CTF timing configurations
         if ((key === "CTF_START_TIME" || key === "CTF_END_TIME") && value) {
           try {
@@ -246,6 +263,18 @@ export default function ConfigurationContent({ configs, onRefresh }: Configurati
     return a.key.localeCompare(b.key, 'en', { sensitivity: 'base' });
   });
 
+  // Filter configs based on PASSWORD_RESET
+  const passwordResetEnabled = configs.find(c => c.key === "PASSWORD_RESET")?.value === "true";
+  const smtpKeys = ["SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASSWORD", "SMTP_FROM"];
+  
+  const filteredConfigs = sortedConfigs.filter(config => {
+    // If password reset is disabled, hide SMTP-related keys (except the toggle itself)
+    if (!passwordResetEnabled && smtpKeys.includes(config.key)) {
+      return false;
+    }
+    return true;
+  });
+
   return (
     <>
       <Head>
@@ -292,7 +321,7 @@ export default function ConfigurationContent({ configs, onRefresh }: Configurati
         </div>
         <DataTable
           columns={columns}
-          data={sortedConfigs}
+          data={filteredConfigs}
           enableRowSelection
           rowSelection={rowSelection}
           onRowSelectionChange={setRowSelection}

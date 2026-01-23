@@ -116,7 +116,10 @@ function MyApp({ Component, pageProps, sidebarDefaultOpen }: MyAppProps) {
                     <Component {...pageProps} />
                   ) : router.pathname.startsWith('/live') ? (
                     <Component {...pageProps} />
-                  ) : router.pathname === '/login' || router.pathname === '/register' ? (
+                  ) : router.pathname === '/login' || 
+                     router.pathname === '/register' || 
+                     router.pathname === '/forgot-password' || 
+                     router.pathname.startsWith('/reset-password') ? (
                     <Component {...pageProps} />
                   ) : (
                     <SidebarProvider defaultOpen={sidebarDefaultOpen}>

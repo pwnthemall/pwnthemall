@@ -31,6 +31,12 @@ func seedConfig() {
 		{Key: "CTF_START_TIME", Value: GetEnvWithDefault("PTA_CTF_START_TIME", ""), Public: true},
 		{Key: "CTF_END_TIME", Value: GetEnvWithDefault("PTA_CTF_END_TIME", ""), Public: true},
 		{Key: "DEMO", Value: GetEnvWithDefault("PTA_DEMO", "false"), Public: true, SyncWithEnv: false},
+		{Key: "PASSWORD_RESET", Value: GetEnvWithDefault("PTA_PASSWORD_RESET_ENABLED", "false"), Public: true},
+		{Key: "SMTP_HOST", Value: GetEnvWithDefault("SMTP_HOST", ""), Public: false},
+		{Key: "SMTP_PORT", Value: GetEnvWithDefault("SMTP_PORT", "587"), Public: false},
+		{Key: "SMTP_USER", Value: GetEnvWithDefault("SMTP_USER", ""), Public: false},
+		{Key: "SMTP_PASSWORD", Value: GetEnvWithDefault("SMTP_PASSWORD", ""), Public: false},
+		{Key: "SMTP_FROM", Value: GetEnvWithDefault("SMTP_FROM", ""), Public: false},
 	}
 
 	for _, item := range config {

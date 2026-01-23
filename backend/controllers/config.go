@@ -3,6 +3,8 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -22,6 +24,43 @@ var (
 )
 
 const ctfCacheDuration = 30 * time.Second
+
+// getEncryptionKey retrieves the encryption key from environment variable
+// Returns nil if not set (encryption disabled)
+func getEncryptionKey() []byte {
+	key := os.Getenv("PTA_ENCRYPTION_KEY")
+	if key == "" {
+		return nil
+	}
+	// Ensure key is exactly 32 bytes for AES-256
+	if len(key) < 32 {
+		// Pad with zeros if too short
+		key = key + strings.Repeat("0", 32-len(key))
+	} else if len(key) > 32 {
+		// Truncate if too long
+		key = key[:32]
+	}
+	return []byte(key)
+}
+
+// shouldEncryptField determines if a config key should be encrypted
+func shouldEncryptField(key string) bool {
+	excludedKeys := []string{"PASSWORD_RESET"}
+	for _, excluded := range excludedKeys {
+		if key == excluded {
+			return false
+		}
+	}
+	
+	sensitiveKeys := []string{"PASSWORD", "SECRET", "TOKEN", "KEY", "CREDENTIAL"}
+	upperKey := strings.ToUpper(key)
+	for _, sensitive := range sensitiveKeys {
+		if strings.Contains(upperKey, sensitive) {
+			return true
+		}
+	}
+	return false
+}
 
 func GetConfigs(c *gin.Context) {
 	var configs []models.Config
@@ -66,6 +105,20 @@ func CreateConfig(c *gin.Context) {
 	}
 	if input.SyncWithEnv != nil {
 		cfg.SyncWithEnv = *input.SyncWithEnv
+	}
+
+	// Handle encryption for sensitive fields
+	if shouldEncryptField(cfg.Key) && cfg.Value != "" {
+		encKey := getEncryptionKey()
+		if encKey != nil {
+			encrypted, err := utils.EncryptString(cfg.Value, encKey)
+			if err != nil {
+				utils.InternalServerError(c, "Failed to encrypt sensitive value: "+err.Error())
+				return
+			}
+			cfg.Value = encrypted
+			cfg.Encrypted = true
+		}
 	}
 
 	if err := config.DB.Save(&cfg).Error; err != nil {
@@ -135,6 +188,7 @@ func UpdateConfig(c *gin.Context) {
 
 	// Store old value for potential rollback
 	oldValue := cfg.Value
+	oldEncrypted := cfg.Encrypted
 
 	cfg.Value = input.Value
 	if input.Public != nil {
@@ -142,6 +196,26 @@ func UpdateConfig(c *gin.Context) {
 	}
 	if input.SyncWithEnv != nil {
 		cfg.SyncWithEnv = *input.SyncWithEnv
+	}
+
+	// Handle encryption for sensitive fields
+	if shouldEncryptField(key) && cfg.Value != "" {
+		encKey := getEncryptionKey()
+		if encKey != nil {
+			encrypted, err := utils.EncryptString(cfg.Value, encKey)
+			if err != nil {
+				utils.InternalServerError(c, "Failed to encrypt sensitive value: "+err.Error())
+				return
+			}
+			cfg.Value = encrypted
+			cfg.Encrypted = true
+		} else {
+			// No encryption key set, store as plain text but mark as should-be-encrypted
+			cfg.Encrypted = false
+		}
+	} else if cfg.Value == "" {
+		// Empty value, don't encrypt
+		cfg.Encrypted = false
 	}
 
 	if err := config.DB.Save(&cfg).Error; err != nil {
@@ -154,6 +228,7 @@ func UpdateConfig(c *gin.Context) {
 		if err := validateCTFTimeOrder(); err != nil {
 			// Rollback the change
 			cfg.Value = oldValue
+			cfg.Encrypted = oldEncrypted
 			config.DB.Save(&cfg)
 			utils.BadRequestError(c, err.Error())
 			return

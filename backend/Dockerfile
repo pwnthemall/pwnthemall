@@ -82,6 +82,7 @@ COPY config/casbin_model.conf /app/config/
 COPY config/casbin_policies.csv /app/config/
 COPY entrypoint.prod.sh /entrypoint.sh
 COPY ./.dockerignore plugins/ /app/plugins/
+COPY templates/ /app/templates/
 
 EXPOSE 8080
 

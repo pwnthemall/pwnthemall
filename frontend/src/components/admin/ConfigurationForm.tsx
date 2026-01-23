@@ -84,7 +84,7 @@ export default function ConfigurationForm({
 
       <div className="space-y-2">
         <Label htmlFor="value">{t("value")}</Label>
-        {(formData.key === "REGISTRATION_ENABLED" || formData.key === "TICKETS_ENABLED") ? (
+        {(formData.key === "REGISTRATION_ENABLED" || formData.key === "TICKETS_ENABLED" || formData.key === "PASSWORD_RESET") ? (
           <Select
             value={formData.value}
             onValueChange={(value) => handleInputChange("value", value)}
@@ -119,11 +119,21 @@ export default function ConfigurationForm({
         ) : (
           <Input
             id="value"
-            type="text"
+            type={(formData.key !== 'PASSWORD_RESET' && 
+                  (formData.key.toUpperCase().includes('PASSWORD') || 
+                   formData.key.toUpperCase().includes('SECRET') || 
+                   formData.key.toUpperCase().includes('TOKEN'))) ? "password" : "text"}
             value={formData.value}
             onChange={(e) => handleInputChange("value", e.target.value)}
             className={errors.value ? "border-red-500" : ""}
-            placeholder={t("enter_value") || "Enter configuration value"}
+            placeholder={
+              (formData.key !== 'PASSWORD_RESET' && 
+               (formData.key.toUpperCase().includes('PASSWORD') || 
+                formData.key.toUpperCase().includes('SECRET') || 
+                formData.key.toUpperCase().includes('TOKEN')))
+                ? (isEdit ? t("leave_blank_to_keep") : t("enter_password")) || "Leave blank to keep current value"
+                : t("enter_value") || "Enter configuration value"
+            }
           />
         )}
         {errors.value && <p className="text-sm text-red-500">{errors.value}</p>}
