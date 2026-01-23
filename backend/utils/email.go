@@ -367,7 +367,7 @@ func SendPasswordChangedEmail(email, username, changeIP, lang string) error {
 	}
 
 	// Set subject based on language
-	subject := fmt.Sprintf("[%s] Password Changed", siteName)
+	subject := fmt.Sprintf("[%s] Password changed", siteName)
 	if lang == "fr" {
 		subject = fmt.Sprintf("[%s] Mot de passe modifié", siteName)
 	}
