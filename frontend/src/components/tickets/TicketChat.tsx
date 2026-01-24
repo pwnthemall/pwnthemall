@@ -64,7 +64,7 @@ export function TicketChat({
       });
       setMessage("");
       setAttachments([]);
-      toast.success(t("tickets.message_sent") || "Message sent");
+      // toast.success(t("tickets.message_sent") || "Message sent");
     } catch (error) {
       toast.error(t("tickets.message_failed") || "Failed to send message");
     } finally {

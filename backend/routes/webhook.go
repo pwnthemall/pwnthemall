@@ -1,9 +1,6 @@
 package routes
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
 	"net/http"
 	"os"
 	"strings"
@@ -25,8 +22,11 @@ func tokenAuthMiddleware() gin.HandlerFunc {
 		parts := strings.SplitN(authHeader, " ", 2)
 		expectedToken := os.Getenv("MINIO_NOTIFY_WEBHOOK_AUTH_TOKEN_DBSYNC")
 
+		// SECURITY FIX: Fail closed if token not configured
 		if expectedToken == "" {
-			debug.Log("WARNING: MINIO_NOTIFY_WEBHOOK_AUTH_TOKEN_DBSYNC not set, webhooks are insecure!")
+			debug.Log("CRITICAL: MINIO_NOTIFY_WEBHOOK_AUTH_TOKEN_DBSYNC not set - webhooks disabled for security")
+			c.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{"error": "Webhook authentication not configured"})
+			return
 		}
 
 		if len(parts) != 2 || parts[0] != "Bearer" || parts[1] != expectedToken {
@@ -37,36 +37,6 @@ func tokenAuthMiddleware() gin.HandlerFunc {
 
 		c.Next()
 	}
-}
-
-// Optional HMAC signature validation (defense-in-depth)
-func validateWebhookSignature(c *gin.Context, body []byte) bool {
-	signature := c.GetHeader("X-Minio-Signature")
-	webhookSecret := os.Getenv("MINIO_WEBHOOK_SECRET")
-
-	// If no secret configured, skip signature validation (rely on Bearer token only)
-	if webhookSecret == "" {
-		return true
-	}
-
-	// If secret is configured, signature must be present and valid
-	if signature == "" {
-		debug.Log("Webhook signature validation failed: missing X-Minio-Signature header")
-		return false
-	}
-
-	// Compute HMAC
-	mac := hmac.New(sha256.New, []byte(webhookSecret))
-	mac.Write(body)
-	expectedSignature := hex.EncodeToString(mac.Sum(nil))
-
-	// Constant-time comparison to prevent timing attacks
-	if !hmac.Equal([]byte(signature), []byte(expectedSignature)) {
-		debug.Log("Webhook signature validation failed: signature mismatch")
-		return false
-	}
-
-	return true
 }
 
 func RegisterWebhookRoutes(router *gin.Engine) {

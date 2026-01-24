@@ -21,7 +21,7 @@ func RegisterChallengeRoutes(router *gin.Engine) {
 		challenges.GET("/:id/instance-status", middleware.DemoRestriction, middleware.CheckPolicy("/challenges/:id/instance-status", "read"), controllers.GetInstanceStatus)
 
 		challenges.POST("", middleware.CheckPolicy("/challenges", "write"), controllers.CreateChallenge)
-		challenges.POST("/:id/submit", middleware.CheckPolicy("/challenges/:id/submit", "write"), controllers.SubmitChallenge)
+		challenges.POST("/:id/submit", middleware.RateLimit(10), middleware.CheckPolicy("/challenges/:id/submit", "write"), controllers.SubmitChallenge)
 		challenges.POST("/:id/build", middleware.DemoRestriction, middleware.CheckPolicy("/challenges/:id/build", "write"), controllers.BuildChallengeImage)
 		challenges.POST("/:id/start", middleware.DemoRestriction, middleware.CheckPolicy("/challenges/:id/start", "write"), controllers.StartChallengeInstance)
 		challenges.POST("/:id/stop", middleware.DemoRestriction, middleware.CheckPolicy("/challenges/:id/stop", "write"), controllers.StopChallengeInstance)

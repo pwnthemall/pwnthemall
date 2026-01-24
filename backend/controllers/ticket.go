@@ -329,8 +329,7 @@ func GetTicket(c *gin.Context) {
 		return
 	}
 
-	// Check access: user must be the creator or part of the team
-	hasAccess := ticket.UserID == userID
+	hasAccess := ticket.UserID == userID || user.Role == "admin"
 	if user.TeamID != nil && ticket.TeamID != nil && *user.TeamID == *ticket.TeamID {
 		hasAccess = true
 	}
@@ -415,8 +414,7 @@ func SendTicketMessage(c *gin.Context) {
 		return
 	}
 
-	// Check access
-	hasAccess := ticket.UserID == userID
+	hasAccess := ticket.UserID == userID || user.Role == "admin"
 	if user.TeamID != nil && ticket.TeamID != nil && *user.TeamID == *ticket.TeamID {
 		hasAccess = true
 	}

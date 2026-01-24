@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"sync"
 	"time"
@@ -71,7 +72,7 @@ func RateLimitJoinTeam() gin.HandlerFunc {
 			return
 		}
 
-		key := string(rune(userID.(uint)))
+		key := fmt.Sprintf("user:%d", userID.(uint))
 		now := time.Now()
 
 		joinTeamLimiter.mu.Lock()
@@ -98,71 +99,48 @@ func RateLimitJoinTeam() gin.HandlerFunc {
 	}
 }
 
-func RateLimitTeamChat() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		userID, exists := c.Get("user_id")
-		if !exists {
-			c.Next()
-			return
-		}
-
-		key := string(rune(userID.(uint)))
-		now := time.Now()
-
-		teamChatLimiter.mu.Lock()
-		defer teamChatLimiter.mu.Unlock()
-
-		attempts := teamChatLimiter.attempts[key]
-		var validAttempts []time.Time
-		for _, attemptTime := range attempts {
-			if now.Sub(attemptTime) < teamChatLimiter.window {
-				validAttempts = append(validAttempts, attemptTime)
-			}
-		}
-
-		if len(validAttempts) >= teamChatLimiter.maxTries {
-			c.JSON(http.StatusTooManyRequests, gin.H{"error": "too_many_messages"})
-			c.Abort()
-			return
-		}
-
-		validAttempts = append(validAttempts, now)
-		teamChatLimiter.attempts[key] = validAttempts
-
-		c.Next()
-	}
-}
+var (
+	globalLimiters   = make(map[int]*rateLimiter)
+	globalLimitersMu sync.RWMutex
+)
 
 func RateLimit(maxRequests int) gin.HandlerFunc {
-	limiter := &rateLimiter{
-		attempts: make(map[string][]time.Time),
-		maxTries: maxRequests,
-		window:   1 * time.Minute,
-	}
+	globalLimitersMu.Lock()
+	limiter, exists := globalLimiters[maxRequests]
+	if !exists {
+		limiter = &rateLimiter{
+			attempts: make(map[string][]time.Time),
+			maxTries: maxRequests,
+			window:   1 * time.Minute,
+		}
+		globalLimiters[maxRequests] = limiter
 
-	go func() {
-		ticker := time.NewTicker(5 * time.Minute)
-		defer ticker.Stop()
+		// Start cleanup goroutine for this limiter
+		go func(l *rateLimiter) {
+			ticker := time.NewTicker(5 * time.Minute)
+			defer ticker.Stop()
 
-		for range ticker.C {
-			limiter.mu.Lock()
-			now := time.Now()
-			for key, attempts := range limiter.attempts {
-				var validAttempts []time.Time
-				for _, attemptTime := range attempts {
-					if now.Sub(attemptTime) < limiter.window {
-						validAttempts = append(validAttempts, attemptTime)
+			for range ticker.C {
+				l.mu.Lock()
+				now := time.Now()
+				for key, attempts := range l.attempts {
+					var validAttempts []time.Time
+					for _, attemptTime := range attempts {
+						if now.Sub(attemptTime) < l.window {
+							validAttempts = append(validAttempts, attemptTime)
+						}
+					}
+					if len(validAttempts) == 0 {
+						delete(l.attempts, key)
+					} else {
+						l.attempts[key] = validAttempts
 					}
 				}
-				if len(validAttempts) == 0 {
-					delete(limiter.attempts, key)
-				} else {
-					limiter.attempts[key] = validAttempts
-				}
+				l.mu.Unlock()
 			}
-			limiter.mu.Unlock()
-		}
-	}()
+		}(limiter)
+	}
+	globalLimitersMu.Unlock()
 
 	return func(c *gin.Context) {
 		key := c.ClientIP()

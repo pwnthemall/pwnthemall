@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	
+
 	"net"
 	"os"
 	"path/filepath"
@@ -232,6 +232,7 @@ func StartDockerInstance(image string, teamId int, userId int, internalPorts []i
 	}
 
 	hostConfig := &container.HostConfig{
+		Runtime: config.DockerRuntime,
 		Resources: container.Resources{
 			Memory:   int64(dockerCfg.MaxMemByInstance) * 1024 * 1024,
 			NanoCPUs: int64(dockerCfg.MaxCpuByInstance) * 1_000_000_000,
@@ -415,6 +416,7 @@ func CreateComposeProject(slug string, teamId int, userId int, composeFile strin
 	}
 
 	for svcName, svc := range p.Services {
+		svc.Runtime = config.DockerRuntime
 		if svc.Build != nil {
 			sourceDir := tmpDir
 			if svc.Build.Context != "" {
