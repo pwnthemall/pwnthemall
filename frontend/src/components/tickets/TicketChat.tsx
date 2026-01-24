@@ -65,8 +65,13 @@ export function TicketChat({
       setMessage("");
       setAttachments([]);
       // toast.success(t("tickets.message_sent") || "Message sent");
-    } catch (error) {
-      toast.error(t("tickets.message_failed") || "Failed to send message");
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.error;
+      if (errorMsg === 'rate_limit_exceeded') {
+        toast.error(t("rate_limit_exceeded") || "Rate limit exceeded");
+      } else {
+        toast.error(t("tickets.message_failed") || "Failed to send message");
+      }
     } finally {
       setSending(false);
     }

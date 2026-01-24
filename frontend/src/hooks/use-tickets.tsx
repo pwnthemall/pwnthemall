@@ -147,7 +147,6 @@ export function useTickets(options: UseTicketsOptions = {}): UseTicketsReturn {
 
   const closeTicket = useCallback(async (id: number): Promise<void> => {
     await axios.put(`/api/tickets/${id}/close`);
-    // Optimistically update status (WebSocket will also update for other users)
     setTickets(prev => prev.map(ticket =>
       ticket.id === id
         ? { ...ticket, status: 'resolved' as const, resolvedAt: new Date().toISOString() }

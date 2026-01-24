@@ -135,15 +135,13 @@ export default function AdminTicketsPage() {
 
   const filteredTickets = tickets;
 
-  const openCount = tickets.filter(t => t.status === 'open').length;
-
   return (
     <>
       <Head>
         <title>{t("admin.tickets") || "Tickets"} - {getSiteName()}</title>
       </Head>
       
-      <div className="space-y-6">
+      <div className="space-y-6 p-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -153,9 +151,7 @@ export default function AdminTicketsPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            {openCount > 0 && (
-              <Badge variant="destructive">{openCount} {t("tickets.open") || "open"}</Badge>
-            )}
+            {/* Open count badge removed */}
           </div>
         </div>
 
