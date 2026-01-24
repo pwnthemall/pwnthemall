@@ -135,39 +135,3 @@ func DeleteChallengeCategory(c *gin.Context) {
 
 	utils.OKResponse(c, gin.H{"message": "challenge_category_deleted"})
 }
-
-func ReorderChallenges(c *gin.Context) {
-	categoryId := c.Param("id")
-
-	var category models.ChallengeCategory
-	if err := config.DB.First(&category, categoryId).Error; err != nil {
-		utils.NotFoundError(c, "Challenge_category_not_found")
-		return
-	}
-
-	var req dto.ReorderChallengesRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.BadRequestError(c, err.Error())
-		return
-	}
-
-	for index, challengeId := range req.ChallengeIDs {
-		var challenge models.Challenge
-		if err := config.DB.First(&challenge, challengeId).Error; err != nil {
-			continue
-		}
-
-		if challenge.ChallengeCategoryID != category.ID {
-			utils.BadRequestError(c, "Challenge does not belong to this category")
-			return
-		}
-
-		challenge.Order = index
-		if err := config.DB.Save(&challenge).Error; err != nil {
-			utils.InternalServerError(c, "Failed to update challenge order")
-			return
-		}
-	}
-
-	utils.OKResponse(c, gin.H{"message": "challenges_reordered_successfully"})
-}

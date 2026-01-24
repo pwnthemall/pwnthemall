@@ -5,19 +5,14 @@ import { useAuth } from "@/context/AuthContext"
 import { useSiteConfig } from "@/context/SiteConfigContext"
 import { useLanguage } from "@/context/LanguageContext"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { ChallengeCategory } from "@/models/ChallengeCategory"
-import { useChallengeOrder } from "@/hooks/use-challenge-order"
-import { DraggableChallengeList } from "@/components/admin/DraggableChallengeList"
 import { Challenge } from "@/models/Challenge"
 import Head from "next/head"
-import { Loader2, Check, X, Search } from "lucide-react"
+import { Check, X, Search } from "lucide-react"
 import { toast } from "sonner"
 
 interface FeaturedConfig {
@@ -26,16 +21,13 @@ interface FeaturedConfig {
   challengeIds: number[]
 }
 
-export default function ChallengeOrderPage() {
+export default function FeaturedChallengesPage() {
   const router = useRouter()
   const { loggedIn, checkAuth, authChecked } = useAuth()
   const { getSiteName } = useSiteConfig()
   const { t } = useLanguage()
   const [role, setRole] = useState("")
-  const [categories, setCategories] = useState<ChallengeCategory[]>([])
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null)
-  const { challenges, loading, fetchChallengesByCategory, reorderChallenges } = useChallengeOrder()
-  
+
   // Featured challenges state
   const [allChallenges, setAllChallenges] = useState<Challenge[]>([])
   const [featuredConfig, setFeaturedConfig] = useState<FeaturedConfig>({
@@ -44,18 +36,6 @@ export default function ChallengeOrderPage() {
   })
   const [searchTerm, setSearchTerm] = useState("")
   const [saving, setSaving] = useState(false)
-
-  const fetchCategories = () => {
-    axios
-      .get<ChallengeCategory[]>("/api/challenge-categories")
-      .then((res) => {
-        setCategories(res.data)
-        if (res.data.length > 0 && !selectedCategoryId) {
-          setSelectedCategoryId(res.data[0].id)
-        }
-      })
-      .catch(() => setCategories([]))
-  }
 
   useEffect(() => {
     checkAuth()
@@ -78,24 +58,11 @@ export default function ChallengeOrderPage() {
     } else if (role && role !== "admin") {
       router.replace("/pwn")
     } else if (role === "admin") {
-      fetchCategories()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authChecked, loggedIn, role, router])
-
-  useEffect(() => {
-    if (selectedCategoryId) {
-      fetchChallengesByCategory(selectedCategoryId)
-    }
-  }, [selectedCategoryId, fetchChallengesByCategory])
-
-  // Fetch featured config and all challenges
-  useEffect(() => {
-    if (role === "admin") {
       fetchFeaturedConfig()
       fetchAllChallenges()
     }
-  }, [role])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authChecked, loggedIn, role, router])
 
   const fetchFeaturedConfig = async () => {
     try {
@@ -140,7 +107,7 @@ export default function ChallengeOrderPage() {
     setFeaturedConfig((prev) => {
       const ids = [...prev.challengeIds]
       const index = ids.indexOf(challengeId)
-      
+
       if (index > -1) {
         ids.splice(index, 1)
       } else {
@@ -150,7 +117,7 @@ export default function ChallengeOrderPage() {
         }
         ids.push(challengeId)
       }
-      
+
       return { ...prev, challengeIds: ids }
     })
   }
@@ -164,258 +131,174 @@ export default function ChallengeOrderPage() {
     featuredConfig.challengeIds.includes(c.id)
   )
 
-  const handleCategoryChange = (value: string) => {
-    setSelectedCategoryId(Number(value))
-  }
-
-  const handleReorder = async (reorderedChallenges: Challenge[]) => {
-    if (!selectedCategoryId) return
-    
-    const challengeIds = reorderedChallenges.map(c => c.id)
-    const success = await reorderChallenges(selectedCategoryId, challengeIds)
-    
-    // refetch
-    if (success) {
-      await fetchChallengesByCategory(selectedCategoryId)
-    }
-  }
-
   if (!authChecked) return null
   if (!loggedIn || role !== "admin") return null
 
   return (
     <>
       <Head>
-        <title>{t('challenge_order_management')} - {getSiteName()}</title>
+        <title>{t('featured_challenges.featured_challenges_management')} - {getSiteName()}</title>
       </Head>
       <div className="min-h-screen p-4">
         <div className="mb-4">
-          <h1 className="text-2xl font-bold">{t('challenge_order_management')}</h1>
+          <h1 className="text-2xl font-bold">{t('featured_challenges.featured_challenges_management')}</h1>
           <p className="text-muted-foreground mt-1">
-            {t('drag_drop_reorder_description')}
+            {t('featured_challenges.featured_challenges_description')}
           </p>
         </div>
 
-        <Tabs defaultValue="order" className="w-full">
-          <TabsList className="mb-4">
-            <TabsTrigger value="order">{t('reorder_challenges')}</TabsTrigger>
-            <TabsTrigger value="featured">{t('featured_challenges.featured_challenges_management')}</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="order">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('reorder_challenges')}</CardTitle>
-                <CardDescription>
-                  {t('select_category_drag_description')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="w-full max-w-xs">
-                    <label className="text-sm font-medium mb-2 block">
-                      {t('select_category')}
-                    </label>
-                    <Select
-                      value={selectedCategoryId?.toString()}
-                      onValueChange={handleCategoryChange}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('select_category')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem key={category.id} value={category.id.toString()}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('featured_challenges.featured_challenges_management')}</CardTitle>
+            <CardDescription>
+              {t('featured_challenges.featured_challenges_description')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-4">
+              <Label className="text-base font-semibold">
+                {t("featured_challenges.selection_mode")}
+              </Label>
+              <RadioGroup
+                value={featuredConfig.mode}
+                onValueChange={(value: any) =>
+                  setFeaturedConfig({ ...featuredConfig, mode: value, challengeIds: [] })
+                }
+                className="space-y-3"
+              >
+                <div className="flex items-start space-x-3 space-y-0">
+                  <RadioGroupItem value="highest_points" id="highest_points" />
+                  <div className="flex-1">
+                    <Label htmlFor="highest_points" className="font-medium cursor-pointer">
+                      {t("featured_challenges.mode_highest_points")}
+                    </Label>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {t("featured_challenges.mode_highest_points_description")}
+                    </p>
                   </div>
-
-                  {loading && (
-                    <div className="flex items-center justify-center py-8">
-                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                    </div>
-                  )}
-
-                  {!loading && challenges.length === 0 && selectedCategoryId && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      {t('no_challenges_in_category')}
-                    </div>
-                  )}
-
-                  {!loading && challenges.length > 0 && (
-                    <div className="mt-6">
-                      <p className="text-sm text-muted-foreground mb-3">
-                        {t('challenges_count', { count: challenges.length.toString() })}
-                      </p>
-                      <DraggableChallengeList
-                        challenges={challenges}
-                        onReorder={handleReorder}
-                      />
-                    </div>
-                  )}
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
-          <TabsContent value="featured">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('featured_challenges.featured_challenges_management')}</CardTitle>
-                <CardDescription>
-                  {t('featured_challenges.featured_challenges_description')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
+                <div className="flex items-start space-x-3 space-y-0">
+                  <RadioGroupItem value="most_solved" id="most_solved" />
+                  <div className="flex-1">
+                    <Label htmlFor="most_solved" className="font-medium cursor-pointer">
+                      {t("featured_challenges.mode_most_solved")}
+                    </Label>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {t("featured_challenges.mode_most_solved_description")}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-3 space-y-0">
+                  <RadioGroupItem value="active_first_blood" id="active_first_blood" />
+                  <div className="flex-1">
+                    <Label htmlFor="active_first_blood" className="font-medium cursor-pointer">
+                      {t("featured_challenges.mode_active_first_blood")}
+                    </Label>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {t("featured_challenges.mode_active_first_blood_description")}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-3 space-y-0">
+                  <RadioGroupItem value="manual" id="manual" />
+                  <div className="flex-1">
+                    <Label htmlFor="manual" className="font-medium cursor-pointer">
+                      {t("featured_challenges.mode_manual")}
+                    </Label>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {t("featured_challenges.mode_manual_description")}
+                    </p>
+                  </div>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {featuredConfig.mode === "manual" && (
+              <div className="space-y-4">
+                <div>
                   <Label className="text-base font-semibold">
-                    {t("featured_challenges.selection_mode")}
+                    {t("featured_challenges.select_challenges")}
                   </Label>
-                  <RadioGroup
-                    value={featuredConfig.mode}
-                    onValueChange={(value: any) =>
-                      setFeaturedConfig({ ...featuredConfig, mode: value, challengeIds: [] })
-                    }
-                    className="space-y-3"
-                  >
-                    <div className="flex items-start space-x-3 space-y-0">
-                      <RadioGroupItem value="highest_points" id="highest_points" />
-                      <div className="flex-1">
-                        <Label htmlFor="highest_points" className="font-medium cursor-pointer">
-                          {t("featured_challenges.mode_highest_points")}
-                        </Label>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {t("featured_challenges.mode_highest_points_description")}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start space-x-3 space-y-0">
-                      <RadioGroupItem value="most_solved" id="most_solved" />
-                      <div className="flex-1">
-                        <Label htmlFor="most_solved" className="font-medium cursor-pointer">
-                          {t("featured_challenges.mode_most_solved")}
-                        </Label>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {t("featured_challenges.mode_most_solved_description")}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start space-x-3 space-y-0">
-                      <RadioGroupItem value="active_first_blood" id="active_first_blood" />
-                      <div className="flex-1">
-                        <Label htmlFor="active_first_blood" className="font-medium cursor-pointer">
-                          {t("featured_challenges.mode_active_first_blood")}
-                        </Label>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {t("featured_challenges.mode_active_first_blood_description")}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start space-x-3 space-y-0">
-                      <RadioGroupItem value="manual" id="manual" />
-                      <div className="flex-1">
-                        <Label htmlFor="manual" className="font-medium cursor-pointer">
-                          {t("featured_challenges.mode_manual")}
-                        </Label>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {t("featured_challenges.mode_manual_description")}
-                        </p>
-                      </div>
-                    </div>
-                  </RadioGroup>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {t("featured_challenges.selected_challenges")}
+                  </p>
                 </div>
 
-                {featuredConfig.mode === "manual" && (
-                  <div className="space-y-4">
-                    <div>
-                      <Label className="text-base font-semibold">
-                        {t("featured_challenges.select_challenges")}
-                      </Label>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {t("featured_challenges.selected_challenges")}
-                      </p>
-                    </div>
-
-                    {selectedChallenges.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {selectedChallenges.map((challenge) => (
-                          <Badge
-                            key={challenge.id}
-                            variant="secondary"
-                            className="text-sm py-1.5 px-3 cursor-pointer hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                            onClick={() => toggleChallenge(challenge.id)}
-                          >
-                            {challenge.name}
-                            <X className="ml-2 h-3 w-3" />
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder={t("featured_challenges.search_challenges")}
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
-
-                    <div className="border rounded-md max-h-96 overflow-y-auto">
-                      {filteredChallenges.length === 0 ? (
-                        <div className="text-center py-8 text-muted-foreground">
-                          {t("no_challenges_found")}
-                        </div>
-                      ) : (
-                        <div className="divide-y">
-                          {filteredChallenges.map((challenge) => {
-                            const isSelected = featuredConfig.challengeIds.includes(challenge.id)
-                            return (
-                              <button
-                                type="button"
-                                key={challenge.id}
-                                className={`w-full flex items-center justify-between p-3 hover:bg-accent cursor-pointer transition-colors ${
-                                  isSelected ? "bg-accent" : ""
-                                }`}
-                                onClick={() => toggleChallenge(challenge.id)}
-                              >
-                                <div className="flex-1">
-                                  <div className="font-medium">{challenge.name}</div>
-                                  <div className="flex items-center gap-2 mt-1">
-                                    <Badge variant="outline" className="text-xs">
-                                      {challenge.challengeCategory?.name || "N/A"}
-                                    </Badge>
-                                    <span className="text-xs text-muted-foreground">
-                                      {challenge.points} pts
-                                    </span>
-                                  </div>
-                                </div>
-                                {isSelected && (
-                                  <Check className="h-5 w-5 text-primary" />
-                                )}
-                              </button>
-                            )
-                          })}
-                        </div>
-                      )}
-                    </div>
+                {selectedChallenges.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {selectedChallenges.map((challenge) => (
+                      <Badge
+                        key={challenge.id}
+                        variant="secondary"
+                        className="text-sm py-1.5 px-3 cursor-pointer hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                        onClick={() => toggleChallenge(challenge.id)}
+                      >
+                        {challenge.name}
+                        <X className="ml-2 h-3 w-3" />
+                      </Badge>
+                    ))}
                   </div>
                 )}
 
-                <Button onClick={handleSaveFeatured} disabled={saving} className="w-full">
-                  {saving ? "Saving..." : t("featured_challenges.save_configuration")}
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder={t("featured_challenges.search_challenges")}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+
+                <div className="border rounded-md max-h-96 overflow-y-auto">
+                  {filteredChallenges.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      {t("no_challenges_found")}
+                    </div>
+                  ) : (
+                    <div className="divide-y">
+                      {filteredChallenges.map((challenge) => {
+                        const isSelected = featuredConfig.challengeIds.includes(challenge.id)
+                        return (
+                          <button
+                            type="button"
+                            key={challenge.id}
+                            className={`w-full flex items-center justify-between p-3 hover:bg-accent cursor-pointer transition-colors ${
+                              isSelected ? "bg-accent" : ""
+                            }`}
+                            onClick={() => toggleChallenge(challenge.id)}
+                          >
+                            <div className="flex-1">
+                              <div className="font-medium">{challenge.name}</div>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge variant="outline" className="text-xs">
+                                  {challenge.challengeCategory?.name || "N/A"}
+                                </Badge>
+                                <span className="text-xs text-muted-foreground">
+                                  {challenge.points} pts
+                                </span>
+                              </div>
+                            </div>
+                            {isSelected && (
+                              <Check className="h-5 w-5 text-primary" />
+                            )}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <Button onClick={handleSaveFeatured} disabled={saving} className="w-full">
+              {saving ? "Saving..." : t("featured_challenges.save_configuration")}
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </>
   )
