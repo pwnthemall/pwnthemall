@@ -1,0 +1,15 @@
+meta {
+  name: getAll
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{URL}}/api/teams/:teamId/chat/messages
+  body: none
+  auth: none
+}
+
+params:path {
+  teamId: 1
+}

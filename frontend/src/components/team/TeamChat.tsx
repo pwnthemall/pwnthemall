@@ -58,7 +58,6 @@ export function TeamChat({ teamId, teamName }: TeamChatProps) {
         message: message.trim(),
       });
       setMessage("");
-      toast.success(t("team.message_sent") || "Message sent");
     } catch (error: any) {
       const errorMsg = error.response?.data?.error;
       if (errorMsg === 'too_many_messages') {
