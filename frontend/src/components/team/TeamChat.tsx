@@ -60,7 +60,7 @@ export function TeamChat({ teamId, teamName }: TeamChatProps) {
       setMessage("");
     } catch (error: any) {
       const errorMsg = error.response?.data?.error;
-      if (errorMsg === 'too_many_messages') {
+      if (errorMsg === 'rate_limit_exceeded') {
         toast.error(t("team.too_many_messages") || "Too many messages. Please slow down.");
       } else if (errorMsg === 'not_in_team') {
         toast.error(t("team.not_in_team") || "You must be in this team to send messages");
@@ -216,8 +216,13 @@ export function TeamChat({ teamId, teamName }: TeamChatProps) {
 
         {/* Input */}
         <div className="border-t p-4">
-          <div className="flex gap-2">
+            <div className="flex gap-2">
             <Textarea
+              ref={(el) => {
+              if (el && !sending && message === "") {
+                el.focus();
+              }
+              }}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -231,12 +236,12 @@ export function TeamChat({ teamId, teamName }: TeamChatProps) {
               className="self-end"
             >
               {sending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <Send className="h-4 w-4" />
+              <Send className="h-4 w-4" />
               )}
             </Button>
-          </div>
+            </div>
           <p className="text-xs text-muted-foreground mt-2">
             {t("team.chat_hint") || "Press Enter to send, Shift+Enter for new line"}
           </p>

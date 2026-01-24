@@ -69,7 +69,7 @@ export default function TeamChatPage() {
     <>
       <Head>
         <title>
-          {t("team.chat") || "Team Chat"} - {getSiteName()}
+          {t("team.chat") || "Team chat"} - {getSiteName()}
         </title>
       </Head>
       <div className="container mx-auto p-4 h-[calc(100vh-4rem)]">

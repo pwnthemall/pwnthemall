@@ -899,7 +899,7 @@
     "team_required": "Team membership required.",
     "team_required_to_submit": "You must be part of a team to submit flags.",
     "admin_team_required_for_instances": "Admin must join a team to start Docker instances.",
-    "chat": "Team Chat",
+    "chat": "Team chat",
     "no_messages": "No messages yet. Start the conversation!",
     "type_message": "Type a message...",
     "message_sent": "Message sent",

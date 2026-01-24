@@ -31,10 +31,10 @@ func RegisterTeamRoutes(router *gin.Engine) {
 
 		// Team chat routes
 		teams.GET("/:id/chat/messages", middleware.CheckPolicy("/teams/:id/chat/messages", actionRead), middleware.CheckTeamMembership(), controllers.GetTeamChatMessages)
-		teams.POST("/:id/chat/messages", middleware.CheckPolicy("/teams/:id/chat/messages", actionWrite), middleware.CheckTeamMembership(), middleware.RateLimitTeamChat(), controllers.SendTeamChatMessage)
+		teams.POST("/:id/chat/messages", middleware.CheckPolicy("/teams/:id/chat/messages", actionWrite), middleware.CheckTeamMembership(), middleware.RateLimit(20), controllers.SendTeamChatMessage)
 
 		teams.POST("", middleware.CheckPolicy(pathTeams, actionWrite), controllers.CreateTeam)
-		teams.POST("/join", middleware.CheckPolicy("/teams/join", actionWrite), middleware.RateLimitJoinTeam(), controllers.JoinTeam)
+		teams.POST("/join", middleware.CheckPolicy("/teams/join", actionWrite), middleware.RateLimit(10), controllers.JoinTeam)
 		teams.POST("/leave", middleware.CheckPolicy("/teams/leave", actionWrite), controllers.LeaveTeam)
 		teams.POST("/transfer-owner", middleware.CheckPolicy("/teams/transfer-owner", actionWrite), controllers.TransferTeamOwnership)
 		teams.POST("/disband", middleware.CheckPolicy("/teams/disband", actionWrite), controllers.DisbandTeam)
