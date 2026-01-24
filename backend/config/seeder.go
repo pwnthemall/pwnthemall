@@ -296,6 +296,14 @@ func SeedCasbin(enforcer *casbin.Enforcer) {
 		enforcer.AddPolicy("member", "/logout", "*")
 	}
 
+	// Team chat policies
+	if hasPolicy, _ := enforcer.HasPolicy("member", "/teams/:id/chat/messages", "read"); !hasPolicy {
+		enforcer.AddPolicy("member", "/teams/:id/chat/messages", "read")
+	}
+	if hasPolicy, _ := enforcer.HasPolicy("member", "/teams/:id/chat/messages", "write"); !hasPolicy {
+		enforcer.AddPolicy("member", "/teams/:id/chat/messages", "write")
+	}
+
 	if hasPolicy, _ := enforcer.HasPolicy("admin", "/*", "*"); !hasPolicy {
 		enforcer.AddPolicy("admin", "/*", "*")
 	}

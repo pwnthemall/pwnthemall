@@ -14,7 +14,8 @@ type Team struct {
 	CreatedAt     time.Time      `json:"createdAt"`
 	UpdatedAt     time.Time      `json:"updatedAt"`
 	DeletedAt     gorm.DeletedAt `gorm:"index;uniqueIndex:idx_teams_name_deleted" json:"-"`
-	Solves        []Solve        `json:"solves,omitempty"`
-	Users         []User         `gorm:"foreignKey:TeamID" json:"users,omitempty"`
-	HintPurchases []HintPurchase `json:"hintPurchases,omitempty"`
+	Solves        []Solve           `json:"solves,omitempty"`
+	Users         []User            `gorm:"foreignKey:TeamID" json:"users,omitempty"`
+	HintPurchases []HintPurchase    `json:"hintPurchases,omitempty"`
+	ChatMessages  []TeamChatMessage `gorm:"foreignKey:TeamID" json:"chatMessages,omitempty"`
 }

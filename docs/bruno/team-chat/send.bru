@@ -1,0 +1,22 @@
+meta {
+  name: send
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{URL}}/api/teams/:teamId/chat/messages
+  body: json
+  auth: inherit
+}
+
+params:path {
+  teamId: 1
+}
+
+body:json {
+  {
+    "message": "Hello team!",
+    "attachments": []
+  }
+}

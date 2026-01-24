@@ -236,6 +236,28 @@
     "reorder_challenges": "Réorganiser les challenges",
     "select_category_drag_description": "Sélectionnez une catégorie et faites glisser les challenges pour modifier leur ordre d'affichage."
   },
+  "featured_challenges": {
+    "featured_challenges_management": "Gestion des challenges mis en avant",
+    "featured_challenges_description": "Configurez quels challenges sont affichés dans la section mise en avant de la page des challenges",
+    "selection_mode": "Mode de sélection",
+    "mode_manual": "Sélection manuelle",
+    "mode_most_solved": "Challenges les plus résolus",
+    "mode_highest_points": "Points les plus élevés",
+    "mode_active_first_blood": "First blood actifs (pas encore de gagnant)",
+    "mode_manual_description": "Sélectionnez manuellement jusqu'à 3 challenges à mettre en avant",
+    "mode_most_solved_description": "Affiche automatiquement les 3 challenges les plus résolus",
+    "mode_highest_points_description": "Affiche automatiquement les 3 challenges avec le plus de points",
+    "mode_active_first_blood_description": "Affiche automatiquement les challenges avec first blood activé mais sans gagnant",
+    "select_challenges": "Sélectionner les challenges",
+    "search_challenges": "Rechercher des challenges...",
+    "selected_challenges": "Challenges sélectionnés (max 3)",
+    "no_challenges_selected": "Aucun challenge sélectionné",
+    "save_configuration": "Enregistrer la configuration",
+    "configuration_saved": "Configuration des challenges mis en avant enregistrée avec succès",
+    "failed_to_save_configuration": "Échec de l'enregistrement de la configuration des challenges mis en avant",
+    "failed_to_load_configuration": "Échec du chargement de la configuration des challenges mis en avant",
+    "failed_to_load_challenges": "Échec du chargement des challenges"
+  },
   "challenge_solve": {
     "already_solved": "Déjà résolu",
     "be_the_first": "Soyez le premier à résoudre ce challenge !",
@@ -876,7 +898,15 @@
     "team_name_required": "Le nom de l'équipe est requis",
     "team_required": "Appartenance à une équipe requise.",
     "team_required_to_submit": "Vous devez faire partie d'une équipe pour soumettre des flags.",
-    "admin_team_required_for_instances": "L'admin doit rejoindre une équipe pour démarrer des instances Docker."
+    "admin_team_required_for_instances": "L'admin doit rejoindre une équipe pour démarrer des instances Docker.",
+    "chat": "Discussion d'équipe",
+    "no_messages": "Aucun message pour le moment. Commencez la conversation !",
+    "type_message": "Tapez un message...",
+    "message_sent": "Message envoyé",
+    "message_failed": "Échec de l'envoi du message",
+    "too_many_messages": "Trop de messages. Veuillez ralentir.",
+    "chat_hint": "Appuyez sur Entrée pour envoyer, Maj+Entrée pour une nouvelle ligne",
+    "load_more": "Charger plus de messages"
   },
   "team_members": {
     "a_teammate": "un coéquipier",
@@ -899,6 +929,12 @@
     "team_transfer_success": "Propriété de l'équipe transférée avec succès !",
     "transfer_ownership": "Transférer la propriété",
     "transfer_ownership_and_leave": "Transférer la propriété et partir"
+  },
+  "time": {
+    "just_now": "À l'instant",
+    "min_ago": "min",
+    "hour_ago": "h",
+    "day_ago": "j"
   },
   "ui": {
     "theme": "Thème"

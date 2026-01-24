@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Home, Swords, LogIn, UserPlus, User, List, ShieldUser, Bell, Flag, MessageSquare, FileText, Telescope } from "lucide-react";
+import { Home, Swords, LogIn, UserPlus, User, List, ShieldUser, Bell, Flag, MessageSquare, FileText, Telescope, MessagesSquare } from "lucide-react";
 import { useRouter } from "next/router";
 
 import { NavMain } from "@/components/nav-main";
@@ -44,6 +44,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     email: "",
     avatar: "/logo-no-text.png",
     role: "",
+    teamId: null as number | null,
   });
 
   // Refactored user data fetcher
@@ -52,19 +53,20 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       axios
         .get("/api/me")
         .then((res) => {
-          const { username, email, role } = res.data;
+          const { username, email, role, teamId } = res.data;
           setUserData({
             name: username,
             email,
             avatar: "/logo-no-text.png",
             role,
+            teamId: teamId || null,
           });
         })
         .catch(() => {
-          setUserData({ name: "Guest", email: "", avatar: "/logo-no-text.png", role: "" });
+          setUserData({ name: "Guest", email: "", avatar: "/logo-no-text.png", role: "", teamId: null });
         });
     } else {
-      setUserData({ name: "Guest", email: "", avatar: "/logo-no-text.png", role: "" });
+      setUserData({ name: "Guest", email: "", avatar: "/logo-no-text.png", role: "", teamId: null });
     }
   }, [loggedIn]);
 
@@ -126,6 +128,16 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           url: "/tickets",
           icon: MessageSquare,
           isActive: router.pathname.startsWith("/tickets"),
+        });
+      }
+
+      // Show team chat if user is in a team
+      if (userData.teamId) {
+        items.push({
+          title: t('team.chat') || 'Team Chat',
+          url: "/team-chat",
+          icon: MessagesSquare,
+          isActive: router.pathname === "/team-chat",
         });
       }
 
@@ -201,7 +213,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     }
 
     return items;
-  }, [authChecked, loggedIn, router.pathname, userData.role, t, siteConfig.TICKETS_ENABLED, ctfLoading, ctfStatus.status, sidebarPages, pagesLoading]);
+  }, [authChecked, loggedIn, router.pathname, userData.role, userData.teamId, t, siteConfig.TICKETS_ENABLED, ctfLoading, ctfStatus.status, sidebarPages, pagesLoading]);
 
   return (
     <Sidebar

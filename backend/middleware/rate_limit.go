@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
 	"sync"
 	"time"
@@ -9,17 +8,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var (
+	globalLimiters   = make(map[int]*rateLimiter)
+	globalLimitersMu sync.RWMutex
+)
+
 type rateLimiter struct {
 	attempts map[string][]time.Time
 	mu       sync.RWMutex
 	maxTries int
 	window   time.Duration
-}
-
-var joinTeamLimiter = &rateLimiter{
-	attempts: make(map[string][]time.Time),
-	maxTries: 5,
-	window:   1 * time.Minute,
 }
 
 var loginLimiter = &rateLimiter{
@@ -57,46 +55,6 @@ func RateLimitLogin() gin.HandlerFunc {
 		c.Next()
 	}
 }
-
-func RateLimitJoinTeam() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		userID, exists := c.Get("user_id")
-		if !exists {
-			c.Next()
-			return
-		}
-
-		key := fmt.Sprintf("user:%d", userID.(uint))
-		now := time.Now()
-
-		joinTeamLimiter.mu.Lock()
-		defer joinTeamLimiter.mu.Unlock()
-
-		attempts := joinTeamLimiter.attempts[key]
-		var validAttempts []time.Time
-		for _, attemptTime := range attempts {
-			if now.Sub(attemptTime) < joinTeamLimiter.window {
-				validAttempts = append(validAttempts, attemptTime)
-			}
-		}
-
-		if len(validAttempts) >= joinTeamLimiter.maxTries {
-			c.JSON(http.StatusTooManyRequests, gin.H{"error": "too_many_attempts"})
-			c.Abort()
-			return
-		}
-
-		validAttempts = append(validAttempts, now)
-		joinTeamLimiter.attempts[key] = validAttempts
-
-		c.Next()
-	}
-}
-
-var (
-	globalLimiters   = make(map[int]*rateLimiter)
-	globalLimitersMu sync.RWMutex
-)
 
 func RateLimit(maxRequests int) gin.HandlerFunc {
 	globalLimitersMu.Lock()

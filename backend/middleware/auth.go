@@ -333,3 +333,47 @@ func GetCSRFToken(c *gin.Context) string {
 	}
 	return ""
 }
+
+// CheckTeamMembership ensures the user belongs to the team specified in the :id parameter
+func CheckTeamMembership() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userI, exists := c.Get("user")
+		if !exists {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			return
+		}
+
+		user, ok := userI.(*models.User)
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "invalid_user_type"})
+			return
+		}
+
+		// Admin can access any team
+		if user.Role == "admin" {
+			c.Next()
+			return
+		}
+
+		// Get team ID from URL parameter
+		teamIDStr := c.Param("id")
+		if teamIDStr == "" {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "team_id_required"})
+			return
+		}
+
+		var teamIDParam uint
+		if _, err := fmt.Sscanf(teamIDStr, "%d", &teamIDParam); err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid_team_id"})
+			return
+		}
+
+		// Check if user belongs to this team
+		if user.TeamID == nil || *user.TeamID != teamIDParam {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "not_team_member"})
+			return
+		}
+
+		c.Next()
+	}
+}

@@ -9,6 +9,7 @@ p, anonymous, /pages/:slug, read
 p, member, /logout, *
 p, member, /pwn, *
 p, member, /challenges, read
+p, member, /challenges/featured, read
 p, member, /challenges/:id, read
 p, member, /challenges/:id/solves, read
 p, member, /challenges/:id/submit, write
@@ -35,6 +36,8 @@ p, member, /teams/leave, write
 p, member, /teams/transfer-owner, write
 p, member, /teams/disband, write
 p, member, /teams/kick, write
+p, member, /teams/:id/chat/messages, read
+p, member, /teams/:id/chat/messages, write
 p, member, /notifications, read
 p, member, /notifications/unread-count, read
 p, member, /notifications/:id/read, write
