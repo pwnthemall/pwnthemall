@@ -32,7 +32,7 @@ import {
   Percent,
   Activity,
 } from "lucide-react";
-import { SocialLinks } from "@/components/SocialLinks";
+import { SocialLinks } from "@/components/profile/SocialLinks";
 
 interface SubmissionStats {
   totalSubmissions: number;

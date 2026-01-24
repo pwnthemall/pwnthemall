@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image';
-import AnimatedText from '@/components/AnimatedText';
+import AnimatedText from '@/components/common/AnimatedText';
 
 
 export default function MobileBlocked() {

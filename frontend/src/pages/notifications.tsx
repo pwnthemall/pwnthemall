@@ -3,7 +3,7 @@ import { useSiteConfig } from "@/context/SiteConfigContext";
 import { useLanguage } from "@/context/LanguageContext";
 import Head from "next/head";
 import { Loader } from "lucide-react";
-import NotificationsContent from "@/components/NotificationsContent";
+import NotificationsContent from "@/components/notifications/NotificationsContent";
 
 export default function NotificationsPage() {
   const { loading, loggedIn } = useProtectedRoute();

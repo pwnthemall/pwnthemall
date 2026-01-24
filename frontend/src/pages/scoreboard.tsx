@@ -6,7 +6,7 @@ import { useCTFStatus } from "@/hooks/use-ctf-status";
 import { Card } from "@/components/ui/card";
 import { Clock } from "lucide-react";
 import Head from "next/head";
-import ScoreboardContent from "@/components/ScoreboardContent";
+import ScoreboardContent from "@/components/pages/ScoreboardContent";
 import { useLanguage } from '@/context/LanguageContext';
 
 export default function ScoreboardPage() {

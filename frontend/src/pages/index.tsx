@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { useAuth } from "@/context/AuthContext";
 import { useCTFStatus } from "@/hooks/use-ctf-status";
 import axios from "@/lib/axios";
-import IndexContent from '@/components/IndexContent';
+import IndexContent from '@/components/pages/IndexContent';
 
 export default function Home() {
   const router = useRouter();

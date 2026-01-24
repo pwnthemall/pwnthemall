@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Challenge, Solve } from "@/models/Challenge";
 import { BadgeCheck, Trophy, Play, Square, Settings, Clock, Star, Lock } from "lucide-react";
-import ConnectionInfo from "@/components/ConnectionInfo";
+import ConnectionInfo from "@/components/common/ConnectionInfo";
 import { toast } from "sonner";
 import Link from "next/link";
 import {
@@ -16,11 +16,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import GeoPicker from "./GeoPicker";
-import ChallengeImage from "@/components/ChallengeImage";
+import ChallengeImage from "@/components/challenge/ChallengeImage";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { formatDate } from "./category-helpers";
-import { ChallengeFiles } from "@/components/ChallengeFiles";
+import { ChallengeFiles } from "@/components/challenge/ChallengeFiles";
 import { CTFStatus } from "@/hooks/use-ctf-status";
 
 interface ChallengeDetailModalProps {
