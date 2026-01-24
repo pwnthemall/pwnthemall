@@ -4,7 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	
+	"os"
+
 	"net/http"
 
 	"strings"
@@ -16,6 +17,7 @@ import (
 )
 
 var DockerClient *client.Client
+var DockerRuntime string
 
 func ConnectDocker() error {
 	var dockerCfg models.DockerConfig
@@ -112,6 +114,15 @@ func ConnectDocker() error {
 		return fmt.Errorf("unable to connect to docker daemon: %s", err.Error())
 	}
 	debug.Log("Connected to %s | Docker Version: %s", dockerCfg.Host, ver.Version)
+
+	// docker runtime config
+	switch os.Getenv("PTA_DOCKER_RUNTIME") {
+	case "runc", "runsc", "kata":
+		DockerRuntime = os.Getenv("PTA_DOCKER_RUNTIME")
+	default:
+		debug.Log("PTA_DOCKER_RUNTIME not supported. Using default docker runtime: runc")
+		DockerRuntime = "runc"
+	}
 
 	DockerClient = cl
 	return nil
