@@ -59,12 +59,37 @@ export function useTickets(options: UseTicketsOptions = {}): UseTicketsReturn {
   // Handle real-time updates with partial state updates
   const handleUpdate = useCallback((event: UpdateEvent) => {
     debugLog('Ticket list event received:', event, 'isAdmin:', isAdmin);
-    
-    if (event.event === 'ticket_created') {
-      // For new tickets, we need to refetch to get the full ticket data
-      // But only if we're on the first page or showing all tickets
+
+    if (event.event === 'ticket_created' && event.ticketId) {
+      // Optimistically add the new ticket to the top of the list if on page 1
       if (page === 1) {
-        fetchTickets();
+        const newTicket: Ticket = {
+          id: event.ticketId,
+          subject: event.subject || '',
+          description: '',
+          status: 'open',
+          ticketType: event.teamId ? 'team' : 'user',
+          userId: event.userId || 0,
+          username: event.username,
+          teamId: event.teamId,
+          messageCount: 0,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          attachments: [],
+        };
+        setTickets(prev => {
+          // Avoid duplicates
+          if (prev.some(t => t.id === event.ticketId)) {
+            return prev;
+          }
+          // Add to top, remove last if exceeding page size
+          const updated = [newTicket, ...prev];
+          if (updated.length > pageSize) {
+            updated.pop();
+          }
+          return updated;
+        });
+        setTotal(prev => prev + 1);
       }
     } else if (event.event === 'ticket_resolved' && event.ticketId) {
       // Update the specific ticket's status in place
@@ -91,8 +116,7 @@ export function useTickets(options: UseTicketsOptions = {}): UseTicketsReturn {
           : ticket
       ));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, fetchTickets]);
+  }, [page, pageSize, isAdmin]);
 
   useRealtimeUpdates(handleUpdate, true);
 
@@ -102,14 +126,34 @@ export function useTickets(options: UseTicketsOptions = {}): UseTicketsReturn {
 
   const createTicket = useCallback(async (input: TicketInput): Promise<Ticket> => {
     const response = await axios.post<Ticket>('/api/tickets', input);
-    await fetchTickets();
-    return response.data;
-  }, [fetchTickets]);
+    const newTicket = response.data;
+    // Optimistically add to top of list if on page 1
+    if (page === 1) {
+      setTickets(prev => {
+        // Avoid duplicates
+        if (prev.some(t => t.id === newTicket.id)) {
+          return prev;
+        }
+        const updated = [newTicket, ...prev];
+        if (updated.length > pageSize) {
+          updated.pop();
+        }
+        return updated;
+      });
+      setTotal(prev => prev + 1);
+    }
+    return newTicket;
+  }, [page, pageSize]);
 
   const closeTicket = useCallback(async (id: number): Promise<void> => {
     await axios.put(`/api/tickets/${id}/close`);
-    await fetchTickets();
-  }, [fetchTickets]);
+    // Optimistically update status (WebSocket will also update for other users)
+    setTickets(prev => prev.map(ticket =>
+      ticket.id === id
+        ? { ...ticket, status: 'resolved' as const, resolvedAt: new Date().toISOString() }
+        : ticket
+    ));
+  }, []);
 
   return {
     tickets,
