@@ -116,22 +116,8 @@ export default function ChallengeCreateDialog({
 
   const fetchDifficulties = async () => {
     try {
-      // Get from an existing challenge endpoint that returns difficulties
-      const response = await axios.get("/api/admin/challenges")
-      if (response.data && response.data.length > 0) {
-        // Extract unique difficulties from challenges
-        const uniqueDifficulties = Array.from(
-          new Map(
-            response.data
-              .filter((c: { challengeDifficulty?: ChallengeDifficulty }) => c.challengeDifficulty)
-              .map((c: { challengeDifficulty: ChallengeDifficulty }) => [
-                c.challengeDifficulty.id,
-                c.challengeDifficulty,
-              ])
-          ).values()
-        ) as ChallengeDifficulty[]
-        setDifficulties(uniqueDifficulties)
-      }
+      const response = await axios.get("/api/challenge-difficulties")
+      setDifficulties(response.data || [])
     } catch (error) {
       console.error("Failed to fetch difficulties:", error)
     }

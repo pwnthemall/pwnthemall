@@ -82,8 +82,10 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // Helper functions for ETag-based caching
-  const getCacheKey = (lang: Language) => `translations_${lang}`;
-  const getETagKey = (lang: Language) => `translations_etag_${lang}`;
+  // CACHE VERSION: Increment this to invalidate all translation caches
+  const CACHE_VERSION = '2';
+  const getCacheKey = (lang: Language) => `translations_v${CACHE_VERSION}_${lang}`;
+  const getETagKey = (lang: Language) => `translations_etag_v${CACHE_VERSION}_${lang}`;
 
   // On mount, clear other language caches and load cached translations if available
   useEffect(() => {
@@ -176,16 +178,27 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     
     try {
       // Use HEAD request to check ETag without downloading full file
-      const res = await fetch(`/locales/${lang}.json`, { 
+      const timestamp = Date.now();
+      const res = await fetch(`/locales/${lang}.json?v=${timestamp}`, { 
         method: 'HEAD',
-        cache: 'no-cache' // Force fresh ETag check
+        cache: 'no-cache',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
+        }
       });
       
       const serverETag = res.headers.get('etag');
       
       // If ETags don't match, fetch and update cache
       if (serverETag && serverETag !== cachedETag) {
-        const dataRes = await fetch(`/locales/${lang}.json`, { cache: 'no-cache' });
+        const dataRes = await fetch(`/locales/${lang}.json?v=${timestamp}`, { 
+          cache: 'no-cache',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache'
+          }
+        });
         if (dataRes.ok) {
           const data = await dataRes.json();
           const flattenedData = flattenTranslations(data);
@@ -221,7 +234,15 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setIsLoaded(false);
         
         try {
-          const res = await fetch(`/locales/${language}.json`, { cache: 'no-cache' });
+          // Add timestamp to bypass any HTTP caching
+          const timestamp = Date.now();
+          const res = await fetch(`/locales/${language}.json?v=${timestamp}`, { 
+            cache: 'no-cache',
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache'
+            }
+          });
           if (!res.ok) {
             throw new Error(`Failed to load translations: ${res.status}`);
           }
