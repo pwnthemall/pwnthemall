@@ -413,7 +413,7 @@ export default function InstancesContent({ instances, onRefresh }: Readonly<Inst
       <Head>
         <title>{getSiteName()} - {t("instances")}</title>
       </Head>
-      <div className="min-h-screen p-4">
+      <div className="min-h-screen p-6">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Server className="h-8 w-8 text-primary" />

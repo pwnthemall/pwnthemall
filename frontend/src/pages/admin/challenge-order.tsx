@@ -139,7 +139,7 @@ export default function FeaturedChallengesPage() {
       <Head>
         <title>{t('featured_challenges.featured_challenges_management')} - {getSiteName()}</title>
       </Head>
-      <div className="min-h-screen p-4">
+      <div className="min-h-screen p-6">
         <div className="mb-4">
           <h1 className="text-2xl font-bold">{t('featured_challenges.featured_challenges_management')}</h1>
           <p className="text-muted-foreground mt-1">

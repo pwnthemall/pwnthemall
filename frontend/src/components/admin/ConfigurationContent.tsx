@@ -280,7 +280,7 @@ export default function ConfigurationContent({ configs, onRefresh }: Configurati
       <Head>
         <title>{getSiteName()}</title>
       </Head>
-      <div className="min-h-screen p-4 overflow-x-auto">
+      <div className="min-h-screen p-6 overflow-x-auto">
         {/* CTF Status Overview */}
         <div className="mb-6">
           <CTFStatusOverview />

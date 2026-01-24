@@ -90,7 +90,7 @@ export default function SubmissionsContent({ submissions, onRefresh }: Submissio
       <Head>
         <title>{getSiteName()}</title>
       </Head>
-      <div className="min-h-screen p-4">
+      <div className="min-h-screen p-6">
         <div className="mb-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold">{t("admin.submissions") || "Submissions"}</h1>
           <div>
