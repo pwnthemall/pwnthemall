@@ -292,9 +292,27 @@ func handleCorrectSubmission(c *gin.Context, user *models.User, challenge models
 		return
 	}
 
-	// Calculate solve position
+	tx := config.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	var existingSolve models.Solve
+	err := tx.Set("gorm:query_option", "FOR UPDATE").
+		Where(queryTeamAndChallengeID, user.Team.ID, challenge.ID).
+		First(&existingSolve).Error
+
+	if err == nil {
+		// Solve already exists - rollback and return error
+		tx.Rollback()
+		utils.ConflictError(c, errAlreadySolved)
+		return
+	}
+
 	var position int64
-	config.DB.Model(&models.Solve{}).Where(queryChallengeID, challenge.ID).Count(&position)
+	tx.Model(&models.Solve{}).Where(queryChallengeID, challenge.ID).Count(&position)
 
 	debug.Log("FirstBlood: Challenge %d, Position %d, EnableFirstBlood: %v, Bonuses count: %d",
 		challenge.ID, position, challenge.EnableFirstBlood, len(challenge.FirstBloodBonuses))
@@ -304,22 +322,46 @@ func handleCorrectSubmission(c *gin.Context, user *models.User, challenge models
 	totalPoints := challenge.Points + firstBloodBonus
 
 	// Create solve record
-	var solve models.Solve
-	if err := config.DB.FirstOrCreate(&solve,
-		models.Solve{
-			TeamID:      user.Team.ID,
-			ChallengeID: challenge.ID,
-			UserID:      user.ID,
-			Points:      totalPoints,
-		}).Error; err != nil {
+	solve := models.Solve{
+		TeamID:      user.Team.ID,
+		ChallengeID: challenge.ID,
+		UserID:      user.ID,
+		SolvedBy:    user.Username,
+		Points:      totalPoints,
+	}
+
+	if err := tx.Create(&solve).Error; err != nil {
+		tx.Rollback()
 		utils.InternalServerError(c, errSolveCreateFail)
 		return
 	}
 
 	// Create FirstBlood entry if applicable
-	createFirstBloodEntry(challenge, user, position, firstBloodBonus)
+	if firstBloodBonus > 0 {
+		badge := "trophy"
+		if int(position) < len(challenge.FirstBloodBadges) {
+			badge = challenge.FirstBloodBadges[position]
+		}
 
-	// Broadcast team solve event
+		firstBlood := models.FirstBlood{
+			ChallengeID: challenge.ID,
+			TeamID:      user.Team.ID,
+			UserID:      user.ID,
+			Bonuses:     []int64{int64(firstBloodBonus)},
+			Badges:      []string{badge},
+		}
+
+		if err := tx.Create(&firstBlood).Error; err != nil {
+			debug.Log("Failed to create FirstBlood entry: %v", err)
+		}
+	}
+
+	// Commit transaction
+	if err := tx.Commit().Error; err != nil {
+		utils.InternalServerError(c, errSolveCreateFail)
+		return
+	}
+
 	broadcastTeamSolve(user, challenge, totalPoints)
 
 	// Stop instance asynchronously

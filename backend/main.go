@@ -5,6 +5,7 @@ import (
 	"flag"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sessions"
@@ -67,6 +68,21 @@ func main() {
 	config.ConnectDB()
 	config.ConnectMinio()
 	config.InitCasbin()
+
+	if err := utils.LoadBlacklistedTokensFromDB(); err != nil {
+		debug.Log("Warning: Failed to load blacklisted tokens: %v", err)
+	}
+
+	// schedule cleanup of expired blacklisted tokens every 24 hours
+	go func() {
+		ticker := time.NewTicker(24 * time.Hour)
+		defer ticker.Stop()
+		for range ticker.C {
+			if err := utils.CleanupExpiredBlacklistedTokens(); err != nil {
+				debug.Log("Warning: Failed to cleanup expired tokens: %v", err)
+			}
+		}
+	}()
 
 	if os.Getenv("PTA_DEMO") == "true" {
 		debug.Log("WARNING: Application started in DEMO MODE.")

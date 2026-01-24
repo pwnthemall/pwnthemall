@@ -233,38 +233,6 @@ func BanOrUnbanUser(c *gin.Context) {
 	utils.OKResponse(c, gin.H{"banned": user.Banned})
 }
 
-// GetUserByIP searches for users by IP address (admin only)
-func GetUserByIP(c *gin.Context) {
-	ip := c.Query("ip")
-	if ip == "" {
-		utils.BadRequestError(c, "IP address is required")
-		return
-	}
-
-	var users []models.User
-	// Search for users whose IP addresses contain the specified IP
-	// Using JSON_EXTRACT or JSON_SEARCH for MySQL/SQLite compatibility
-	result := config.DB.Preload("Team").Where("ip_addresses LIKE ?", "%\""+ip+"\"%").Find(&users)
-
-	if result.Error != nil {
-		utils.InternalServerError(c, "Failed to search users by IP")
-		return
-	}
-
-	// Filter results to ensure exact IP match (since LIKE might have false positives)
-	var filteredUsers []models.User
-	for _, user := range users {
-		for _, userIP := range user.IPAddresses {
-			if userIP == ip {
-				filteredUsers = append(filteredUsers, user)
-				break
-			}
-		}
-	}
-
-	utils.OKResponse(c, filteredUsers)
-}
-
 // GetIndividualLeaderboard returns individual user rankings based on points from solves they submitted
 // Each user's score is the sum of points from solves where they were the submitter
 func GetIndividualLeaderboard(c *gin.Context) {
