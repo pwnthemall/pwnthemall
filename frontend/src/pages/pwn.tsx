@@ -52,10 +52,10 @@ const PwnPage = () => {
     }
   }, [authChecked, loggedIn, router]);
 
-  const fetchChallenges = useCallback(async () => {
+  const fetchChallenges = useCallback(async (silent = false) => {
     if (!authChecked || !loggedIn || (!hasTeam && role !== "admin")) return;
 
-    setLoading(true);
+    if (!silent) setLoading(true);
     setError(null);
     try {
       const res = await axios.get<Challenge[]>("/api/challenges");
@@ -64,7 +64,7 @@ const PwnPage = () => {
       setError(err?.response?.data?.error || "Failed to load challenges");
       setChallenges([]);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [authChecked, loggedIn, hasTeam, role]);
 
@@ -88,7 +88,7 @@ const PwnPage = () => {
         });
 
         if (foundInList) {
-          fetchChallenges();
+          fetchChallenges(true);
         }
       } catch {
         // ignore
@@ -105,6 +105,10 @@ const PwnPage = () => {
     const raw = router.query.category;
     return typeof raw === "string" && raw.trim() ? raw.trim() : undefined;
   }, [router.query.category]);
+
+  const handleSilentUpdate = useCallback(() => {
+    fetchChallenges(true);
+  }, [fetchChallenges]);
 
   if (!authChecked || !loggedIn || !teamChecked) return null;
   if (!hasTeam && role !== "admin") return null;
@@ -124,7 +128,7 @@ const PwnPage = () => {
         <CategoryContent
           cat="Challenges"
           challenges={[]}
-          onChallengeUpdate={fetchChallenges}
+          onChallengeUpdate={handleSilentUpdate}
           ctfStatus={ctfStatus}
           ctfLoading={ctfLoading}
           initialCategory={initialCategory}
@@ -138,7 +142,7 @@ const PwnPage = () => {
         <CategoryContent
           cat="Challenges"
           challenges={challenges}
-          onChallengeUpdate={fetchChallenges}
+          onChallengeUpdate={handleSilentUpdate}
           ctfStatus={ctfStatus}
           ctfLoading={ctfLoading}
           initialCategory={initialCategory}
