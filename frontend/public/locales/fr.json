@@ -542,7 +542,6 @@
     "attempts_left": "tentatives restantes"
   },
   "hints": {
-    "available": "Disponible",
     "available_hints": "Indices disponibles",
     "buy_for_points": "Acheter pour {cost} points",
     "hint": "Indice",
@@ -551,10 +550,7 @@
     "insufficient_points": "Points insuffisants ({cost} requis)",
     "purchased": "Acheté",
     "purchasing": "Achat en cours...",
-    "reveal_hint": "Révéler l'indice (Admin)",
-    "spent": "Dépensé",
-    "team_score": "Score de l'équipe",
-    "total": "Total"
+    "reveal_hint": "Révéler l'indice (Admin)"
   },
   "instance": {
     "active_instances": "Instances actives",

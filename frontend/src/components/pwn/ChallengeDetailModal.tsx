@@ -277,29 +277,6 @@ const ChallengeDetailModal = ({
                 <TabsContent value="hints" className="absolute inset-0 overflow-y-auto mt-0 pt-2 pr-2 z-[1100]">
                   <div className="min-h-full">
                     <div className="space-y-4">
-                      {teamScore && (
-                        <div className="p-4 rounded-lg border bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
-                          <h3 className="font-semibold text-lg text-blue-800 dark:text-blue-200 mb-2 flex items-center gap-2">
-                            <Trophy className="w-5 h-5" />
-                            {t('hints.team_score') || 'Team Score'}
-                          </h3>
-                          <div className="grid grid-cols-3 gap-4 text-sm">
-                            <div>
-                              <span className="text-blue-600 dark:text-blue-400 font-medium">{t('hints.total') || 'Total'}:</span>
-                              <div className="font-bold text-blue-800 dark:text-blue-200">{teamScore.totalScore} pts</div>
-                            </div>
-                            <div>
-                              <span className="text-green-600 dark:text-green-400 font-medium">{t('hints.available') || 'Available'}:</span>
-                              <div className="font-bold text-green-800 dark:text-green-200">{teamScore.availableScore} pts</div>
-                            </div>
-                            <div>
-                              <span className="text-orange-600 dark:text-orange-400 font-medium">{t('hints.spent') || 'Spent'}:</span>
-                              <div className="font-bold text-orange-800 dark:text-orange-200">{teamScore.spentOnHints} pts</div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
                       <div className="p-4 rounded-lg border bg-card">
                         <h3 className="font-semibold text-lg text-foreground mb-4 flex items-center gap-2">
                           <Star className="w-5 h-5 text-blue-600 dark:text-blue-400" />

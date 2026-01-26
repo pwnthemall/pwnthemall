@@ -542,7 +542,6 @@
     "attempts_left": "attempts left"
   },
   "hints": {
-    "available": "Available",
     "available_hints": "Available hints",
     "buy_for_points": "Buy for {cost} points",
     "hint": "Hint",
@@ -551,10 +550,7 @@
     "insufficient_points": "Insufficient points ({cost} required)",
     "purchased": "Purchased",
     "purchasing": "Purchasing...",
-    "reveal_hint": "Reveal hint (Admin)",
-    "spent": "Spent",
-    "team_score": "Team score",
-    "total": "Total"
+    "reveal_hint": "Reveal hint (Admin)"
   },
   "instance": {
     "active_instances": "Active instances",
