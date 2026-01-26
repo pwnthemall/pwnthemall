@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 export type UpdateEvent = {
-  event: 'challenge-category' | 'ctf-status' | 'instance' | 'user-banned' | 'ticket_created' | 'ticket_message' | 'ticket_resolved' | 'config-update' | 'team_message';
+  event: 'challenge-category' | 'ctf-status' | 'instance' | 'user-banned' | 'ticket_created' | 'ticket_message' | 'ticket_resolved' | 'config-update' | 'team_message' | 'sidebar_pages_update';
   action?: string;
   data?: any;
   key?: string;

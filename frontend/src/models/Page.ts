@@ -26,6 +26,7 @@ export interface PageFormData {
   slug: string;
   title: string;
   html: string;
+  is_in_sidebar?: boolean;
 }
 
 export interface PageWithContent extends Page {

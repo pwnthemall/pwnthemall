@@ -1034,7 +1034,9 @@
     "clear_all": "Tout effacer",
     "in_sidebar": "Afficher dans la sidebar",
     "source": "Source",
-    "view_only": "Lecture seule"
+    "view_only": "Lecture seule",
+    "show_in_sidebar": "Afficher dans la sidebar",
+    "show_in_sidebar_description": "Lorsque cette option est activée, cette page apparaîtra dans la barre latérale de navigation"
   },
   "sidebar":{
     "home":"Accueil"

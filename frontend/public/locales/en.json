@@ -1034,7 +1034,9 @@
     "clear_all": "Clear All",
     "in_sidebar": "Show in sidebar",
     "source": "Source",
-    "view_only": "Read only"
+    "view_only": "Read only",
+    "show_in_sidebar": "Show in sidebar",
+    "show_in_sidebar_description": "When enabled, this page will appear in the navigation sidebar"
   },
   "sidebar":{
     "home":"Home"

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import axios from '@/lib/axios';
 import { SidebarPage } from '@/models/Page';
+import { useRealtimeUpdates, UpdateEvent } from '@/hooks/use-realtime-updates';
 
 interface SidebarPagesContextType {
   pages: SidebarPage[];
@@ -34,6 +35,16 @@ export function SidebarPagesProvider({ children }: { children: React.ReactNode }
     setLoading(true);
     fetchPages();
   }, [fetchPages]);
+
+  // Handle WebSocket updates for sidebar pages
+  const handleRealtimeUpdate = useCallback((event: UpdateEvent) => {
+    if (event.event === 'sidebar_pages_update') {
+      fetchPages();
+    }
+  }, [fetchPages]);
+
+  // Subscribe to real-time updates
+  useRealtimeUpdates(handleRealtimeUpdate, true);
 
   useEffect(() => {
     fetchPages();

@@ -27,6 +27,7 @@ export default function EditPagePage() {
           slug: page.slug,
           title: page.title,
           html: html,
+          is_in_sidebar: page.is_in_sidebar,
         });
       } catch (err: any) {
         console.error("Failed to fetch page:", err);

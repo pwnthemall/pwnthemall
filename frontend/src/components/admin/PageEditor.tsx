@@ -10,6 +10,7 @@ import axios from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import { PageFormData } from "@/models/Page";
 import { useLanguage } from "@/context/LanguageContext";
@@ -30,6 +31,7 @@ export default function PageEditor({ initialData, pageId, mode }: PageEditorProp
   const [title, setTitle] = useState(initialData?.title || "");
   const [htmlContent, setHtmlContent] = useState(initialData?.html || "");
   const [previewContent, setPreviewContent] = useState(initialData?.html || "");
+  const [isInSidebar, setIsInSidebar] = useState(initialData?.is_in_sidebar ?? false);
   const [saving, setSaving] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
 
@@ -103,6 +105,7 @@ export default function PageEditor({ initialData, pageId, mode }: PageEditorProp
         slug: slug.trim(),
         title: title.trim(),
         html: htmlContent,
+        is_in_sidebar: isInSidebar,
       };
 
       if (mode === "create") {
@@ -121,7 +124,7 @@ export default function PageEditor({ initialData, pageId, mode }: PageEditorProp
     } finally {
       setSaving(false);
     }
-  }, [slug, title, htmlContent, mode, pageId, t, router]);
+  }, [slug, title, htmlContent, isInSidebar, mode, pageId, t, router]);
 
   // Warn before leaving if there are unsaved changes
   useEffect(() => {
@@ -245,6 +248,26 @@ export default function PageEditor({ initialData, pageId, mode }: PageEditorProp
             }}
             placeholder="About Us"
             aria-label="Page title"
+          />
+        </div>
+
+        <div className="flex items-center justify-between md:col-span-2 pt-2">
+          <div className="space-y-0.5">
+            <Label htmlFor="show-in-sidebar" className="text-base">
+              {t("pages.show_in_sidebar") || "Show in sidebar"}
+            </Label>
+            <p className="text-sm text-muted-foreground">
+              {t("pages.show_in_sidebar_description") || "When enabled, this page will appear in the navigation sidebar"}
+            </p>
+          </div>
+          <Switch
+            id="show-in-sidebar"
+            checked={isInSidebar}
+            onCheckedChange={(checked) => {
+              setIsInSidebar(checked);
+              setIsDirty(true);
+            }}
+            aria-label="Show page in sidebar"
           />
         </div>
       </div>

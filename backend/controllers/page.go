@@ -3,6 +3,7 @@ package controllers
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -109,9 +110,10 @@ func GetAdminPage(c *gin.Context) {
 // CreatePage creates a new custom page
 func CreatePage(c *gin.Context) {
 	var input struct {
-		Slug  string `json:"slug" binding:"required"`
-		Title string `json:"title" binding:"required"`
-		HTML  string `json:"html" binding:"required"`
+		Slug        string `json:"slug" binding:"required"`
+		Title       string `json:"title" binding:"required"`
+		HTML        string `json:"html" binding:"required"`
+		IsInSidebar *bool  `json:"is_in_sidebar"`
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -166,6 +168,11 @@ func CreatePage(c *gin.Context) {
 		MinioKey: fmt.Sprintf("%s.html", input.Slug),
 	}
 
+	// Set sidebar visibility if provided
+	if input.IsInSidebar != nil {
+		page.IsInSidebar = *input.IsInSidebar
+	}
+
 	if err := config.DB.Create(&page).Error; err != nil {
 		utils.InternalServerError(c, "Failed to create page: "+err.Error())
 		return
@@ -191,6 +198,11 @@ func CreatePage(c *gin.Context) {
 		return
 	}
 
+	// Broadcast sidebar update if page is in sidebar
+	if page.IsInSidebar {
+		broadcastSidebarPagesUpdate()
+	}
+
 	utils.CreatedResponse(c, gin.H{"page": page})
 }
 
@@ -204,10 +216,14 @@ func UpdatePage(c *gin.Context) {
 		return
 	}
 
+	// Store old sidebar state to detect changes
+	oldIsInSidebar := page.IsInSidebar
+
 	var input struct {
-		Slug  string `json:"slug" binding:"required"`
-		Title string `json:"title" binding:"required"`
-		HTML  string `json:"html" binding:"required"`
+		Slug        string `json:"slug" binding:"required"`
+		Title       string `json:"title" binding:"required"`
+		HTML        string `json:"html" binding:"required"`
+		IsInSidebar *bool  `json:"is_in_sidebar"`
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -273,9 +289,19 @@ func UpdatePage(c *gin.Context) {
 	page.Title = input.Title
 	page.MinioKey = newObjectKey
 
+	// Update sidebar visibility if provided
+	if input.IsInSidebar != nil {
+		page.IsInSidebar = *input.IsInSidebar
+	}
+
 	if err := config.DB.Save(&page).Error; err != nil {
 		utils.InternalServerError(c, "Failed to update page")
 		return
+	}
+
+	// Broadcast sidebar update if sidebar visibility changed
+	if oldIsInSidebar != page.IsInSidebar {
+		broadcastSidebarPagesUpdate()
 	}
 
 	utils.SuccessResponse(c, http.StatusOK, gin.H{"page": page})
@@ -291,6 +317,9 @@ func DeletePage(c *gin.Context) {
 		return
 	}
 
+	// Store sidebar state before deletion
+	wasInSidebar := page.IsInSidebar
+
 	// Delete from MinIO
 	ctx := context.Background()
 	if err := config.FS.RemoveObject(ctx, pagesBucket, page.MinioKey, minio.RemoveObjectOptions{}); err != nil {
@@ -302,6 +331,11 @@ func DeletePage(c *gin.Context) {
 	if err := config.DB.Delete(&page).Error; err != nil {
 		utils.InternalServerError(c, "Failed to delete page")
 		return
+	}
+
+	// Broadcast sidebar update if page was in sidebar
+	if wasInSidebar {
+		broadcastSidebarPagesUpdate()
 	}
 
 	utils.SuccessResponse(c, http.StatusOK, gin.H{"message": "Page deleted successfully"})
@@ -390,4 +424,17 @@ func ServePublicPageAPI(c *gin.Context) {
 			"html":       sanitizedHTML,
 		},
 	})
+}
+
+// broadcastSidebarPagesUpdate sends a WebSocket event to all clients
+// to notify them that sidebar pages have changed
+func broadcastSidebarPagesUpdate() {
+	event := map[string]string{
+		"event": "sidebar_pages_update",
+	}
+	payload, err := json.Marshal(event)
+	if err != nil {
+		return
+	}
+	utils.UpdatesHub.SendToAll(payload)
 }
