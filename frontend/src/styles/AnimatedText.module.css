@@ -1,18 +1,20 @@
-@keyframes blink {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0;
-  }
-}
-
 .cursor {
   display: inline-block;
-  width: 2px;
-  height: 20px;
-  background-color: #06b6d4;
-  margin-left: 2px;
+  width: 8px;
+  height: 1.5rem;
+  background-color: #f8f8f8;
+  animation: blink 1s infinite;
   vertical-align: middle;
-  animation: blink 0.75s step-end infinite;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }

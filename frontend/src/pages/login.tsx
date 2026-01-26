@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "@/context/AuthContext";
 import { useSiteConfig } from "@/context/SiteConfigContext";
-import LoginContent from "@/components/LoginContent";
+import LoginContent from "@/components/auth/LoginContent";
 import { useLanguage } from "@/context/LanguageContext";
 import { toast } from "sonner";
 import axios from "@/lib/axios";

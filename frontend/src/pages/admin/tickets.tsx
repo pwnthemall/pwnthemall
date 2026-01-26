@@ -12,13 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Sheet,
   SheetContent,
   SheetHeader,
@@ -34,7 +27,6 @@ export default function AdminTicketsPage() {
   const { t } = useLanguage();
   
   const [statusFilter, setStatusFilter] = useState<string>("");
-  const [typeFilter, setTypeFilter] = useState<string>("all");
   const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
   
   const { tickets, loading } = useTickets({
@@ -141,12 +133,7 @@ export default function AdminTicketsPage() {
     return date.toLocaleDateString();
   };
 
-  const filteredTickets = tickets.filter(ticket => {
-    if (typeFilter && typeFilter !== 'all' && ticket.ticketType !== typeFilter) return false;
-    return true;
-  });
-
-  const openCount = tickets.filter(t => t.status === 'open').length;
+  const filteredTickets = tickets;
 
   return (
     <>
@@ -154,7 +141,7 @@ export default function AdminTicketsPage() {
         <title>{t("admin.tickets") || "Tickets"} - {getSiteName()}</title>
       </Head>
       
-      <div className="space-y-6">
+      <div className="space-y-6 p-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -164,32 +151,18 @@ export default function AdminTicketsPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            {openCount > 0 && (
-              <Badge variant="destructive">{openCount} {t("tickets.open") || "open"}</Badge>
-            )}
+            {/* Open count badge removed */}
           </div>
         </div>
 
         {/* Filters */}
-        <div className="flex gap-4">
-          <Tabs value={statusFilter} onValueChange={setStatusFilter} className="flex-1">
-            <TabsList>
-              <TabsTrigger value="">{t("tickets.all") || "All"}</TabsTrigger>
-              <TabsTrigger value="open">{t("tickets.open") || "Open"}</TabsTrigger>
-              <TabsTrigger value="resolved">{t("tickets.resolved") || "Resolved"}</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder={t("tickets.type") || "Type"} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("tickets.all_types") || "All Types"}</SelectItem>
-              <SelectItem value="user">{t("tickets.personal") || "Personal"}</SelectItem>
-              <SelectItem value="team">{t("tickets.team") || "Team"}</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <Tabs value={statusFilter} onValueChange={setStatusFilter}>
+          <TabsList>
+            <TabsTrigger value="">{t("tickets.all") || "All"}</TabsTrigger>
+            <TabsTrigger value="open">{t("tickets.open") || "Open"}</TabsTrigger>
+            <TabsTrigger value="resolved">{t("tickets.resolved") || "Resolved"}</TabsTrigger>
+          </TabsList>
+        </Tabs>
 
         {/* Tickets List */}
         {loading ? (

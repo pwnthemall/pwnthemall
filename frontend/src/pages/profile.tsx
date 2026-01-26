@@ -1,5 +1,5 @@
 import { useProtectedRoute } from "@/hooks/use-protected-route";
-import ProductionProfileCard from "../components/ProductionProfileCard";
+import ProductionProfileCard from "@/components/profile/ProductionProfileCard";
 import { Loader } from "lucide-react";
 
 export default function ProfilePage() {

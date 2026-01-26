@@ -173,7 +173,7 @@ export default function DashboardContent() {
       <Head>
         <title>{getSiteName()} - {t("admin.dashboard")}</title>
       </Head>
-      <div className="min-h-screen p-3 space-y-3">
+      <div className="min-h-screen p-6 space-y-6">
         {/* CTF Status Section */}
         <CTFStatusOverview />
 

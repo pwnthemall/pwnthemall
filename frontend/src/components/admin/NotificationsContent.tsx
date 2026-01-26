@@ -123,7 +123,7 @@ export default function NotificationsContent({
         <title>{getSiteName()} - Admin Notifications</title>
       </Head>
       
-      <div className="min-h-screen p-4 overflow-x-auto">
+      <div className="min-h-screen p-6 overflow-x-auto">
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">{t("notifications")}</h1>

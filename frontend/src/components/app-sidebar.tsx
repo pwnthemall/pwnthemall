@@ -159,7 +159,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         adminSubItems.push(
           { title: 'Categories & Difficulties', url: "/admin/challenge-categories" },
           { title: 'Challenges', url: "/admin/challenges" },
-          { title: t('challenge_order_management'), url: "/admin/challenge-order" },
+          { title: t('featured_challenges.featured_challenges_management'), url: "/admin/challenge-order" },
           { title: t('configuration'), url: "/admin/configuration" },
           { title: 'Notifications', url: "/admin/notifications" }
         );

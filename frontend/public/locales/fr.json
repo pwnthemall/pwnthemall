@@ -48,6 +48,7 @@
     "category": "Catégorie",
     "type": "Type",
     "difficulty": "Difficulté",
+    "color": "Couleur",
     "points": "Points",
     "first_blood": "First Blood",
     "status": "Statut",
@@ -226,6 +227,16 @@
     "delete_challenge_category_confirm": "Êtes-vous sûr de vouloir supprimer la catégorie de challenge '{{name}}' ?",
     "edit_challenge_category": "Modifier la catégorie de challenge",
     "new_challenge_category": "Nouvelle catégorie de challenge"
+  },
+  "challenge_difficulty": {
+    "challenge_difficulties": "Difficultés des challenges",
+    "create_challenge_difficulty": "Créer une difficulté de challenge",
+    "delete_challenge_difficulties": "Supprimer les difficultés de challenge",
+    "delete_challenge_difficulties_confirm": "Êtes-vous sûr de vouloir supprimer les difficultés de challenge sélectionnées ?",
+    "delete_challenge_difficulty": "Supprimer la difficulté de challenge",
+    "delete_challenge_difficulty_confirm": "Êtes-vous sûr de vouloir supprimer la difficulté de challenge '{{name}}' ?",
+    "edit_challenge_difficulty": "Modifier la difficulté de challenge",
+    "new_challenge_difficulty": "Nouvelle difficulté de challenge"
   },
   "challenge_order": {
     "challenge_order_management": "Gestion de l'ordre des challenges",

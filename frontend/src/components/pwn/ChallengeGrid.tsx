@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Lock, CheckCircle2, Play, AlertCircle } from "lucide-react";
-import ChallengeImage from "@/components/ChallengeImage";
+import ChallengeImage from "@/components/challenge/ChallengeImage";
 
 interface ChallengeGridProps {
   challenges: Challenge[];

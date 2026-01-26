@@ -112,7 +112,7 @@ export default function ChallengeDifficultiesContent({ challengeDifficulties, on
     <>
       <div className="w-full">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-2xl font-semibold">{t('challenge_difficulties')}</h2>
+          <h2 className="text-2xl font-semibold">{t('challenge_difficulty.challenge_difficulties')}</h2>
           <div className="flex items-center gap-2">
             <div
               className={cn(
@@ -130,11 +130,11 @@ export default function ChallengeDifficultiesContent({ challengeDifficulties, on
             </div>
             <Sheet open={creating} onOpenChange={setCreating}>
               <SheetTrigger asChild>
-                <Button size="sm">{t('new_challenge_difficulty')}</Button>
+                <Button size="sm">{t('challenge_difficulty.new_challenge_difficulty')}</Button>
               </SheetTrigger>
               <SheetContent side="right" onOpenAutoFocus={(e) => e.preventDefault()}>
                 <SheetHeader>
-                  <SheetTitle>{t('create_challenge_difficulty')}</SheetTitle>
+                  <SheetTitle>{t('challenge_difficulty.create_challenge_difficulty')}</SheetTitle>
                 </SheetHeader>
                 <ChallengeDifficultiesForm onSubmit={handleCreate} />
               </SheetContent>
@@ -153,7 +153,7 @@ export default function ChallengeDifficultiesContent({ challengeDifficulties, on
       <Sheet open={!!editingChallengeDifficulty} onOpenChange={(o) => !o && setEditingChallengeDifficulty(null)}>
         <SheetContent side="right" onOpenAutoFocus={(e) => e.preventDefault()}>
           <SheetHeader>
-            <SheetTitle>{t('edit_challenge_difficulty')}</SheetTitle>
+            <SheetTitle>{t('challenge_difficulty.edit_challenge_difficulty')}</SheetTitle>
           </SheetHeader>
           {editingChallengeDifficulty && (
             <ChallengeDifficultiesForm
@@ -167,9 +167,9 @@ export default function ChallengeDifficultiesContent({ challengeDifficulties, on
       <AlertDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('delete_challenge_difficulty')}</AlertDialogTitle>
+            <AlertDialogTitle>{t('challenge_difficulty.delete_challenge_difficulty')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t('delete_challenge_difficulty_confirm', { name: deleting?.name || '' })}
+              {t('challenge_difficulty.delete_challenge_difficulty_confirm', { name: deleting?.name || '' })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -181,9 +181,9 @@ export default function ChallengeDifficultiesContent({ challengeDifficulties, on
       <AlertDialog open={confirmMassDelete} onOpenChange={setConfirmMassDelete}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('delete_challenge_difficulties')}</AlertDialogTitle>
+            <AlertDialogTitle>{t('challenge_difficulty.delete_challenge_difficulties')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t('delete_challenge_difficulties_confirm')}
+              {t('challenge_difficulty.delete_challenge_difficulties_confirm')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

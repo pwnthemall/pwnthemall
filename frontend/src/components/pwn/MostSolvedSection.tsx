@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BadgeCheck, Lock } from "lucide-react";
-import ChallengeImage from "@/components/ChallengeImage";
+import ChallengeImage from "@/components/challenge/ChallengeImage";
 import { AnimatedBorderCard } from "./AnimatedBorderCard";
 import axios from "@/lib/axios";
 

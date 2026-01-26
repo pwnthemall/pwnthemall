@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "@/lib/axios";
 import { useRouter } from "next/router";
 import { useSiteConfig } from "@/context/SiteConfigContext";
-import RegisterContent from "@/components/RegisterContent";
+import RegisterContent from "@/components/auth/RegisterContent";
 import { toast } from "sonner";
 import { useLanguage } from "@/context/LanguageContext";
 import Head from "next/head";
