@@ -71,36 +71,9 @@ export default function PageEditor({ initialData, pageId, mode }: PageEditorProp
     };
   }, []);
 
-  // Warn before leaving if there are unsaved changes
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (isDirty) {
-        e.preventDefault();
-        e.returnValue = "";
-      }
-    };
-
-    // Keyboard shortcut: Ctrl+S / Cmd+S to save
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault();
-        if (isDirty && !saving) {
-          handleSave();
-        }
-      }
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    window.addEventListener("keydown", handleKeyDown);
-    
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isDirty, saving]);
 
   // Handle save (create or update)
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     // Validation
     if (!slug.trim()) {
       toast.error(t("slug_required") || "Slug is required");
@@ -148,7 +121,36 @@ export default function PageEditor({ initialData, pageId, mode }: PageEditorProp
     } finally {
       setSaving(false);
     }
-  };
+  }, [slug, title, htmlContent, mode, pageId, t, router]);
+
+  // Warn before leaving if there are unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+
+    // Keyboard shortcut: Ctrl+S / Cmd+S to save
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        if (isDirty && !saving) {
+          handleSave();
+        }
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("keydown", handleKeyDown);
+    
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isDirty, saving, handleSave]);
+
 
   // Handle cancel
   const handleCancel = () => {
