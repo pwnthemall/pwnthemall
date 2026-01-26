@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import styles from '../styles/AnimatedText.module.css';
+import styles from '../../styles/AnimatedText.module.css';
 
 interface AnimatedTextProps {
   text: string;
