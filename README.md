@@ -1,4 +1,5 @@
 <div align="center">
+Development is currently paused for a few weeks due to the devs working on getting the OSCP
 <br>
 <img src="frontend/public/logo-v2-text-dark.png" width=400>
 
