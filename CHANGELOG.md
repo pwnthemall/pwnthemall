@@ -1,5 +1,131 @@
 # 🚀 Changelog
 
+## [0.8.1](https://github.com/pwnthemall/pwnthemall/compare/v0.8.0...v0.8.1) (2026-01-11)
+
+
+### 🐛 Bug fixes
+
+* **challenge-files:** Attached files on challenges correction & rate limit added on endpoint ([a63598d](https://github.com/pwnthemall/pwnthemall/commit/a63598d0f5a5c24a65bc90b8e98c20ba90193959))
+* **challenge-files:** Attached files on challenges correction & rate limit added on endpoint ([86a960a](https://github.com/pwnthemall/pwnthemall/commit/86a960ada6efaeee9a9f16f914705bb5bff1bf5e))
+
+## [0.8.0](https://github.com/pwnthemall/pwnthemall/compare/v0.7.0...v0.8.0) (2026-01-09)
+
+
+### 🧩 Features
+
+* **demo:** Prevent users to enter personal data on demo environment ([ae1935e](https://github.com/pwnthemall/pwnthemall/commit/ae1935e5eb6217b8a3aedf088ca48e28bafe856f))
+
+## [0.7.0](https://github.com/pwnthemall/pwnthemall/compare/v0.6.0...v0.7.0) (2026-01-08)
+
+
+### 🧩 Features
+
+* **socials:** Users can now save & display multiples social links on their public profile, edit in the profile 'Account' tab ([2d5c663](https://github.com/pwnthemall/pwnthemall/commit/2d5c66325125b3e7851f3ed315389fa7be8c2d52))
+
+
+### 🐛 Bug fixes
+
+* **index:** Now redirecting to /pages/index when not logged in ([47d393d](https://github.com/pwnthemall/pwnthemall/commit/47d393dad9fe40631926c531c73740e6c1687330))
+* **social-links:** Twitter replaced by X ([8692b17](https://github.com/pwnthemall/pwnthemall/commit/8692b17055b4bc78445173e2f4a4dadf3059f23c))
+* **social-links:** Twitter replaced by X ([200407d](https://github.com/pwnthemall/pwnthemall/commit/200407d6c41db5c3ba7fda7ba255b727d77877a9))
+* **socials:** Fix discord logo ([34fdb4e](https://github.com/pwnthemall/pwnthemall/commit/34fdb4e4f1943441bd5dd7bd952bc1c541b7ed02))
+
+## [0.6.0](https://github.com/pwnthemall/pwnthemall/compare/v0.5.0...v0.6.0) (2025-12-31)
+
+
+### 🧩 Features
+
+* **custom-pages:** Custom pages feature improvement ([5419854](https://github.com/pwnthemall/pwnthemall/commit/54198549a6d385cefc0c314ecebaa5f5e1ee6da9))
+
+
+### 🐛 Bug fixes
+
+* **build:** Fixed pta not building ([3b272fe](https://github.com/pwnthemall/pwnthemall/commit/3b272fe5f8b479ed8aad03ed27a77f1baa26f822))
+* **chall-creation:** Remove one 'no decay' option which was duped ([229fd1f](https://github.com/pwnthemall/pwnthemall/commit/229fd1f81001c2c3c20fb5231b4171b054234890))
+* **custom-pages:** Administration table fixed (wrong controller function call in admin routes) ([dc1f506](https://github.com/pwnthemall/pwnthemall/commit/dc1f506d7cb94593f25b3a72d457a5ad31cd28f7))
+* Redirect to /login when not logged and added a check for unauthed users to avoid trying to connect to ws ([f5677bd](https://github.com/pwnthemall/pwnthemall/commit/f5677bda1f52969fec3f620fdd2026df98231667))
+* **scoreboard:** Add missing memberCount to team leaderboard response ([0a47459](https://github.com/pwnthemall/pwnthemall/commit/0a47459019384fcc48a366fe4274e55b99ecf33c))
+* **security:** Add ticket ID validation to prevent request forgery ([0b2a345](https://github.com/pwnthemall/pwnthemall/commit/0b2a3450c88e3fdc5ff7f528a03f8a9d4a34bdd3))
+* **seeder/scoreboard:** Added a random amount of players for each team when seeding the db using pta-cli ([9ad9645](https://github.com/pwnthemall/pwnthemall/commit/9ad96454740f661aeb3a6043ff16e67b47ed2f55))
+* **tickets:** Fixed tickets not using realtime updates, tickets now have RT for creation,update(message), status chaneg etc ([3e4d6a9](https://github.com/pwnthemall/pwnthemall/commit/3e4d6a94b338de022731e7a01be8e391468853ac))
+* **trad:** Wrong trads in en.json ([492ee31](https://github.com/pwnthemall/pwnthemall/commit/492ee3166e9f92db9fbaaf9c67831a5199a8cdc5))
+
+## [0.5.0](https://github.com/pwnthemall/pwnthemall/compare/v0.4.0...v0.5.0) (2025-12-23)
+
+
+### 🧩 Features
+
+* **button-toggle-sidebar:** Add button on toggle sidebar ([e0128d0](https://github.com/pwnthemall/pwnthemall/commit/e0128d02f5a844eb33791035af53a3d3b2e2536c))
+* **discreet-button-menu:** Add button menu above home button ([b0b5dc9](https://github.com/pwnthemall/pwnthemall/commit/b0b5dc944b738df44c191adae46274b0fac11a92))
+
+
+### 🐛 Bug fixes
+
+* **admin:** Fixed challenge order manageent not picking up challenges ([a38903f](https://github.com/pwnthemall/pwnthemall/commit/a38903fdcb2cd5034ef39eb19ea5f69270f2013a))
+* **admin:** Fixed challenge order manageent not picking up challenges ([dc013c0](https://github.com/pwnthemall/pwnthemall/commit/dc013c04283d5e4cb2b501e911c832c518b77b9e))
+* **build:** Fixed multiple front issues ([fe59310](https://github.com/pwnthemall/pwnthemall/commit/fe59310dc1eddd6ed3e46cf96210110760288fd4))
+* **frontend-sidebar:** Using lucid react for burger Menu & SidebarBurger component exported to be used in app-sidebar ([7def4db](https://github.com/pwnthemall/pwnthemall/commit/7def4db06eca3c335985f19e5a2758aaf4d5ad29))
+* **frontend:** Compilation error on prod env ([9f7132d](https://github.com/pwnthemall/pwnthemall/commit/9f7132da01e24b25d502eca71edf35a586c3da61))
+* **frontend:** Wrong axios object use in useChallengeActions hook (causing CSRF check fail) ([d83de60](https://github.com/pwnthemall/pwnthemall/commit/d83de608cc11ef8a423e8004b2b59ea68cc42de8))
+* **front:** Fix build issues and misc changes ([cb8a076](https://github.com/pwnthemall/pwnthemall/commit/cb8a076ddd5fb4f378a3b8653134dcb74dae3f45))
+
+
+### 📝 Documentation
+
+* **bruno:** API spec fix ([e549ff6](https://github.com/pwnthemall/pwnthemall/commit/e549ff6b9d500b2994968503a270076309b97500))
+* **bruno:** Collection organization fix ([2627944](https://github.com/pwnthemall/pwnthemall/commit/262794487477e35951baf388cebe17fd6561e3c4))
+
+## [0.4.0](https://github.com/pwnthemall/pwnthemall/compare/v0.3.2...v0.4.0) (2025-12-18)
+
+
+### 🧩 Features
+
+* **admin:** Geoint challenge -&gt; you'll be able to create one using a map ( place pin ) ([c8f1498](https://github.com/pwnthemall/pwnthemall/commit/c8f1498d4875f3b392893f9f4eba968a8ba471e5))
+* **admin:** You can now access users public profile by clicking the users on solves tab and leaderboard ([ccc35da](https://github.com/pwnthemall/pwnthemall/commit/ccc35da04ad05a2494a4b5fd4370138a86afa4bf))
+* **admin:** You can now add a cover+replace it when creating a challenge through the admin interface ([2bf8387](https://github.com/pwnthemall/pwnthemall/commit/2bf8387f082018df1bd6e8b1583be19f887265f2))
+* **admin:** You can now create standard and geoint challenges through the admin interface ([2161e9f](https://github.com/pwnthemall/pwnthemall/commit/2161e9f37acb2b96909df48eda6c427fc4c001f6))
+* **admin:** You can now export challenges as zip ( not the flag ), made for challenges created from the interface but you can use it for every challenges ([a533ff8](https://github.com/pwnthemall/pwnthemall/commit/a533ff89fb7fbe606f05fe281c6d070cc0f09883))
+* **auth:** Add theme-based logo and glow effect configuration ([dd1be80](https://github.com/pwnthemall/pwnthemall/commit/dd1be802d699e4f54191ced21506929f64fc62b9))
+* **csrf-protection:** Protection implemented in backend + frontend; … ([6b81caa](https://github.com/pwnthemall/pwnthemall/commit/6b81caa811001f2033abaf44ee741f6fed8a3a7a))
+* **csrf-protection:** Protection implemented in backend + frontend; translations & theme fix ([0558cc7](https://github.com/pwnthemall/pwnthemall/commit/0558cc75a9335fbf54429cf3ac2e9e31ce71f8c7))
+* **export-data:** Add scoreboard export button and CSV/HTML options ([18fe916](https://github.com/pwnthemall/pwnthemall/commit/18fe916192bff5870cd0342a654a913c7d16fa5e))
+* **live-view:** You can access it through /live/classic (or top right of the leaderboard page). auto switch between individual and teams, smooth or instant trnasition etc ([90a6aee](https://github.com/pwnthemall/pwnthemall/commit/90a6aee7354b3174e38591659a9ea9dc9a6200ed))
+* **plugins:** Backend upgrade on challenge_bridge & plugin system ([c42d501](https://github.com/pwnthemall/pwnthemall/commit/c42d501a7d44a831e5d2fc701925ce4823244b2f))
+* **plugins:** Multiple fix in pluginsystem + dynamic challenge type fix ([911e8a8](https://github.com/pwnthemall/pwnthemall/commit/911e8a8a76c670e160671466e58a6fd903d73473))
+* **scoreboard:** Convert to line chart&dots ( like live view ) and add settings controls for animation and auto-switch ([c4e1e26](https://github.com/pwnthemall/pwnthemall/commit/c4e1e269ba0794f718f351420480076968704539))
+* **tickets:** Add complete backend ticket system with models, controllers, and feature toggle ([3e0e396](https://github.com/pwnthemall/pwnthemall/commit/3e0e396478a88921ff975040e9e1a7fd9a3812df))
+* **tickets:** Add ticket models, hooks, and UI components ([c7effea](https://github.com/pwnthemall/pwnthemall/commit/c7effead7690ed507993752683949a0711a63191))
+* **tickets:** Add user/admin ticket pages and sidebar integration ([f36b66d](https://github.com/pwnthemall/pwnthemall/commit/f36b66dad702c4be5fa35bb96298805f52ed4397))
+* **tickets:** Extend webSocket for ticket events and fix notification paths ([391bc1b](https://github.com/pwnthemall/pwnthemall/commit/391bc1bd4b1da7cfa1c28d9d00c42c10b3517336))
+
+
+### 🐛 Bug fixes
+
+* **admin:** Casbin fix ([1f439e2](https://github.com/pwnthemall/pwnthemall/commit/1f439e25d34f08983b88009abcace6778c79438c))
+* **admin:** Download feature not downloading everything ([0b0f9c4](https://github.com/pwnthemall/pwnthemall/commit/0b0f9c4228665a6ac12a414761d273ece454264d))
+* **admin:** Hints are now synced when creatign a challenge through the admin inetrface ([345bb98](https://github.com/pwnthemall/pwnthemall/commit/345bb98d24b2c1b1a68575421628862444808acb))
+* **admin:** Moved exprot chall feature to utils ([c8a698d](https://github.com/pwnthemall/pwnthemall/commit/c8a698d3cd638bb3da121b6733200559aa5f1fe1))
+* **admin:** Public profiels are now accessible only when auth-ed ([326292f](https://github.com/pwnthemall/pwnthemall/commit/326292f993cf4911c59eab408545fe22b0dd0b04))
+* **auth:** Add skeleton loading state to prevent logo stretching on reg/log page ([d66b5e6](https://github.com/pwnthemall/pwnthemall/commit/d66b5e6f4cf4a4c134727668353edc08c7bb46bc))
+* **auth:** Suppress 401/403 console errors for unauthenticated users ([39cfa84](https://github.com/pwnthemall/pwnthemall/commit/39cfa84513c61d173b56194ee83fba86eb4556ff))
+* **backend/gin:** Gin mode now depends on PTA_DEBUG_ENABLED ([6a89acb](https://github.com/pwnthemall/pwnthemall/commit/6a89acb64102a42bb1f1cbdd8bbfb536642a004d))
+* **backend/gin:** Gin mode now depends on PTA_DEBUG_ENABLED ([2ba490e](https://github.com/pwnthemall/pwnthemall/commit/2ba490e66ac30d4946e7df7d776fa192a57d73d4))
+* **casbin:** Wrong route check on admin challenge route ([903f401](https://github.com/pwnthemall/pwnthemall/commit/903f4014d0f72b4dd333218deee970ef6e816ae5))
+* **docker-compose:** Adding new volume for libvirt-worker ([53087a8](https://github.com/pwnthemall/pwnthemall/commit/53087a8d604554dd56cf80ad0397646a118bcbdd))
+* **frontend:** Resolve all ESLint warnings ([fc632bd](https://github.com/pwnthemall/pwnthemall/commit/fc632bddc343ff4750e641c27cead0780f9f40b2))
+* **hints:** Hints now uses websockets to avoid having to do an f5 ([33a11da](https://github.com/pwnthemall/pwnthemall/commit/33a11da7abfe2337d2467d043c3d05aea53b7554))
+* **misc:** Misc changes ([484f08e](https://github.com/pwnthemall/pwnthemall/commit/484f08e42ee92bc54591c310e34644e3f66e3c37))
+* **profile:** Backend route fix ([6313e26](https://github.com/pwnthemall/pwnthemall/commit/6313e26a9ed0e3dcc6e32a2ccd1a2856138f9782))
+* **profile:** Bruno + fixes ([703b734](https://github.com/pwnthemall/pwnthemall/commit/703b7348a574c52463193ee6da9be281346975f5))
+* **security:** Fixed being able to see hints in the /api/challenges endpoint ([af26bc3](https://github.com/pwnthemall/pwnthemall/commit/af26bc37ebfc689e5bd3a6b2766fcc311aab8297))
+* **seeder:** Demo data seeding now reuses existing teams and creates realistic solving dtata ([05a719e](https://github.com/pwnthemall/pwnthemall/commit/05a719e06d572388a55468e5faf52f3cc8cb0ad9))
+* **ui:** Convert img to Next.js Image and fix button nesting errors ([325226a](https://github.com/pwnthemall/pwnthemall/commit/325226a22468d4fe7657b65ca84dc5ba9c8dde12))
+
+
+### 📝 Documentation
+
+* **bruno:** New routes added to collection ([e6ab755](https://github.com/pwnthemall/pwnthemall/commit/e6ab7558fe10e406374d5829b0af19e359d43d3a))
+
 ## [0.3.2](https://github.com/pwnthemall/pwnthemall/compare/v0.3.1...v0.3.2) (2025-12-08)
 
 
